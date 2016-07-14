@@ -5,20 +5,20 @@ import java.lang.reflect.InvocationTargetException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.apache.commons.cli2.Argument;
-import org.apache.commons.cli2.CommandLine;
-import org.apache.commons.cli2.Group;
-import org.apache.commons.cli2.Option;
-import org.apache.commons.cli2.OptionException;
-import org.apache.commons.cli2.builder.ArgumentBuilder;
-import org.apache.commons.cli2.builder.DefaultOptionBuilder;
-import org.apache.commons.cli2.builder.GroupBuilder;
-import org.apache.commons.cli2.commandline.Parser;
-import org.apache.commons.cli2.util.HelpFormatter;
+import javax.net.ssl.HttpsURLConnection;
+
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.DefaultParser;
+import org.apache.commons.cli.HelpFormatter;
+import org.apache.commons.cli.Option;
+import org.apache.commons.cli.Options;
+import org.apache.commons.cli.ParseException;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.auth.NTCredentials;
 import org.apache.http.client.fluent.Executor;
@@ -27,121 +27,118 @@ import org.apache.http.client.fluent.Response;
 import org.apache.http.message.BasicHeader;
 
 public class Curl {
+
+    private final static String      ARGS_SPLIT_REGEX = "([^'\"][^ ]*|(?:\"(?:[^\"]|\\\\\")+\")|(?:'(?:[^']|[^ ]+')+'))\\s+";
     
-    private final static String ARGS_SPLIT_REGEX = "([^'\"][^ ]*|(?:\"(?:[^\"]|\\\\\")+\")|(?:'(?:[^']|[^ ]+')+'))\\s+";
-    
-    private final static DefaultOptionBuilder OPTION_BUILDER   = new DefaultOptionBuilder ();
-    private final static ArgumentBuilder      ARGUMENT_BUILDER = new ArgumentBuilder ();
-    private final static GroupBuilder         GROUP_BUILDER    = new GroupBuilder ();
-    
-    private final static Option               HTTP_METHOD      = Curl.OPTION_BUILDER.withShortName ("X").withDescription ("Http Method").withRequired (false)
-            .withArgument (Curl.ARGUMENT_BUILDER.withName ("method").withMinimum (0).withDefault ("GET").withMaximum (1).create ()).create ();
-    
-    private final static Option               HEADER           = Curl.OPTION_BUILDER.withShortName ("H").withDescription ("Header").withRequired (false)
-            .withArgument (Curl.ARGUMENT_BUILDER.withName ("headerValue").withMinimum (1).withMaximum (1).create ()).create ();
-    
-    private final static Option               DATA             = Curl.OPTION_BUILDER.withShortName ("d").withDescription ("Data").withRequired (false)
-            .withArgument (Curl.ARGUMENT_BUILDER.withName ("dataValue").withMaximum (1).create ()).create ();
-    
-    private final static Option               SILENT           = Curl.OPTION_BUILDER.withShortName ("s").withDescription ("silent curl").withRequired (false).create ();
-    
-    private final static Option               TRUST_INSECURE   = Curl.OPTION_BUILDER.withShortName ("k").withDescription ("trust insecure").withRequired (false).create ();
-    
-    private final static Option               NO_BUFFERING     = Curl.OPTION_BUILDER.withShortName ("N").withDescription ("no buffering").withRequired (false).create ();
-    
-    private final static Option               NTLM             = Curl.OPTION_BUILDER.withLongName ("ntlm").withDescription ("NTLM auth").withRequired (false).create ();
-    
-    private final static Option               AUTH             = Curl.OPTION_BUILDER.withShortName ("u").withLongName ("username").withDescription ("user:password")
-            .withRequired (false).withArgument (Curl.ARGUMENT_BUILDER.withName ("credentials").withMinimum (1).withMaximum (1).create ()).create ();
-    
-    private final static Argument             URL              = Curl.ARGUMENT_BUILDER.withName ("url").withMaximum (1).withMinimum (0).create ();
-    
-    private final static Group                CURL_GROUP       = Curl.GROUP_BUILDER.withOption (Curl.URL).withOption (Curl.HTTP_METHOD).withOption (Curl.HEADER)
-            .withOption (Curl.DATA).withOption (Curl.SILENT).withOption (Curl.TRUST_INSECURE).withOption (Curl.NO_BUFFERING).withOption (Curl.AUTH)
-            .withOption (Curl.NTLM).create ();
-    
-    public static Response curl (String requestCommand) {
-        return Curl.curl (Curl.prepareRequest (requestCommand), Curl.prepareExecutor (requestCommand));
+    private final static Option      HTTP_METHOD      = Option.builder ("X").longOpt ("request").desc ("Http Method").required (false).hasArg ().argName ("method").build ();
+
+    private final static Option      HEADER           = Option.builder ("H").longOpt ("header").desc ("Header").required (false).hasArg ().argName ("headerValue").build ();
+
+    private final static Option      DATA             = Option.builder ("d").longOpt ("data").desc ("Data").required (false).hasArg ().argName ("payload").build ();
+
+    private final static Option      SILENT           = Option.builder ("s").longOpt ("silent").desc ("silent").required (false).hasArg (false).build ();
+
+    private final static Option      TRUST_INSECURE   = Option.builder ("k").longOpt ("insecure").desc ("trust insecure").required (false).hasArg (false).build ();
+
+    private final static Option      NO_BUFFERING     = Option.builder ("n").longOpt ("no-buffer").desc ("no buffering").required (false).hasArg (false).build ();
+
+    private final static Option      NTLM             = Option.builder ().longOpt ("ntlm").desc ("NTLM auth").required (false).hasArg (false).build ();
+
+    private final static Option      AUTH             = Option.builder ("u").longOpt ("username").desc ("user:password").required (false).hasArg (true).desc ("credentials")
+            .build ();
+
+    private final static Options     OPTIONS          = new Options ().addOption (Curl.HTTP_METHOD).addOption (Curl.HEADER).addOption (Curl.DATA).addOption (Curl.SILENT)
+            .addOption (Curl.TRUST_INSECURE).addOption (Curl.NO_BUFFERING).addOption (Curl.NTLM).addOption (Curl.AUTH);
+
+    public static String $t (final String requestCommand) {
+        try {
+            return Curl.curl (requestCommand).returnContent ().asString ();
+        } catch (IOException e) {
+            throw new RuntimeException (e);
+        }
+    }
+
+    public static String curlT (final Request request) {
+        try {
+            return Curl.curl (request, null).returnContent ().asString ();
+        } catch (IOException e) {
+            throw new RuntimeException (e);
+        }
     }
     
-    public static Response curl (Request request) {
+    public static Response $ (final String requestCommand) {
+        return Curl.curl (requestCommand);
+    }
+
+    public static Response curl (final Request request) {
         return Curl.curl (request, null);
     }
-    
-    public static Response curl (Request request, Executor executor) {
-        
+
+    public static Response curl (final Request request, final Executor executor) {
+
         try {
             return executor == null ? request.execute () : executor.execute (request);
         } catch (final IOException e) {
             throw new RuntimeException (e);
         }
     }
-    
-    private static String [] getArgsFromCommand (String requestCommandWithoutBasename) {
-        String requestCommandInput = requestCommandWithoutBasename.replaceAll ("\\s+-([a-zA-Z0-9])", " -$1 ");
-        Matcher matcher = Pattern.compile (ARGS_SPLIT_REGEX).matcher (requestCommandInput);
-        List<String> args = new ArrayList<String> ();
+
+    public static Response curl (final String requestCommand) {
+        final CommandLine commandLine = Curl.getCommandLineFromRequest (requestCommand);
+        return Curl.curl (Curl.prepareRequest (commandLine), Curl.prepareExecutor (commandLine));
+    }
+
+    private static String [] getArgsFromCommand (final String requestCommandWithoutBasename) {
+        final String requestCommandInput = requestCommandWithoutBasename.replaceAll ("\\s+-([a-zA-Z0-9])", " -$1 ");
+        final Matcher matcher = Pattern.compile (Curl.ARGS_SPLIT_REGEX).matcher (requestCommandInput);
+        final List<String> args = new ArrayList<> ();
         while (matcher.find ()) {
-            args.add (removeSlashes(matcher.group (1).trim ()));
+            args.add (Curl.removeSlashes (matcher.group (1).trim ()));
         }
-        return args.toArray (new String[args.size ()]);
-        
+        return args.toArray (new String [args.size ()]);
+
     }
-    
-    private static String removeSlashes (String arg) {
-        if (arg.charAt (0) == '\"') {
-            return arg.substring (1, arg.length () - 2).replaceAll ("\\\"", "\"");
-        }
-        if (arg.charAt (0) == '\'') {
-            return arg.substring (1, arg.length () - 2).replaceAll ("\\\'", "\'");
-        }
-        return arg;
-    }
-    
-    private static Request getBuilder (CommandLine cl, Option httpMethod, Argument url) {
+
+    private static Request getBuilder (final CommandLine cl) {
         try {
-            return (Request) Request.class.getDeclaredMethod (StringUtils.capitalize (cl.getValue (httpMethod).toString ().toLowerCase ().replaceAll ("[^a-z]", "")), String.class)
-                    .invoke (null, cl.getValue (url));
+            final String method = (cl.getOptionValue (Curl.HTTP_METHOD.getOpt ()) == null ? "GET" : cl.getOptionValue (Curl.HTTP_METHOD.getOpt ())).toString ();
+            return (Request) Request.class.getDeclaredMethod (StringUtils.capitalize (method.toLowerCase ().replaceAll ("[^a-z]", "")), String.class).invoke (null,
+                    cl.getArgs () [0]);
         } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException | NoSuchMethodException | SecurityException | IllegalStateException e) {
             throw new RuntimeException (e);
         }
     }
-    
-    private static CommandLine getCommandLineFromRequest (String requestCommand) {
-        final HelpFormatter hf = new HelpFormatter ();
-        
+
+    private static CommandLine getCommandLineFromRequest (final String requestCommand) {
+
         // configure a parser
-        final Parser parser = new Parser ();
-        parser.setGroup (Curl.CURL_GROUP);
-        parser.setHelpFormatter (hf);
-        parser.setHelpTrigger ("--help");
+        final DefaultParser parser = new DefaultParser ();
+
         final String requestCommandWithoutBasename = requestCommand.replaceAll ("^[ ]*curl[ ]*", " ") + " ";
         final String [] args = Curl.getArgsFromCommand (requestCommandWithoutBasename);
         CommandLine commandLine;
         try {
-            commandLine = parser.parse (args);
-        } catch (final OptionException e) {
-            parser.parseAndHelp (new String [] { "--help" });
+            commandLine = parser.parse (Curl.OPTIONS, args);
+        } catch (final ParseException e) {
+            new HelpFormatter ().printHelp ("curl", Curl.OPTIONS);
             throw new RuntimeException (e);
         }
         return commandLine;
     }
-    
-    public static Executor prepareExecutor (String requestCommand) {
+
+    public static Executor prepareExecutor (final CommandLine commandLine) {
         Executor executor = null;
-        
-        final CommandLine commandLine = Curl.getCommandLineFromRequest (requestCommand);
-        
+
         String hostname;
         try {
             hostname = InetAddress.getLocalHost ().getHostName ();
         } catch (final UnknownHostException e1) {
             throw new RuntimeException (e1);
         }
-        
-        if (commandLine.getValue (Curl.AUTH) != null) {
-            final String [] authValue = commandLine.getValue (Curl.AUTH).toString ().split ("(?<!\\\\):");
-            if (commandLine.getOptionCount (Curl.NTLM) == 1) {
+
+        if (commandLine.getOptionValue (Curl.AUTH.getOpt ()) != null) {
+            final String [] authValue = commandLine.getOptionValue (Curl.AUTH.getOpt ()).toString ().split ("(?<!\\\\):");
+            if (commandLine.hasOption (Curl.NTLM.getOpt ())) {
                 final String [] userName = authValue [0].split ("\\\\");
                 executor = Executor.newInstance ().auth (new NTCredentials (userName [1], authValue [1], hostname, userName [0]));
             } else {
@@ -150,24 +147,36 @@ public class Curl {
         }
         return executor;
     }
-    
-    @SuppressWarnings ("unchecked")
-    public static Request prepareRequest (String requestCommand) {
-        
-        final CommandLine commandLine = Curl.getCommandLineFromRequest (requestCommand);
-        
-        final Request request = Curl.getBuilder (commandLine, Curl.HTTP_METHOD, Curl.URL);
-        
-        ((List<String>) commandLine.getValues (Curl.HEADER)).stream ().map (optionAsString -> optionAsString.split (":"))
+
+    public static Request prepareRequest (final CommandLine commandLine) {
+
+        final Request request = Curl.getBuilder (commandLine);
+
+        final String [] headers = Optional.ofNullable (commandLine.getOptionValues (Curl.HEADER.getOpt ())).orElse (new String [0]);
+        Arrays.asList (headers).stream ().map (optionAsString -> optionAsString.split (":"))
                 .map (optionAsArray -> new BasicHeader (optionAsArray [0].trim ().replaceAll ("^\"", "").replaceAll ("\\\"$", "").replaceAll ("^\\'", "").replaceAll ("\\'$", ""),
                         optionAsArray [1].trim ()))
                 .forEach (basicHeader -> request.addHeader (basicHeader));
-        
-        if (commandLine.getValue (Curl.DATA) != null) {
-            request.bodyByteArray (commandLine.getValue (Curl.DATA).toString ().getBytes ());
+
+        if (commandLine.hasOption (Curl.DATA.getOpt ())) {
+            request.bodyByteArray (commandLine.getOptionValue (Curl.DATA.getOpt ()).toString ().getBytes ());
         }
-        
+
+        if (commandLine.hasOption (Curl.TRUST_INSECURE.getOpt ())) {
+            HttpsURLConnection.setDefaultHostnameVerifier ( (host, sslSession) -> true);
+        }
+
         return request;
-        
+
+    }
+
+    private static String removeSlashes (final String arg) {
+        if (arg.charAt (0) == '\"') {
+            return arg.substring (1, arg.length () - 1).replaceAll ("\\\"", "\"");
+        }
+        if (arg.charAt (0) == '\'') {
+            return arg.substring (1, arg.length () - 1).replaceAll ("\\\'", "\'");
+        }
+        return arg;
     }
 }
