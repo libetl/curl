@@ -48,6 +48,15 @@ public class RequestMonitor {
             logRequest (request, body);
             return "";
         }
+
+        @RequestMapping (value = "unauthorized", produces = MediaType.TEXT_PLAIN_VALUE)
+        @ResponseStatus (code = HttpStatus.UNAUTHORIZED)
+        @ResponseBody
+        public String unauthorized (HttpServletRequest request, HttpServletResponse response, @RequestBody (required = false) String body) {
+            response.setHeader ("Location", serverLocation (request) + "/authenticate");
+            logRequest (request, body);
+            return "";
+        }
         
         @RequestMapping (produces = MediaType.TEXT_PLAIN_VALUE)
         @ResponseStatus (code = HttpStatus.OK)

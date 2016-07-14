@@ -58,6 +58,11 @@ public class CurlTest {
     }
     
     @Test
+    public void curlToUnauthorized () {
+        assertUnauthorized($("curl http://localhost:" + RequestMonitor.port() + "/unauthorized"));
+    }
+    
+    @Test
     public void curlToRedirectionWithFollowRedirectParam () {
         assertOk($("curl -L http://localhost:" + RequestMonitor.port() + "/redirection"));
     }
