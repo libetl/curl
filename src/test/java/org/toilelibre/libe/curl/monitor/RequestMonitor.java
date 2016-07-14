@@ -4,6 +4,7 @@ import java.util.Enumeration;
 import java.util.Random;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,10 +39,24 @@ public class RequestMonitor {
     @RequestMapping ("/**")
     static class MonitorController {
         
+
+        @RequestMapping (value = "redirection", produces = MediaType.TEXT_PLAIN_VALUE)
+        @ResponseStatus (code = HttpStatus.FOUND)
+        @ResponseBody
+        public String redirection (HttpServletRequest request, HttpServletResponse response, @RequestBody (required = false) String body) {
+            response.setHeader ("Location", serverLocation (request) + "/redirectedThere");
+            logRequest (request, body);
+            return "";
+        }
+        
         @RequestMapping (produces = MediaType.TEXT_PLAIN_VALUE)
         @ResponseStatus (code = HttpStatus.OK)
         @ResponseBody
         public String receiveRequest (HttpServletRequest request, @RequestBody (required = false) String body) {
+            return logRequest (request, body);
+        }
+
+        private String logRequest (HttpServletRequest request, String body) {
             StringBuffer curlLog = new StringBuffer ("curl");
             
             curlLog.append (" -X ");
@@ -66,12 +81,16 @@ public class RequestMonitor {
             
             curlLog.append (" ");
             curlLog.append (" '");
-            curlLog.append (request.getScheme () + "://" + request.getServerName () + ":" + port() +
+            curlLog.append (serverLocation(request) +
                     request.getServletPath () + 
                     (request.getQueryString ()== null ? "" : "?" + request.getQueryString ()));
             curlLog.append ("'");
             LOGGER.info (curlLog.toString ());
             return curlLog.toString ();
+        }
+
+        private String serverLocation (HttpServletRequest request) {
+            return request.getScheme () + "://" + request.getServerName () + ":" + port();
         }
     }
     

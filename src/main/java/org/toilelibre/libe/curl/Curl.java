@@ -1,8 +1,11 @@
 package org.toilelibre.libe.curl;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.lang.reflect.InvocationTargetException;
 import java.net.InetAddress;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -11,23 +14,29 @@ import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import javax.net.ssl.HttpsURLConnection;
-
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
-import org.apache.commons.lang3.StringUtils;
+import org.apache.http.HttpEntityEnclosingRequest;
+import org.apache.http.HttpHost;
+import org.apache.http.HttpResponse;
+import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.NTCredentials;
-import org.apache.http.client.fluent.Executor;
-import org.apache.http.client.fluent.Request;
-import org.apache.http.client.fluent.Response;
+import org.apache.http.auth.UsernamePasswordCredentials;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpRequestBase;
+import org.apache.http.client.methods.HttpUriRequest;
+import org.apache.http.entity.StringEntity;
+import org.apache.http.impl.client.BasicCredentialsProvider;
+import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.impl.client.SystemDefaultCredentialsProvider;
 import org.apache.http.message.BasicHeader;
 
 public class Curl {
-
+    
     private final static String      ARGS_SPLIT_REGEX = "([^'\"][^ ]*|(?:\"(?:[^\"]|\\\\\")+\")|(?:'(?:[^']|[^ ]+')+'))\\s+";
     
     private final static Option      HTTP_METHOD      = Option.builder ("X").longOpt ("request").desc ("Http Method").required (false).hasArg ().argName ("method").build ();
@@ -46,46 +55,52 @@ public class Curl {
 
     private final static Option      AUTH             = Option.builder ("u").longOpt ("username").desc ("user:password").required (false).hasArg (true).desc ("credentials")
             .build ();
+    
+    private final static Option      FOLLOW_REDIRECTS = Option.builder ("L").longOpt ("location").desc ("follow redirects").required (false).hasArg (false).build ();
 
     private final static Options     OPTIONS          = new Options ().addOption (Curl.HTTP_METHOD).addOption (Curl.HEADER).addOption (Curl.DATA).addOption (Curl.SILENT)
-            .addOption (Curl.TRUST_INSECURE).addOption (Curl.NO_BUFFERING).addOption (Curl.NTLM).addOption (Curl.AUTH);
+            .addOption (Curl.TRUST_INSECURE).addOption (Curl.NO_BUFFERING).addOption (Curl.NTLM).addOption (Curl.AUTH).addOption (Curl.FOLLOW_REDIRECTS);
 
     public static String $t (final String requestCommand) {
         try {
-            return Curl.curl (requestCommand).returnContent ().asString ();
+            return IOUtils.toString(Curl.curl (requestCommand).getEntity ().getContent ());
         } catch (IOException e) {
             throw new RuntimeException (e);
         }
     }
 
-    public static String curlT (final Request request) {
+    public static String curlT (final HttpUriRequest request) {
         try {
-            return Curl.curl (request, null).returnContent ().asString ();
+            return IOUtils.toString(Curl.curl (request).getEntity ().getContent ());
         } catch (IOException e) {
             throw new RuntimeException (e);
         }
     }
     
-    public static Response $ (final String requestCommand) {
+    public static HttpResponse $ (final String requestCommand) {
         return Curl.curl (requestCommand);
     }
 
-    public static Response curl (final Request request) {
+    public static HttpResponse curl (final HttpUriRequest request) {
         return Curl.curl (request, null);
     }
 
-    public static Response curl (final Request request, final Executor executor) {
+    public static HttpResponse curl (final HttpUriRequest request, final HttpClient executor) {
 
         try {
-            return executor == null ? request.execute () : executor.execute (request);
+            return sendRequest (request, executor);
         } catch (final IOException e) {
             throw new RuntimeException (e);
         }
     }
 
-    public static Response curl (final String requestCommand) {
+    private static HttpResponse sendRequest (HttpUriRequest request, HttpClient executor) throws IOException {
+        return executor.execute (request);
+    }
+
+    public static HttpResponse curl (final String requestCommand) {
         final CommandLine commandLine = Curl.getCommandLineFromRequest (requestCommand);
-        return Curl.curl (Curl.prepareRequest (commandLine), Curl.prepareExecutor (commandLine));
+        return Curl.curl (Curl.prepareRequest (commandLine), Curl.prepareHttpClient (commandLine));
     }
 
     private static String [] getArgsFromCommand (final String requestCommandWithoutBasename) {
@@ -99,12 +114,15 @@ public class Curl {
 
     }
 
-    private static Request getBuilder (final CommandLine cl) {
+    private static HttpUriRequest getBuilder (final CommandLine cl) {
         try {
             final String method = (cl.getOptionValue (Curl.HTTP_METHOD.getOpt ()) == null ? "GET" : cl.getOptionValue (Curl.HTTP_METHOD.getOpt ())).toString ();
-            return (Request) Request.class.getDeclaredMethod (StringUtils.capitalize (method.toLowerCase ().replaceAll ("[^a-z]", "")), String.class).invoke (null,
-                    cl.getArgs () [0]);
-        } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException | NoSuchMethodException | SecurityException | IllegalStateException e) {
+            return 
+                    (HttpUriRequest) Class.forName (
+                            HttpRequestBase.class.getPackage ().getName () + ".Http" + StringUtils.capitalize (method.toLowerCase ().replaceAll ("[^a-z]", "")))
+                                          .getConstructor (URI.class)
+                                          .newInstance (new URI(cl.getArgs ()[0]));
+        } catch (IllegalAccessException | IllegalArgumentException | SecurityException | IllegalStateException | InstantiationException | ClassNotFoundException | InvocationTargetException | NoSuchMethodException | URISyntaxException e) {
             throw new RuntimeException (e);
         }
     }
@@ -126,8 +144,8 @@ public class Curl {
         return commandLine;
     }
 
-    public static Executor prepareExecutor (final CommandLine commandLine) {
-        Executor executor = null;
+    public static HttpClient prepareHttpClient (final CommandLine commandLine) {
+        HttpClientBuilder executor = HttpClientBuilder.create ();
 
         String hostname;
         try {
@@ -136,35 +154,51 @@ public class Curl {
             throw new RuntimeException (e1);
         }
 
+        executor = Curl.handleAuthMethod (commandLine, executor, hostname);
+        
+        if (!commandLine.hasOption (Curl.FOLLOW_REDIRECTS.getOpt ())) { 
+            executor.disableRedirectHandling ();
+        }
+        if (commandLine.hasOption (Curl.TRUST_INSECURE.getOpt ())) {
+            executor.setSSLHostnameVerifier ( (host, sslSession) -> true);
+        }
+        return executor.build ();
+    }
+
+    private static HttpClientBuilder handleAuthMethod (final CommandLine commandLine, HttpClientBuilder executor, String hostname) {
         if (commandLine.getOptionValue (Curl.AUTH.getOpt ()) != null) {
             final String [] authValue = commandLine.getOptionValue (Curl.AUTH.getOpt ()).toString ().split ("(?<!\\\\):");
             if (commandLine.hasOption (Curl.NTLM.getOpt ())) {
                 final String [] userName = authValue [0].split ("\\\\");
-                executor = Executor.newInstance ().auth (new NTCredentials (userName [1], authValue [1], hostname, userName [0]));
+                SystemDefaultCredentialsProvider systemDefaultCredentialsProvider = new SystemDefaultCredentialsProvider ();
+                systemDefaultCredentialsProvider.setCredentials (AuthScope.ANY, new NTCredentials (userName [1], authValue [1], hostname, userName [0]));
+                executor = executor.setDefaultCredentialsProvider (systemDefaultCredentialsProvider);
             } else {
-                executor = Executor.newInstance ().auth (authValue [0], authValue [1]);
+                BasicCredentialsProvider basicCredentialsProvider = new BasicCredentialsProvider ();
+                basicCredentialsProvider.setCredentials (new AuthScope (HttpHost.create (commandLine.getArgs ()[0])), new UsernamePasswordCredentials (authValue [0], authValue [1]));
+                executor = executor.setDefaultCredentialsProvider (basicCredentialsProvider);
             }
         }
         return executor;
     }
 
-    public static Request prepareRequest (final CommandLine commandLine) {
+    public static HttpUriRequest prepareRequest (final CommandLine commandLine) {
 
-        final Request request = Curl.getBuilder (commandLine);
-
+        final HttpUriRequest request = Curl.getBuilder (commandLine);
+        
+        if (commandLine.hasOption (Curl.DATA.getOpt ()) && request instanceof HttpEntityEnclosingRequest) {
+            try {
+                ((HttpEntityEnclosingRequest)request).setEntity (new StringEntity (commandLine.getOptionValue (Curl.DATA.getOpt ()).toString ()));
+            } catch (UnsupportedEncodingException e) {
+                throw new RuntimeException (e);
+            }
+        }
+        
         final String [] headers = Optional.ofNullable (commandLine.getOptionValues (Curl.HEADER.getOpt ())).orElse (new String [0]);
         Arrays.asList (headers).stream ().map (optionAsString -> optionAsString.split (":"))
                 .map (optionAsArray -> new BasicHeader (optionAsArray [0].trim ().replaceAll ("^\"", "").replaceAll ("\\\"$", "").replaceAll ("^\\'", "").replaceAll ("\\'$", ""),
                         optionAsArray [1].trim ()))
                 .forEach (basicHeader -> request.addHeader (basicHeader));
-
-        if (commandLine.hasOption (Curl.DATA.getOpt ())) {
-            request.bodyByteArray (commandLine.getOptionValue (Curl.DATA.getOpt ()).toString ().getBytes ());
-        }
-
-        if (commandLine.hasOption (Curl.TRUST_INSECURE.getOpt ())) {
-            HttpsURLConnection.setDefaultHostnameVerifier ( (host, sslSession) -> true);
-        }
 
         return request;
 

@@ -12,12 +12,10 @@ import org.toilelibre.libe.curl.monitor.RequestMonitor;
 import static org.toilelibre.libe.curl.Curl.$;
 import static org.toilelibre.libe.curl.Curl.$t;
 
-import java.io.IOException;
-
 import static org.fest.assertions.Assertions.assertThat;
 
+import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
-import org.apache.http.client.fluent.Response;
 import org.apache.log4j.MDC;
 
 public class CurlTest {
@@ -55,6 +53,16 @@ public class CurlTest {
     }
     
     @Test
+    public void curlToRedirectionWithoutFollowRedirectParam () {
+        assertFound($("curl http://localhost:" + RequestMonitor.port() + "/redirection"));
+    }
+    
+    @Test
+    public void curlToRedirectionWithFollowRedirectParam () {
+        assertOk($("curl -L http://localhost:" + RequestMonitor.port() + "/redirection"));
+    }
+    
+    @Test
     public void curlWithHeaders () {
         assertOk($("curl -H'Host: localhost' -H'Authorization: 45e03eb2-8954-40a3-8068-c926f0461182' http://localhost:" + RequestMonitor.port() + "/v1/coverage/sncf/journeys?from=admin:7444extern"));
     }
@@ -84,23 +92,23 @@ public class CurlTest {
         assertOk($($t("curl -X GET -H 'User-Agent: curl/7.49.1' -H 'Accept: */*' -H 'Host: localhost'  'http://localhost:" + RequestMonitor.port() + "/curlCommand2?param1=value1&param2=value2'")));
     }
     
-    private void assertUnauthorized (Response curlResponse) {
+    private void assertUnauthorized (HttpResponse curlResponse) {
         assertThat (curlResponse).isNotNull ();
         assertThat (statusCodeOf (curlResponse)).isEqualTo (HttpStatus.SC_UNAUTHORIZED);
 
     }
 
-    private void assertOk (Response curlResponse) {
+    private void assertOk (HttpResponse curlResponse) {
         assertThat (curlResponse).isNotNull ();
-        assertThat (statusCodeOf (curlResponse)).isEqualTo (HttpStatus.SC_OK);
-        
+        assertThat (statusCodeOf (curlResponse)).isEqualTo (HttpStatus.SC_OK); 
+    }
+    
+    private void assertFound (HttpResponse curlResponse) {
+        assertThat (curlResponse).isNotNull ();
+        assertThat (statusCodeOf (curlResponse)).isEqualTo (HttpStatus.SC_MOVED_TEMPORARILY); 
     }
 
-    private int statusCodeOf (Response response) {
-        try {
-            return response.returnResponse ().getStatusLine ().getStatusCode ();
-        } catch (IOException e) {
-            return 0;
-        }
+    private int statusCodeOf (HttpResponse response) {
+        return response.getStatusLine ().getStatusCode ();
     }
 }
