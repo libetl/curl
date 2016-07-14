@@ -1,5 +1,12 @@
 package org.toilelibre.libe.curl;
 
+import static org.fest.assertions.Assertions.assertThat;
+import static org.toilelibre.libe.curl.Curl.$;
+import static org.toilelibre.libe.curl.Curl.$t;
+
+import org.apache.http.HttpResponse;
+import org.apache.http.HttpStatus;
+import org.apache.log4j.MDC;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Rule;
@@ -8,17 +15,6 @@ import org.junit.rules.MethodRule;
 import org.junit.runners.model.FrameworkMethod;
 import org.junit.runners.model.Statement;
 import org.toilelibre.libe.curl.monitor.RequestMonitor;
-
-import static org.toilelibre.libe.curl.Curl.$;
-import static org.toilelibre.libe.curl.Curl.$t;
-
-import java.security.cert.CertificateException;
-
-import static org.fest.assertions.Assertions.assertThat;
-
-import org.apache.http.HttpResponse;
-import org.apache.http.HttpStatus;
-import org.apache.log4j.MDC;
 
 public class CurlTest {
     
