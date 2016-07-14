@@ -7,6 +7,9 @@ import java.net.InetAddress;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.UnknownHostException;
+import java.security.KeyManagementException;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -29,11 +32,14 @@ import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.client.methods.HttpUriRequest;
+import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
+import org.apache.http.conn.ssl.TrustSelfSignedStrategy;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.SystemDefaultCredentialsProvider;
 import org.apache.http.message.BasicHeader;
+import org.apache.http.ssl.SSLContextBuilder;
 
 public class Curl {
     
@@ -159,10 +165,22 @@ public class Curl {
         if (!commandLine.hasOption (Curl.FOLLOW_REDIRECTS.getOpt ())) { 
             executor.disableRedirectHandling ();
         }
-        if (commandLine.hasOption (Curl.TRUST_INSECURE.getOpt ())) {
-            executor.setSSLHostnameVerifier ( (host, sslSession) -> true);
-        }
+        Curl.handleTrustInsecure (commandLine, executor);
         return executor.build ();
+    }
+
+    private static void handleTrustInsecure (CommandLine commandLine, HttpClientBuilder executor) {
+        if (commandLine.hasOption (Curl.TRUST_INSECURE.getOpt ())) {
+            try {
+                SSLContextBuilder builder = new SSLContextBuilder();
+                builder.loadTrustMaterial(null, new TrustSelfSignedStrategy());
+                SSLConnectionSocketFactory sslSocketFactory = new SSLConnectionSocketFactory(
+                        builder.build());
+                executor.setSSLSocketFactory (sslSocketFactory);
+            } catch (NoSuchAlgorithmException | KeyStoreException | KeyManagementException e) {
+                throw new RuntimeException (e);
+            }
+        }
     }
 
     private static HttpClientBuilder handleAuthMethod (final CommandLine commandLine, HttpClientBuilder executor, String hostname) {

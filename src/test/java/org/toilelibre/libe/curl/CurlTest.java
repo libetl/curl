@@ -12,6 +12,8 @@ import org.toilelibre.libe.curl.monitor.RequestMonitor;
 import static org.toilelibre.libe.curl.Curl.$;
 import static org.toilelibre.libe.curl.Curl.$t;
 
+import java.security.cert.CertificateException;
+
 import static org.fest.assertions.Assertions.assertThat;
 
 import org.apache.http.HttpResponse;
@@ -47,54 +49,59 @@ public class CurlTest {
         }
     };
     
+    @Test(expected= RuntimeException.class)
+    public void curlRootWithoutTrustingInsecure () {
+        $("curl https://localhost:" + RequestMonitor.port() + "/");
+    }
+    
     @Test
     public void curlRoot () {
-        assertOk($("curl http://localhost:" + RequestMonitor.port() + "/"));
+        assertOk($("curl -k https://localhost:" + RequestMonitor.port() + "/"));
     }
     
     @Test
     public void curlToRedirectionWithoutFollowRedirectParam () {
-        assertFound($("curl http://localhost:" + RequestMonitor.port() + "/redirection"));
+        assertFound($("curl -k https://localhost:" + RequestMonitor.port() + "/redirection"));
     }
     
     @Test
     public void curlToUnauthorized () {
-        assertUnauthorized($("curl http://localhost:" + RequestMonitor.port() + "/unauthorized"));
+        assertUnauthorized($("curl -k https://localhost:" + RequestMonitor.port() + "/unauthorized"));
     }
     
     @Test
     public void curlToRedirectionWithFollowRedirectParam () {
-        assertOk($("curl -L http://localhost:" + RequestMonitor.port() + "/redirection"));
+        assertOk($("curl -k -L https://localhost:" + RequestMonitor.port() + "/redirection"));
     }
     
     @Test
     public void curlWithHeaders () {
-        assertOk($("curl -H'Host: localhost' -H'Authorization: 45e03eb2-8954-40a3-8068-c926f0461182' http://localhost:" + RequestMonitor.port() + "/v1/coverage/sncf/journeys?from=admin:7444extern"));
+        assertOk($("curl -k -H'Host: localhost' -H'Authorization: 45e03eb2-8954-40a3-8068-c926f0461182' https://localhost:" + RequestMonitor.port() + "/v1/coverage/sncf/journeys?from=admin:7444extern"));
     }
     
     @Test
     public void readCurlRoot () {
-        assertOk($($t ("curl http://localhost:" + RequestMonitor.port() + "/")));
+        assertOk($($t ("curl -k https://localhost:" + RequestMonitor.port() + "/")));
     }
     
     @Test
     public void readCurlWithHeaders () {
-        assertOk($($t("curl -H'Host: localhost' -H'Authorization: 45e03eb2-8954-40a3-8068-c926f0461182' http://localhost:" + RequestMonitor.port() + "/v1/coverage/sncf/journeys?from=admin:7444extern")));
+        assertOk($($t("curl -k -H'Host: localhost' -H'Authorization: 45e03eb2-8954-40a3-8068-c926f0461182' https://localhost:" + RequestMonitor.port() + "/v1/coverage/sncf/journeys?from=admin:7444extern")));
     }
 
     
     @Test
     public void curlOfReadCurlOfReadCurl () {
-        assertOk($($t($t($t($t("curl http://localhost:" + RequestMonitor.port() + "/"))))));
+        assertOk($($t($t($t($t("curl -k https://localhost:" + RequestMonitor.port() + "/"))))));
     }
     
     @Test
     public void readCurlCommand () {
-        assertOk($("curl -X GET -H 'User-Agent: curl/7.49.1' -H 'Accept: */*' -H 'Host: localhost'  'http://localhost:" + RequestMonitor.port() + "/curlCommand1?param1=value1&param2=value2'"));
+        assertOk($("curl -k -X GET -H 'User-Agent: curl/7.49.1' -H 'Accept: */*' -H 'Host: localhost'  'https://localhost:" + RequestMonitor.port() + "/curlCommand1?param1=value1&param2=value2'"));
     }
     @Test
     public void readCurlOfCurlCommand () {
-        assertOk($($t("curl -X GET -H 'User-Agent: curl/7.49.1' -H 'Accept: */*' -H 'Host: localhost'  'http://localhost:" + RequestMonitor.port() + "/curlCommand2?param1=value1&param2=value2'")));
+        assertOk($($t("curl -k -X GET -H 'User-Agent: curl/7.49.1' -H 'Accept: */*' -H 'Host: localhost'  'https://localhost:" + RequestMonitor.port() + "/curlCommand2?param1=value1&param2=value2'")));
     }
     
     private void assertUnauthorized (HttpResponse curlResponse) {

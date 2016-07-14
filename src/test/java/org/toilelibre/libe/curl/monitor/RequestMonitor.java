@@ -32,7 +32,7 @@ public class RequestMonitor {
 
     public static void main (String [] args) {
         System.setProperty ("spring.output.ansi.enabled", "detect");
-        RequestMonitor.start (8080, 8092);
+        RequestMonitor.start (8080, 8092, false);
     }
     
     @Controller
@@ -67,7 +67,8 @@ public class RequestMonitor {
 
         private String logRequest (HttpServletRequest request, String body) {
             StringBuffer curlLog = new StringBuffer ("curl");
-            
+
+            curlLog.append (" -k ");
             curlLog.append (" -X ");
             curlLog.append (request.getMethod ());
             
@@ -104,15 +105,24 @@ public class RequestMonitor {
     }
     
     public static int [] start () {
+        return start (true);
+    }
+    
+    public static int [] start (boolean withSsl) {
         final Random random = new Random ();
         port = random.nextInt (32767) + 32768;
         managementPort = random.nextInt (32767) + 32768;
-        start (port, managementPort);
+        start (port, managementPort, withSsl);
         return new int [] { port, managementPort };
     }
-    public static void start (int port, int managementPort) {
+    
+    public static void start (int port, int managementPort, boolean withSsl) {
         System.setProperty ("server.port", String.valueOf (port));
         System.setProperty ("managementPort.port", String.valueOf (managementPort));
+        System.setProperty ("server.ssl.key-store", "classpath:keystore.jks");
+        System.setProperty ("server.ssl.key-store-password", "password");
+        System.setProperty ("server.ssl.key-password", "password");
+        
         context = SpringApplication.run (RequestMonitor.class, new String [0]);
     }
     
