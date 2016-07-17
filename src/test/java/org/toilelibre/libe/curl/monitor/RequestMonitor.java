@@ -1,6 +1,8 @@
 package org.toilelibre.libe.curl.monitor;
 
+import java.io.IOException;
 import java.util.Enumeration;
+import java.util.Map;
 import java.util.Random;
 
 import javax.servlet.http.HttpServletRequest;
@@ -28,6 +30,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
+
+import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 @SpringBootApplication
 @EnableWebMvc
@@ -113,6 +119,16 @@ public class RequestMonitor {
         public String receiveRequest (HttpServletRequest request, @RequestBody (required = false) String body) {
             return logRequest (request, body);
         }
+        
+        @RequestMapping (value = "/public/json", produces = MediaType.TEXT_PLAIN_VALUE)
+        @ResponseStatus (code = HttpStatus.OK)
+        @ResponseBody
+        public String json (HttpServletRequest request, @RequestBody (required = true) String body) throws JsonParseException, JsonMappingException, IOException {
+            @SuppressWarnings ("unchecked")
+            Map<String, Object> map = (Map<String, Object>) new ObjectMapper().readValue (body, Map.class);
+            LOGGER.info (map.toString ());
+            return logRequest (request, body);
+        }
 
         private String logRequest (HttpServletRequest request, String body) {
             StringBuffer curlLog = new StringBuffer ("curl");
@@ -168,9 +184,11 @@ public class RequestMonitor {
     public static void start (int port, int managementPort, boolean withSsl) {
         System.setProperty ("server.port", String.valueOf (port));
         System.setProperty ("managementPort.port", String.valueOf (managementPort));
-        System.setProperty ("server.ssl.key-store", "classpath:keystore.jks");
-        System.setProperty ("server.ssl.key-store-password", "password");
-        System.setProperty ("server.ssl.key-password", "password");
+        if (withSsl) {
+            System.setProperty ("server.ssl.key-store", "classpath:keystore.jks");
+            System.setProperty ("server.ssl.key-store-password", "password");
+            System.setProperty ("server.ssl.key-password", "password");
+        }
         
         context = SpringApplication.run (RequestMonitor.class, new String [0]);
     }

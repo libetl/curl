@@ -116,6 +116,11 @@ public class CurlTest {
         assertOk($("curl -L -k -X GET -H 'User-Agent: curl/7.49.1' -H 'Accept: */*' -H 'Host: localhost' -u user:password 'https://localhost:" + RequestMonitor.port() + "/private/login'"));
     }
     
+    @Test
+    public void withJsonBody () {
+        assertOk($("curl -k -X POST 'https://localhost:" + RequestMonitor.port() + "/public/json' -d '{\"var1\":\"val1\",\"var2\":\"val2\"}'"));
+    }
+    
     private void assertUnauthorized (HttpResponse curlResponse) {
         assertThat (curlResponse).isNotNull ();
         assertThat (statusCodeOf (curlResponse)).isEqualTo (HttpStatus.SC_UNAUTHORIZED);
