@@ -44,11 +44,6 @@ public class RequestMonitor {
     private static int                            port;
     
     private static final Logger LOGGER = LoggerFactory.getLogger (RequestMonitor.class);
-
-    public static void main (String [] args) {
-        System.setProperty ("spring.output.ansi.enabled", "detect");
-        RequestMonitor.start (8080, 8092, false);
-    }
     
     @Configuration
     @EnableWebSecurity
