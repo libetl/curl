@@ -8,12 +8,20 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.batch.JobExecutionExitCodeGenerator;
 import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.builders.WebSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -23,6 +31,7 @@ import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 
 @SpringBootApplication
 @EnableWebMvc
+@EnableWebSecurity
 public class RequestMonitor {
     private static ConfigurableApplicationContext context;
     private static int                            managementPort;
@@ -35,25 +44,65 @@ public class RequestMonitor {
         RequestMonitor.start (8080, 8092, false);
     }
     
+    @Configuration
+    @EnableWebSecurity
+    static class WebSecurityConfig extends WebSecurityConfigurerAdapter {
+        @Override
+        public void configure(WebSecurity http) throws Exception {
+            http
+                .ignoring ()
+                    .antMatchers ("/public/**");
+        }
+        
+        @Override
+        protected void configure(HttpSecurity http) throws Exception {
+            http
+                .authorizeRequests()
+                    .antMatchers("/private").permitAll()
+                    .anyRequest().authenticated ()
+                    .and()
+                .httpBasic ()
+                    .realmName ("basic")
+                    .and ()
+                .logout()
+                    .permitAll();
+        }
+
+        @Autowired
+        public void configureGlobal(AuthenticationManagerBuilder auth) throws Exception {
+            auth
+                .inMemoryAuthentication()
+                    .withUser("user").password("password").roles("USER");
+        }
+    }
+    
     @Controller
     @RequestMapping ("/**")
     static class MonitorController {
         
-
-        @RequestMapping (value = "redirection", produces = MediaType.TEXT_PLAIN_VALUE)
+        @RequestMapping (value = "/public/redirection", produces = MediaType.TEXT_PLAIN_VALUE)
         @ResponseStatus (code = HttpStatus.FOUND)
         @ResponseBody
         public String redirection (HttpServletRequest request, HttpServletResponse response, @RequestBody (required = false) String body) {
-            response.setHeader ("Location", serverLocation (request) + "/redirectedThere");
+            response.setHeader ("Location", serverLocation (request) + "/public/redirectedThere");
             logRequest (request, body);
             return "";
         }
 
-        @RequestMapping (value = "unauthorized", produces = MediaType.TEXT_PLAIN_VALUE)
+        @RequestMapping (value = "/public/unauthorized", produces = MediaType.TEXT_PLAIN_VALUE)
         @ResponseStatus (code = HttpStatus.UNAUTHORIZED)
         @ResponseBody
         public String unauthorized (HttpServletRequest request, HttpServletResponse response, @RequestBody (required = false) String body) {
-            response.setHeader ("Location", serverLocation (request) + "/authenticate");
+            response.setHeader ("Location", serverLocation (request) + "/public/tryagain");
+            logRequest (request, body);
+            return "";
+        }
+
+        @RequestMapping (value = "/private/login", produces = MediaType.TEXT_PLAIN_VALUE)
+        @ResponseStatus (code = HttpStatus.FOUND)
+        @ResponseBody
+        public String login (HttpServletRequest request, HttpServletResponse response, @RequestBody (required = false) String body, Authentication auth) {
+            response.setHeader ("Location", serverLocation (request) + "/private/logged");
             logRequest (request, body);
             return "";
         }

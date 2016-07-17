@@ -57,7 +57,7 @@ public class Curl {
 
     private final static Option      NO_BUFFERING     = Option.builder ("n").longOpt ("no-buffer").desc ("no buffering").required (false).hasArg (false).build ();
 
-    private final static Option      NTLM             = Option.builder ().longOpt ("ntlm").desc ("NTLM auth").required (false).hasArg (false).build ();
+    private final static Option      NTLM             = Option.builder ("ntlm").longOpt ("ntlm").desc ("NTLM auth").required (false).hasArg (false).build ();
 
     private final static Option      AUTH             = Option.builder ("u").longOpt ("username").desc ("user:password").required (false).hasArg (true).desc ("credentials")
             .build ();
@@ -193,7 +193,7 @@ public class Curl {
                 executor = executor.setDefaultCredentialsProvider (systemDefaultCredentialsProvider);
             } else {
                 BasicCredentialsProvider basicCredentialsProvider = new BasicCredentialsProvider ();
-                basicCredentialsProvider.setCredentials (new AuthScope (HttpHost.create (commandLine.getArgs ()[0])), new UsernamePasswordCredentials (authValue [0], authValue [1]));
+                basicCredentialsProvider.setCredentials (new AuthScope (HttpHost.create (URI.create(commandLine.getArgs ()[0]).getHost ())), new UsernamePasswordCredentials (authValue [0], authValue [1]));
                 executor = executor.setDefaultCredentialsProvider (basicCredentialsProvider);
             }
         }
