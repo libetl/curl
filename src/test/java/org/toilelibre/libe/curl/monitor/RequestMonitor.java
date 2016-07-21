@@ -164,28 +164,37 @@ public class RequestMonitor {
         }
     }
     
+    public static void main (String [] args) {
+        start(args);
+    }
+
     public static int [] start () {
-        return start (true);
+        return start (new String [0]);
     }
     
-    public static int [] start (boolean withSsl) {
+    public static int [] start (String[] args) {
+        return start (true, args);
+    }
+    
+    public static int [] start (boolean withSsl, String[] args) {
         final Random random = new Random ();
         port = random.nextInt (32767) + 32768;
         managementPort = random.nextInt (32767) + 32768;
-        start (port, managementPort, withSsl);
+        start (port, managementPort, withSsl, args);
         return new int [] { port, managementPort };
     }
     
-    public static void start (int port, int managementPort, boolean withSsl) {
+    public static void start (int port, int managementPort, boolean withSsl, String[] args) {
         System.setProperty ("server.port", String.valueOf (port));
         System.setProperty ("managementPort.port", String.valueOf (managementPort));
         if (withSsl) {
             System.setProperty ("server.ssl.key-store", "classpath:keystore.jks");
             System.setProperty ("server.ssl.key-store-password", "password");
             System.setProperty ("server.ssl.key-password", "password");
+            //System.setProperty ("server.ssl.client-auth", "need");
         }
         
-        context = SpringApplication.run (RequestMonitor.class, new String [0]);
+        context = SpringApplication.run (RequestMonitor.class, args);
     }
     
     public static void stop () {

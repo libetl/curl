@@ -21,11 +21,12 @@ final class Arguments {
 
     final static Option      NTLM             = Option.builder ("ntlm").longOpt ("ntlm").desc ("NTLM auth").required (false).hasArg (false).build ();
 
-    final static Option      AUTH             = Option.builder ("u").longOpt ("username").desc ("user:password").required (false).hasArg (true).desc ("credentials")
-            .build ();
+    final static Option      AUTH             = Option.builder ("u").longOpt ("username").desc ("credentials").required (false).hasArg (true).desc ("user:password").build ();
+    
+    final static Option      CERT             = Option.builder ("E").longOpt ("cert").desc ("client certificate").required (false).hasArg (true).desc ("CERT[:password]").build ();
     
     final static Option      FOLLOW_REDIRECTS = Option.builder ("L").longOpt ("location").desc ("follow redirects").required (false).hasArg (false).build ();
 
     final static Options     OPTIONS          = new Options ().addOption (Arguments.HTTP_METHOD).addOption (Arguments.HEADER).addOption (Arguments.DATA).addOption (Arguments.SILENT)
-            .addOption (Arguments.TRUST_INSECURE).addOption (Arguments.NO_BUFFERING).addOption (Arguments.NTLM).addOption (Arguments.AUTH).addOption (Arguments.FOLLOW_REDIRECTS);
+            .addOption (Arguments.TRUST_INSECURE).addOption (Arguments.NO_BUFFERING).addOption (Arguments.NTLM).addOption (Arguments.CERT).addOption (Arguments.AUTH).addOption (Arguments.FOLLOW_REDIRECTS);
 }
