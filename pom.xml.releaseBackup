@@ -25,7 +25,7 @@
         <connection>scm:git:git@github.com:libetl/curl.git</connection>
         <developerConnection>scm:git:git@github.com:libetl/curl.git</developerConnection>
         <url>git@github.com:libetl/curl.git</url>
-        <tag>${project.version}</tag>
+        <tag>v${project.version}</tag>
     </scm>
     <distributionManagement>
         <snapshotRepository>
