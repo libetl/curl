@@ -1,13 +1,8 @@
 package org.toilelibre.libe.curl.monitor;
 
-import java.io.IOException;
-import java.util.Enumeration;
-import java.util.Map;
-import java.util.Random;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
+import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,19 +26,62 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 
-import com.fasterxml.jackson.core.JsonParseException;
-import com.fasterxml.jackson.databind.JsonMappingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.util.Enumeration;
+import java.util.Map;
+import java.util.Random;
 
 @SpringBootApplication
 @EnableWebMvc
 @EnableWebSecurity
 public class RequestMonitor {
+    private static final Logger LOGGER = LoggerFactory.getLogger (RequestMonitor.class);
     private static ConfigurableApplicationContext context;
     private static int                            managementPort;
     private static int                            port;
     
-    private static final Logger LOGGER = LoggerFactory.getLogger (RequestMonitor.class);
+    public static void main (String [] args) {
+        start(args);
+    }
+    
+    public static int [] start () {
+        return start (new String [0]);
+    }
+    
+    public static int [] start (String[] args) {
+        return start (true, args);
+    }
+
+    public static int [] start (boolean withSsl, String[] args) {
+        final Random random = new Random ();
+        port = random.nextInt (32767) + 32768;
+        managementPort = random.nextInt (32767) + 32768;
+        start (port, managementPort, withSsl, args);
+        return new int [] { port, managementPort };
+    }
+    
+    public static void start (int port, int managementPort, boolean withSsl, String[] args) {
+        System.setProperty ("server.port", String.valueOf (port));
+        System.setProperty ("managementPort.port", String.valueOf (managementPort));
+        if (withSsl) {
+            System.setProperty ("server.ssl.key-store", "classpath:keystore.jks");
+            System.setProperty ("server.ssl.key-store-password", "password");
+            System.setProperty ("server.ssl.key-password", "password");
+            //System.setProperty ("server.ssl.client-auth", "need");
+        }
+
+        context = SpringApplication.run (RequestMonitor.class, args);
+    }
+    
+    public static void stop () {
+        SpringApplication.exit (context, new JobExecutionExitCodeGenerator ());
+    }
+    
+    public static int port () {
+        return port;
+    }
     
     @Configuration
     @EnableWebSecurity
@@ -54,7 +92,7 @@ public class RequestMonitor {
                 .ignoring ()
                     .antMatchers ("/public/**");
         }
-        
+
         @Override
         protected void configure(HttpSecurity http) throws Exception {
             http
@@ -80,7 +118,7 @@ public class RequestMonitor {
     @Controller
     @RequestMapping ("/**")
     static class MonitorController {
-        
+
         @RequestMapping (value = "/public/redirection", produces = MediaType.TEXT_PLAIN_VALUE)
         @ResponseStatus (code = HttpStatus.FOUND)
         @ResponseBody
@@ -107,14 +145,14 @@ public class RequestMonitor {
             logRequest (request, body);
             return "";
         }
-        
+
         @RequestMapping (produces = MediaType.TEXT_PLAIN_VALUE)
         @ResponseStatus (code = HttpStatus.OK)
         @ResponseBody
         public String receiveRequest (HttpServletRequest request, @RequestBody (required = false) String body) {
             return logRequest (request, body);
         }
-        
+
         @RequestMapping (value = "/public/json", produces = MediaType.TEXT_PLAIN_VALUE)
         @ResponseStatus (code = HttpStatus.OK)
         @ResponseBody
@@ -131,7 +169,7 @@ public class RequestMonitor {
             curlLog.append (" -k ");
             curlLog.append (" -X ");
             curlLog.append (request.getMethod ());
-            
+
             for (Enumeration<String> headerNameEnumeration = request.getHeaderNames () ; headerNameEnumeration.hasMoreElements () ;) {
                 String headerName = headerNameEnumeration.nextElement ();
                 String headerValue = request.getHeader (headerName);
@@ -140,19 +178,19 @@ public class RequestMonitor {
                 curlLog.append (": ");
                 curlLog.append (headerValue);
                 curlLog.append ("'");
-                
+
             }
-            
+
             if (body != null) {
                 curlLog.append (" -d '");
                 curlLog.append (body.replace ("'", "''"));
                 curlLog.append ("'");
             }
-            
+
             curlLog.append (" ");
             curlLog.append (" '");
             curlLog.append (serverLocation(request) +
-                    request.getServletPath () + 
+                    request.getServletPath () +
                     (request.getQueryString ()== null ? "" : "?" + request.getQueryString ()));
             curlLog.append ("'");
             LOGGER.info (curlLog.toString ());
@@ -162,46 +200,5 @@ public class RequestMonitor {
         private String serverLocation (HttpServletRequest request) {
             return request.getScheme () + "://" + request.getServerName () + ":" + port();
         }
-    }
-    
-    public static void main (String [] args) {
-        start(args);
-    }
-
-    public static int [] start () {
-        return start (new String [0]);
-    }
-    
-    public static int [] start (String[] args) {
-        return start (true, args);
-    }
-    
-    public static int [] start (boolean withSsl, String[] args) {
-        final Random random = new Random ();
-        port = random.nextInt (32767) + 32768;
-        managementPort = random.nextInt (32767) + 32768;
-        start (port, managementPort, withSsl, args);
-        return new int [] { port, managementPort };
-    }
-    
-    public static void start (int port, int managementPort, boolean withSsl, String[] args) {
-        System.setProperty ("server.port", String.valueOf (port));
-        System.setProperty ("managementPort.port", String.valueOf (managementPort));
-        if (withSsl) {
-            System.setProperty ("server.ssl.key-store", "classpath:keystore.jks");
-            System.setProperty ("server.ssl.key-store-password", "password");
-            System.setProperty ("server.ssl.key-password", "password");
-            //System.setProperty ("server.ssl.client-auth", "need");
-        }
-        
-        context = SpringApplication.run (RequestMonitor.class, args);
-    }
-    
-    public static void stop () {
-        SpringApplication.exit (context, new JobExecutionExitCodeGenerator ());
-    }
-    
-    public static int port () {
-        return port;
     }
 }

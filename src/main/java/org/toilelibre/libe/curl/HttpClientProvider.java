@@ -1,18 +1,5 @@
 package org.toilelibre.libe.curl;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.net.InetAddress;
-import java.net.URI;
-import java.net.UnknownHostException;
-import java.security.KeyManagementException;
-import java.security.KeyStore;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.UnrecoverableKeyException;
-import java.security.cert.CertificateException;
-
 import org.apache.commons.cli.CommandLine;
 import org.apache.http.HttpHost;
 import org.apache.http.auth.AuthScope;
@@ -26,87 +13,96 @@ import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.SystemDefaultCredentialsProvider;
 import org.apache.http.ssl.SSLContextBuilder;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.net.InetAddress;
+import java.net.URI;
+import java.net.UnknownHostException;
+import java.security.*;
+import java.security.cert.CertificateException;
+
 final class HttpClientProvider {
-    
-    static HttpClient prepareHttpClient (final CommandLine commandLine) {
-        HttpClientBuilder executor = HttpClientBuilder.create ();
-        
-        String hostname;
+
+    static HttpClient prepareHttpClient(final CommandLine commandLine) {
+        HttpClientBuilder executor = HttpClientBuilder.create();
+
+        final String hostname;
         try {
-            hostname = InetAddress.getLocalHost ().getHostName ();
+            hostname = InetAddress.getLocalHost().getHostName();
         } catch (final UnknownHostException e1) {
-            throw new RuntimeException (e1);
+            throw new RuntimeException(e1);
         }
-        
-        executor = HttpClientProvider.handleAuthMethod (commandLine, executor, hostname);
-        
-        if (!commandLine.hasOption (Arguments.FOLLOW_REDIRECTS.getOpt ())) {
-            executor.disableRedirectHandling ();
+
+        executor = HttpClientProvider.handleAuthMethod(commandLine, executor, hostname);
+
+        if (!commandLine.hasOption(Arguments.FOLLOW_REDIRECTS.getOpt())) {
+            executor.disableRedirectHandling();
         }
-        HttpClientProvider.handleSSLParams (commandLine, executor);
-        return executor.build ();
+        HttpClientProvider.handleSSLParams(commandLine, executor);
+        return executor.build();
     }
-    
-    private static void handleSSLParams (CommandLine commandLine, HttpClientBuilder executor) {
-        SSLContextBuilder builder = new SSLContextBuilder ();
-        
-        if (commandLine.hasOption (Arguments.TRUST_INSECURE.getOpt ())) {
+
+    private static void handleSSLParams(final CommandLine commandLine, final HttpClientBuilder executor) {
+        final SSLContextBuilder builder = new SSLContextBuilder();
+
+        if (commandLine.hasOption(Arguments.TRUST_INSECURE.getOpt())) {
             sayTrustInsecure(builder);
         }
-        if (commandLine.hasOption (Arguments.CERT.getOpt ())) {
-            String[] credentials = commandLine.getOptionValue (Arguments.CERT.getOpt ()).split (":");
-            addClientCredentials(builder, "pkcs12", credentials [0], credentials.length > 1 ? credentials [1] : null);
+        if (commandLine.hasOption(Arguments.CERT.getOpt())) {
+            final String[] credentials = commandLine.getOptionValue(Arguments.CERT.getOpt()).split(":");
+            addClientCredentials(builder, "pkcs12", credentials[0], credentials.length > 1 ? credentials[1] : null);
 
         }
         try {
-            SSLConnectionSocketFactory sslSocketFactory = new SSLConnectionSocketFactory (builder.build ());
-            executor.setSSLSocketFactory (sslSocketFactory);
+            final SSLConnectionSocketFactory sslSocketFactory = new SSLConnectionSocketFactory(builder.build());
+            executor.setSSLSocketFactory(sslSocketFactory);
         } catch (NoSuchAlgorithmException | KeyManagementException e) {
-            throw new RuntimeException (e);
-        }
-    }
-    
-    private static void addClientCredentials (SSLContextBuilder builder, String algorithm, String filePath, String password) {
-        try {
-            KeyStore keyStore = KeyStore.getInstance(algorithm);
-            File fileObject = getFile (filePath);
-            keyStore.load (new FileInputStream (fileObject), password.toCharArray ());
-            builder.loadKeyMaterial (keyStore, password.toCharArray ());
-        } catch (NoSuchAlgorithmException | KeyStoreException | UnrecoverableKeyException | CertificateException | IOException e) {
-            throw new RuntimeException (e);
+            throw new RuntimeException(e);
         }
     }
 
-    private static File getFile (String filePath) {
-        File file = new File (filePath);
-        if (file.exists ()) {
+    private static void addClientCredentials(final SSLContextBuilder builder, final String algorithm, final String filePath, final String password) {
+        try {
+            final KeyStore keyStore = KeyStore.getInstance(algorithm);
+            final File fileObject = getFile(filePath);
+            keyStore.load(new FileInputStream(fileObject), password.toCharArray());
+            builder.loadKeyMaterial(keyStore, password.toCharArray());
+        } catch (NoSuchAlgorithmException | KeyStoreException | UnrecoverableKeyException | CertificateException | IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private static File getFile(final String filePath) {
+        final File file = new File(filePath);
+        if (file.exists()) {
             return file;
         }
-        return new File (System.getProperty("user.dir") + File.separator + filePath);
+        return new File(System.getProperty("user.dir") + File.separator + filePath);
     }
 
-    private static void sayTrustInsecure (SSLContextBuilder builder) {
+    private static void sayTrustInsecure(final SSLContextBuilder builder) {
         try {
-            builder.loadTrustMaterial (null, new TrustSelfSignedStrategy ());
+            builder.loadTrustMaterial(null, new TrustSelfSignedStrategy());
         } catch (NoSuchAlgorithmException | KeyStoreException e) {
-            throw new RuntimeException (e);
+            throw new RuntimeException(e);
         }
-        
+
     }
 
-    private static HttpClientBuilder handleAuthMethod (final CommandLine commandLine, HttpClientBuilder executor, String hostname) {
-        if (commandLine.getOptionValue (Arguments.AUTH.getOpt ()) != null) {
-            final String [] authValue = commandLine.getOptionValue (Arguments.AUTH.getOpt ()).toString ().split ("(?<!\\\\):");
-            if (commandLine.hasOption (Arguments.NTLM.getOpt ())) {
-                final String [] userName = authValue [0].split ("\\\\");
-                SystemDefaultCredentialsProvider systemDefaultCredentialsProvider = new SystemDefaultCredentialsProvider ();
-                systemDefaultCredentialsProvider.setCredentials (AuthScope.ANY, new NTCredentials (userName [1], authValue [1], hostname, userName [0]));
-                executor = executor.setDefaultCredentialsProvider (systemDefaultCredentialsProvider);
+    private static HttpClientBuilder handleAuthMethod(final CommandLine commandLine, HttpClientBuilder executor, final String hostname) {
+        if (commandLine.getOptionValue(Arguments.AUTH.getOpt()) != null) {
+            final String[] authValue = commandLine.getOptionValue(Arguments.AUTH.getOpt()).toString().split("(?<!\\\\):");
+            if (commandLine.hasOption(Arguments.NTLM.getOpt())) {
+                final String[] userName = authValue[0].split("\\\\");
+                final SystemDefaultCredentialsProvider systemDefaultCredentialsProvider = new SystemDefaultCredentialsProvider();
+                systemDefaultCredentialsProvider.setCredentials(AuthScope.ANY, new NTCredentials(userName[1], authValue[1], hostname, userName[0]));
+                executor = executor.setDefaultCredentialsProvider(systemDefaultCredentialsProvider);
             } else {
-                BasicCredentialsProvider basicCredentialsProvider = new BasicCredentialsProvider ();
-                basicCredentialsProvider.setCredentials (new AuthScope (HttpHost.create (URI.create (commandLine.getArgs () [0]).getHost ())),
-                        new UsernamePasswordCredentials (authValue [0], authValue [1]));
-                executor = executor.setDefaultCredentialsProvider (basicCredentialsProvider);
+                final BasicCredentialsProvider basicCredentialsProvider = new BasicCredentialsProvider();
+                basicCredentialsProvider.setCredentials(new AuthScope(HttpHost.create(URI.create(commandLine.getArgs()[0]).getHost())),
+                        new UsernamePasswordCredentials(authValue[0], authValue[1]));
+                executor = executor.setDefaultCredentialsProvider(basicCredentialsProvider);
             }
         }
         return executor;
