@@ -1,6 +1,18 @@
 # curl
 curl command in java (using Apache libs : HttpClient and commons-cli)
 
+Usage
+```java
+    org.apache.http.HttpResponse org.toilelibre.libe.curl.Curl.curl (String curlParams);
+    String org.toilelibre.libe.Curl.$ (String curlCommand); //Returns responseBody
+```
+
+You can import static these methods :
+```java
+    import static org.toilelibre.libe.curl.Curl.curl;
+    import static org.toilelibre.libe.curl.Curl.$;
+```
+
 Examples :
 ```java
     $("curl https://localhost:%d/public/");
