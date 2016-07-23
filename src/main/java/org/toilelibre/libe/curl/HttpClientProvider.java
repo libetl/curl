@@ -24,7 +24,7 @@ import java.security.cert.CertificateException;
 
 final class HttpClientProvider {
 
-    static HttpClient prepareHttpClient(final CommandLine commandLine) {
+    static HttpClient prepareHttpClient(final CommandLine commandLine) throws CurlException {
         HttpClientBuilder executor = HttpClientBuilder.create();
 
         final String hostname;
@@ -43,7 +43,7 @@ final class HttpClientProvider {
         return executor.build();
     }
 
-    private static void handleSSLParams(final CommandLine commandLine, final HttpClientBuilder executor) {
+    private static void handleSSLParams(final CommandLine commandLine, final HttpClientBuilder executor) throws CurlException {
         final SSLContextBuilder builder = new SSLContextBuilder();
 
         if (commandLine.hasOption(Arguments.TRUST_INSECURE.getOpt())) {
@@ -58,18 +58,18 @@ final class HttpClientProvider {
             final SSLConnectionSocketFactory sslSocketFactory = new SSLConnectionSocketFactory(builder.build());
             executor.setSSLSocketFactory(sslSocketFactory);
         } catch (NoSuchAlgorithmException | KeyManagementException e) {
-            throw new RuntimeException(e);
+            throw new CurlException(e);
         }
     }
 
-    private static void addClientCredentials(final SSLContextBuilder builder, final String algorithm, final String filePath, final String password) {
+    private static void addClientCredentials(final SSLContextBuilder builder, final String algorithm, final String filePath, final String password) throws CurlException {
         try {
             final KeyStore keyStore = KeyStore.getInstance(algorithm);
             final File fileObject = getFile(filePath);
             keyStore.load(new FileInputStream(fileObject), password.toCharArray());
             builder.loadKeyMaterial(keyStore, password.toCharArray());
         } catch (NoSuchAlgorithmException | KeyStoreException | UnrecoverableKeyException | CertificateException | IOException e) {
-            throw new RuntimeException(e);
+            throw new CurlException(e);
         }
     }
 
@@ -81,11 +81,11 @@ final class HttpClientProvider {
         return new File(System.getProperty("user.dir") + File.separator + filePath);
     }
 
-    private static void sayTrustInsecure(final SSLContextBuilder builder) {
+    private static void sayTrustInsecure(final SSLContextBuilder builder) throws CurlException {
         try {
             builder.loadTrustMaterial(null, new TrustSelfSignedStrategy());
         } catch (NoSuchAlgorithmException | KeyStoreException e) {
-            throw new RuntimeException(e);
+            throw new CurlException(e);
         }
 
     }

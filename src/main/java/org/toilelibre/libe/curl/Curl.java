@@ -1,32 +1,26 @@
 package org.toilelibre.libe.curl;
 
+import java.io.IOException;
+
 import org.apache.commons.cli.CommandLine;
 import org.apache.http.HttpResponse;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpUriRequest;
-
-import java.io.IOException;
 
 public class Curl {
 
-    public static String $(final String requestCommand) {
+    public static String $(final String requestCommand) throws CurlException {
         try {
             return IOUtils.toString(Curl.curl(requestCommand).getEntity().getContent());
         } catch (final IOException e) {
-            throw new RuntimeException(e);
+            throw new CurlException(e);
         }
     }
 
-    public static HttpResponse curl(final String requestCommand) {
+    public static HttpResponse curl(final String requestCommand) throws CurlException {
         final CommandLine commandLine = ReadArguments.getCommandLineFromRequest(requestCommand);
-        return Curl.sendRequestAndReturnResponse(HttpRequestProvider.prepareRequest(commandLine), HttpClientProvider.prepareHttpClient(commandLine));
-    }
-
-    private static HttpResponse sendRequestAndReturnResponse(final HttpUriRequest request, final HttpClient executor) {
         try {
-            return executor.execute(request);
+            return HttpClientProvider.prepareHttpClient(commandLine).execute(HttpRequestProvider.prepareRequest(commandLine));
         } catch (final IOException e) {
-            throw new RuntimeException(e);
+            throw new CurlException(e);
         }
     }
 

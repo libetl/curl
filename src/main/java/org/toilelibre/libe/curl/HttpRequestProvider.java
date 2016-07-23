@@ -17,7 +17,7 @@ import java.util.Optional;
 class HttpRequestProvider {
 
 
-    static HttpUriRequest prepareRequest(final CommandLine commandLine) {
+    static HttpUriRequest prepareRequest(final CommandLine commandLine) throws CurlException {
 
         final HttpUriRequest request = HttpRequestProvider.getBuilder(commandLine);
 
@@ -25,7 +25,7 @@ class HttpRequestProvider {
             try {
                 ((HttpEntityEnclosingRequest) request).setEntity(new StringEntity(commandLine.getOptionValue(Arguments.DATA.getOpt()).toString()));
             } catch (final UnsupportedEncodingException e) {
-                throw new RuntimeException(e);
+                throw new CurlException(e);
             }
         }
 
@@ -39,7 +39,7 @@ class HttpRequestProvider {
 
     }
 
-    private static HttpUriRequest getBuilder(final CommandLine cl) {
+    private static HttpUriRequest getBuilder(final CommandLine cl) throws CurlException {
         try {
             final String method = (cl.getOptionValue(Arguments.HTTP_METHOD.getOpt()) == null ? "GET" : cl.getOptionValue(Arguments.HTTP_METHOD.getOpt())).toString();
             return
@@ -48,7 +48,7 @@ class HttpRequestProvider {
                             .getConstructor(URI.class)
                             .newInstance(new URI(cl.getArgs()[0]));
         } catch (IllegalAccessException | IllegalArgumentException | SecurityException | IllegalStateException | InstantiationException | ClassNotFoundException | InvocationTargetException | NoSuchMethodException | URISyntaxException e) {
-            throw new RuntimeException(e);
+            throw new CurlException(e);
         }
     }
 }
