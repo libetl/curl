@@ -1,0 +1,7 @@
+#!/bin/sh
+rm -rf ../ca/* 
+rm ../ca/.*
+rm -rf ../server/* 
+rm ../server/.*
+rm -rf ../clients/*
+rm ../clients/.*

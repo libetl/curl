@@ -41,7 +41,7 @@ public class CurlTest {
 
     @Test
     public void curlRoot() {
-        assertOk(curl("-k --cert src/test/resources/client.p12:password https://localhost:%d/public/"));
+        assertOk(curl("-k --cert src/test/resources/clients/libe/libe.p12:mylibepass https://localhost:%d/public/"));
     }
 
     @Test

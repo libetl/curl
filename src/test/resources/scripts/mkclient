@@ -1,0 +1,8 @@
+#!/bin/sh
+. ./subject
+
+mkdir ../clients/$alias
+openssl req -new -newkey rsa:1024 -passout pass:my"$alias"pass -nodes -subj "$subject" -out ../clients/$alias/$alias.csr -keyout ../clients/$alias/$alias.key
+openssl x509 -req -days 36000 -passin pass:mycapass -in ../clients/$alias/$alias.csr -CA ../ca/fakeCa.crt -CAkey ../ca/fakeCa.key -CAserial ../server/$alias/$alias.srl -out ../clients/$alias/$alias.crt
+cat ../clients/$alias/$alias.key ../clients/$alias/$alias.crt > ../clients/$alias/$alias.pem
+openssl pkcs12 -export -clcerts -in ../clients/$alias/$alias.crt -inkey ../clients/$alias/$alias.key -passout pass:my"$alias"pass -out ../clients/$alias/$alias.p12 -name $alias
