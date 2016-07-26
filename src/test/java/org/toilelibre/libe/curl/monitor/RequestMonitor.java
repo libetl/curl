@@ -66,10 +66,10 @@ public class RequestMonitor {
         System.setProperty ("server.port", String.valueOf (port));
         System.setProperty ("managementPort.port", String.valueOf (managementPort));
         if (withSsl) {
-            System.setProperty ("server.ssl.key-store", "classpath:keystore.jks");
-            System.setProperty ("server.ssl.key-store-password", "password");
-            System.setProperty ("server.ssl.key-password", "password");
-            //System.setProperty ("server.ssl.client-auth", "need");
+            System.setProperty ("server.ssl.key-store", "classpath:server/libe/libe.jks");
+            System.setProperty ("server.ssl.key-store-password", "myserverpass");
+            System.setProperty ("server.ssl.key-password", "myserverpass");
+            System.setProperty ("server.ssl.client-auth", "need");
         }
 
         context = SpringApplication.run (RequestMonitor.class, args);
@@ -167,6 +167,7 @@ public class RequestMonitor {
             StringBuffer curlLog = new StringBuffer ("curl");
 
             curlLog.append (" -k ");
+            curlLog.append("--cert src/test/resources/clients/libe/libe.p12:mylibepass");
             curlLog.append (" -X ");
             curlLog.append (request.getMethod ());
 

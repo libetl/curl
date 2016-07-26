@@ -54,6 +54,7 @@ final class HttpClientProvider {
             addClientCredentials(builder, "pkcs12", credentials[0], credentials.length > 1 ? credentials[1] : null);
 
         }
+        
         try {
             final SSLConnectionSocketFactory sslSocketFactory = new SSLConnectionSocketFactory(builder.build());
             executor.setSSLSocketFactory(sslSocketFactory);
