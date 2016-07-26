@@ -1,8 +1,9 @@
 #!/bin/sh
 
-rm -rf ../ca/* 
-rm ../ca/.*
-rm -rf ../server/* 
-rm ../server/.*
-rm -rf ../clients/*
-rm ../clients/.*
+rm -rf ../ca/*  2>/dev/null || true
+rm ../ca/.* 2>/dev/null || true
+rm -rf ../server/*  2>/dev/null || true
+rm ../server/.* 2>/dev/null || true
+rm -rf ../clients/* 2>/dev/null || true
+rm ../clients/.* 2>/dev/null || true
+

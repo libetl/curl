@@ -10,7 +10,7 @@ cat ../server/$alias/$alias.key ../server/$alias/$alias.crt > ../server/$alias/$
 mv ../scripts/.srl ../server/$alias/$alias.srl
 openssl x509 -outform der -in ../server/$alias/$alias.pem -out ../server/$alias/$alias.der
 openssl pkcs12 -export -in ../server/$alias/$alias.crt -inkey ../server/$alias/$alias.key -CAfile ../ca/fakeCa.cert -passin pass:myserverpass -passout pass:myserverpass -out ../server/$alias/$alias.p12 -name $alias
-rm ../server/$alias/$alias.jks
+rm ../server/$alias/$alias.jks 2>/dev/null || true
 keytool -import -noprompt -alias ca -trustcacerts -keystore ../server/$alias/$alias.jks -file ../ca/fakeCa.crt -storepass myserverpass
-keytool -import -noprompt -alias server -keystore ../server/$alias/$alias.jks -file ../server/$alias/$alias.crt -storepass myserverpass
-keytool -importkeystore  -srcstorepass myserverpass -deststorepass myserverpass -destkeystore ../server/$alias/$alias.jks -srckeystore ../server/$alias/$alias.p12 -srcstoretype PKCS12
+keytool -import -noprompt -alias serverCert -keystore ../server/$alias/$alias.jks -file ../server/$alias/$alias.crt -storepass myserverpass
+keytool -alias $alias -destalias serverKey -importkeystore  -srcstorepass myserverpass -deststorepass myserverpass -destkeystore ../server/$alias/$alias.jks -srckeystore ../server/$alias/$alias.p12 -srcstoretype PKCS12
