@@ -1,4 +1,5 @@
 #!/bin/sh
-subject='/C=FR/ST=IDF/L=PARIS/O=TOILE-LIBRE/OU=LIBE/CN=localhost/emailAddress=server@localdomain'
-alias='libe'
+
+subject="//dummy=1/C=FR/ST=IDF/L=PARIS/O=TOILE-LIBRE/OU=LIBE/CN=localhost/emailAddress=server@localdomain"
+alias=libe
 

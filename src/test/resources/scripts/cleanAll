@@ -1,4 +1,5 @@
 #!/bin/sh
+
 rm -rf ../ca/* 
 rm ../ca/.*
 rm -rf ../server/* 
