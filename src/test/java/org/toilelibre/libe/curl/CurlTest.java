@@ -29,12 +29,12 @@ public class CurlTest {
         return Curl.$(String.format(requestCommand, RequestMonitor.port()));
     }
 
-    @Test(expected = RuntimeException.class)
+    @Test(expected = CurlException.class)
     public void curlRootWithoutTrustingInsecure() {
         $("curl https://localhost:%d/public/");
     }
 
-    @Test(expected= RuntimeException.class)
+    @Test(expected= CurlException.class)
     public void curlRootWithoutClientCertificate() {
         $("curl -k https://localhost:%d/public/");
     }
