@@ -25,6 +25,8 @@ final class Arguments {
     
     final static Option      CERT             = Option.builder ("E").longOpt ("cert").desc ("client certificate").required (false).hasArg (true).desc ("CERT[:password]").build ();
     
+    final static Option      CERT_TYPE        = Option.builder ("certtype").longOpt ("cert-type").desc ("certificate type").required (false).hasArg (true).desc ("DER|PEM|ENG").build ();
+    
     final static Option      FOLLOW_REDIRECTS = Option.builder ("L").longOpt ("location").desc ("follow redirects").required (false).hasArg (false).build ();
 
     final static Options     OPTIONS          = new Options ().addOption (Arguments.HTTP_METHOD).addOption (Arguments.HEADER).addOption (Arguments.DATA).addOption (Arguments.SILENT)
