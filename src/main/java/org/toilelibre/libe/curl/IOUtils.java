@@ -1,49 +1,66 @@
 package org.toilelibre.libe.curl;
 
-import java.io.*;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
+import java.io.Serializable;
+import java.io.Writer;
 import java.nio.charset.Charset;
-
 
 class IOUtils {
 
-    public static final int EOF = -1;
+    public static final int  EOF                 = -1;
     private static final int DEFAULT_BUFFER_SIZE = 1024 * 4;
 
-    public static int copy(Reader input, Writer output) throws IOException {
-        long count = copyLarge(input, output);
+    public static int copy (final Reader input, final Writer output) throws IOException {
+        final long count = IOUtils.copyLarge (input, output);
         if (count > Integer.MAX_VALUE) {
             return -1;
         }
         return (int) count;
     }
 
-    public static void copy(InputStream input, Writer output, Charset encoding) throws IOException {
-        InputStreamReader in = new InputStreamReader(input, encoding);
-        copy(in, output);
+    public static void copy (final InputStream input, final Writer output, final Charset encoding) throws IOException {
+        final InputStreamReader in = new InputStreamReader (input, encoding);
+        IOUtils.copy (in, output);
     }
-    
-    public static long copyLarge(Reader input, Writer output) throws IOException {
-        return copyLarge(input, output, new char[DEFAULT_BUFFER_SIZE]);
+
+    public static long copyLarge (final Reader input, final Writer output) throws IOException {
+        return IOUtils.copyLarge (input, output, new char [IOUtils.DEFAULT_BUFFER_SIZE]);
     }
-    
-    public static long copyLarge(Reader input, Writer output, char [] buffer) throws IOException {
+
+    public static long copyLarge (final Reader input, final Writer output, final char [] buffer) throws IOException {
         long count = 0;
         int n = 0;
-        while (EOF != (n = input.read(buffer))) {
-            output.write(buffer, 0, n);
+        while (IOUtils.EOF != (n = input.read (buffer))) {
+            output.write (buffer, 0, n);
             count += n;
         }
         return count;
     }
 
-    public static String toString(InputStream input) throws IOException {
-        return toString(input, Charset.defaultCharset());
+    public static String toString (final InputStream input) throws IOException {
+        return IOUtils.toString (input, Charset.defaultCharset ());
     }
 
-    public static String toString(InputStream input, Charset encoding) throws IOException {
-        StringBuilderWriter sw = new StringBuilderWriter();
-        copy(input, sw, encoding);
-        return sw.toString();
+    public static InputStream toStream (final String input) throws IOException {
+        return IOUtils.toStream (input, Charset.defaultCharset ());
+    }
+
+    public static InputStream toStream (final String input, final Charset defaultCharset) {
+        return new ByteArrayInputStream (input.getBytes (defaultCharset));
+    }
+
+    public static InputStream markSupportedStream (final InputStream inputStream) throws IOException {
+        return IOUtils.toStream (IOUtils.toString (inputStream));
+    }
+
+    public static String toString (final InputStream input, final Charset encoding) throws IOException {
+        final StringBuilderWriter sw = new StringBuilderWriter ();
+        IOUtils.copy (input, sw, encoding);
+        return sw.toString ();
     }
 
     static class StringBuilderWriter extends Writer implements Serializable {
@@ -51,66 +68,68 @@ class IOUtils {
         /**
          *
          */
-        private static final long serialVersionUID = 8461966367767048539L;
+        private static final long   serialVersionUID = 8461966367767048539L;
         private final StringBuilder builder;
 
-        public StringBuilderWriter() {
-            this.builder = new StringBuilder();
+        public StringBuilderWriter () {
+            this.builder = new StringBuilder ();
         }
 
-        public StringBuilderWriter(int capacity) {
-            this.builder = new StringBuilder(capacity);
+        public StringBuilderWriter (final int capacity) {
+            this.builder = new StringBuilder (capacity);
         }
 
-        public StringBuilderWriter(StringBuilder builder) {
-            this.builder = builder != null ? builder : new StringBuilder();
+        public StringBuilderWriter (final StringBuilder builder) {
+            this.builder = builder != null ? builder : new StringBuilder ();
         }
+
         @Override
-        public Writer append(char value) {
-            builder.append(value);
+        public Writer append (final char value) {
+            this.builder.append (value);
             return this;
         }
 
         @Override
-        public Writer append(CharSequence value) {
-            builder.append(value);
+        public Writer append (final CharSequence value) {
+            this.builder.append (value);
             return this;
         }
 
         @Override
-        public Writer append(CharSequence value, int start, int end) {
-            builder.append(value, start, end);
+        public Writer append (final CharSequence value, final int start, final int end) {
+            this.builder.append (value, start, end);
             return this;
         }
 
         @Override
-        public void close() {
-        }
-        @Override
-        public void flush() {
+        public void close () {
         }
 
         @Override
-        public void write(String value) {
+        public void flush () {
+        }
+
+        @Override
+        public void write (final String value) {
             if (value != null) {
-                builder.append(value);
+                this.builder.append (value);
             }
         }
 
         @Override
-        public void write(char[] value, int offset, int length) {
+        public void write (final char [] value, final int offset, final int length) {
             if (value != null) {
-                builder.append(value, offset, length);
+                this.builder.append (value, offset, length);
             }
         }
 
-        public StringBuilder getBuilder() {
-            return builder;
+        public StringBuilder getBuilder () {
+            return this.builder;
         }
 
         @Override
-        public String toString() {
-            return builder.toString();
+        public String toString () {
+            return this.builder.toString ();
         }
     }
 }

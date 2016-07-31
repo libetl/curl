@@ -7,21 +7,32 @@ import org.apache.http.HttpResponse;
 
 public class Curl {
 
-    public static String $(final String requestCommand) throws CurlException {
+    public static String $ (final String requestCommand) throws CurlException {
         try {
-            return IOUtils.toString(Curl.curl(requestCommand).getEntity().getContent());
+            return IOUtils.toString (Curl.curl (requestCommand).getEntity ().getContent ());
         } catch (final IOException e) {
-            throw new CurlException(e);
+            throw new CurlException (e);
         }
     }
 
-    public static HttpResponse curl(final String requestCommand) throws CurlException {
-        final CommandLine commandLine = ReadArguments.getCommandLineFromRequest(requestCommand);
+    public static HttpResponse curl (final String requestCommand) throws CurlException {
+        final CommandLine commandLine = ReadArguments.getCommandLineFromRequest (requestCommand);
         try {
-            return HttpClientProvider.prepareHttpClient(commandLine).execute(HttpRequestProvider.prepareRequest(commandLine));
+            return HttpClientProvider.prepareHttpClient (commandLine).execute (HttpRequestProvider.prepareRequest (commandLine));
         } catch (final IOException e) {
-            throw new CurlException(e);
+            throw new CurlException (e);
         }
     }
+    
+    public static class CurlException extends RuntimeException {
 
+        /**
+         *
+         */
+        private static final long serialVersionUID = 1L;
+
+        public CurlException (final Throwable arg0) {
+            super (arg0);
+        }
+    }
 }
