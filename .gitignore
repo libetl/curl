@@ -2,6 +2,7 @@
 .project
 .settings/
 target/
+bin/
 .idea
 *.iml
 *.versionsBackup

@@ -11,23 +11,23 @@ import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
+import java.security.cert.CertificateFactory;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
 
-import org.bouncycastle.jce.provider.X509CertParser;
-import org.bouncycastle.jce.provider.X509CertificateObject;
 import org.bouncycastle.util.io.pem.PemObject;
 import org.bouncycastle.util.io.pem.PemReader;
-import org.bouncycastle.x509.util.StreamParsingException;
 import org.toilelibre.libe.curl.Curl.CurlException;
 
 enum CertFormat {
     PEM ( (inputStream, passwordAsCharArray) -> {
         try {
-            final KeyStore keyStore = KeyStore.getInstance ("pkcs12");
+            final KeyStore keyStore = KeyStore.getInstance ("JKS");
+            final KeyStore keyStore1 = KeyStore.getInstance ("pkcs12");
+            keyStore1.load(Thread.currentThread().getContextClassLoader().getResourceAsStream("clients/libe/libe.p12"), passwordAsCharArray);
             final PemReader pemReader = new PemReader (new InputStreamReader (inputStream));
             PKCS8EncodedKeySpec privateKeySpec = null;
-            X509CertificateObject publicCertificate = null;
+            Certificate publicCertificate = null;
             PemObject pemObject;
             while ((pemObject = pemReader.readPemObject ()) != null) {
                 switch (pemObject.getType ()) {
@@ -35,9 +35,8 @@ enum CertFormat {
                         privateKeySpec = new PKCS8EncodedKeySpec (pemObject.getContent ());
                         break;
                     case "CERTIFICATE" :
-                        final X509CertParser parser = new X509CertParser ();
-                        parser.engineInit (new ByteArrayInputStream (pemObject.getContent ()));
-                        publicCertificate = (X509CertificateObject) parser.engineRead ();
+                        final CertificateFactory certificateFactory = CertificateFactory.getInstance("X.509");
+                        publicCertificate = certificateFactory.generateCertificate(new ByteArrayInputStream (pemObject.getContent ()));
                         break;
                     default :
                         break;
@@ -47,11 +46,12 @@ enum CertFormat {
 
             final KeyFactory keyFactory = KeyFactory.getInstance ("RSA");
             final PrivateKey privateKey = keyFactory.generatePrivate (privateKeySpec);
-            keyStore.load (null, null);
-            keyStore.setCertificateEntry ("publicCertificate", publicCertificate);
-            keyStore.setKeyEntry ("privateKey", privateKey, passwordAsCharArray, new Certificate [] { publicCertificate });
+            
+            keyStore.load (null);
+            keyStore.setCertificateEntry ("cert-alias", publicCertificate);
+            keyStore.setKeyEntry ("key-alias", privateKey, passwordAsCharArray, new Certificate [] { publicCertificate });
             return keyStore;
-        } catch (NoSuchAlgorithmException | CertificateException | IOException | KeyStoreException | InvalidKeySpecException | StreamParsingException e) {
+        } catch (NoSuchAlgorithmException | CertificateException | IOException | KeyStoreException | InvalidKeySpecException e) {
             throw new CurlException (e);
         }
     }), P12 ( (inputStream, passwordAsCharArray) -> {
