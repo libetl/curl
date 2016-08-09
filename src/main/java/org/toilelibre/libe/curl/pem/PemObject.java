@@ -20,10 +20,10 @@ public class PemObject
      * @param headers a list of PemHeader objects.
      * @param content the binary content of the object.
      */
-    public PemObject(String type, List headers, byte[] content)
+    PemObject(String type, List<PemHeader> headers, byte[] content)
     {
         this.type = type;
-        this.headers = Collections.<PemHeader>unmodifiableList(headers);
+        this.headers = Collections.unmodifiableList(headers);
         this.content = content;
     }
 
