@@ -104,7 +104,7 @@ final class HttpClientProvider {
 
     private static HttpClientBuilder handleAuthMethod (final CommandLine commandLine, HttpClientBuilder executor, final String hostname) {
         if (commandLine.getOptionValue (Arguments.AUTH.getOpt ()) != null) {
-            final String [] authValue = commandLine.getOptionValue (Arguments.AUTH.getOpt ()).toString ().split ("(?<!\\\\):");
+            final String [] authValue = commandLine.getOptionValue (Arguments.AUTH.getOpt ()).split ("(?<!\\\\):");
             if (commandLine.hasOption (Arguments.NTLM.getOpt ())) {
                 final String [] userName = authValue [0].split ("\\\\");
                 final SystemDefaultCredentialsProvider systemDefaultCredentialsProvider = new SystemDefaultCredentialsProvider ();

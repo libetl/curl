@@ -1,4 +1,4 @@
-package org.toilelibre.libe.curl.pem;
+package org.toilelibre.libe.curl;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -11,18 +11,18 @@ import java.util.List;
 /**
  * A generic PEM reader, based on the format outlined in RFC 1421
  */
-public class PemReader
+class PemReader
         extends BufferedReader
 {
     private static final String BEGIN = "-----BEGIN ";
     private static final String END = "-----END ";
 
-    public PemReader(Reader reader)
+    PemReader(Reader reader)
     {
         super(reader);
     }
 
-    public PemObject readPemObject()
+    PemObject readPemObject()
             throws IOException
     {
         String line = readLine();

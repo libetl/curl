@@ -1,4 +1,4 @@
-package org.toilelibre.libe.curl.pem;
+package org.toilelibre.libe.curl;
 
 /**
  * Class representing a PEM header (name, value) pair.

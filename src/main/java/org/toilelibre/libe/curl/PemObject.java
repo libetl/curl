@@ -1,4 +1,4 @@
-package org.toilelibre.libe.curl.pem;
+package org.toilelibre.libe.curl;
 
 import java.util.Collections;
 import java.util.List;
@@ -6,7 +6,7 @@ import java.util.List;
 /**
  * A generic PEM object - type, header properties, and byte content.
  */
-public class PemObject
+class PemObject
 {
 
     private String           type;
@@ -27,12 +27,12 @@ public class PemObject
         this.content = content;
     }
 
-    public String getType()
+    String getType()
     {
         return type;
     }
 
-    public byte[] getContent()
+    byte[] getContent()
     {
         return content;
     }
