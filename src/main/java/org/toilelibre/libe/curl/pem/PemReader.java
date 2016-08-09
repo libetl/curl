@@ -52,12 +52,12 @@ public class PemReader
     {
         String          line;
         String          endMarker = END + type;
-        StringBuffer    buf = new StringBuffer();
-        List            headers = new ArrayList();
+        StringBuilder   stringBuffer = new StringBuilder();
+        List<PemHeader> headers = new ArrayList<>();
 
         while ((line = readLine()) != null)
         {
-            if (line.indexOf(":") >= 0)
+            if (line.contains(":"))
             {
                 int index = line.indexOf(':');
                 String hdr = line.substring(0, index);
@@ -68,12 +68,12 @@ public class PemReader
                 continue;
             }
 
-            if (line.indexOf(endMarker) != -1)
+            if (line.contains(endMarker))
             {
                 break;
             }
 
-            buf.append(line.trim());
+            stringBuffer.append(line.trim());
         }
 
         if (line == null)
@@ -81,7 +81,7 @@ public class PemReader
             throw new IOException(endMarker + " not found");
         }
 
-        return new PemObject(type, headers, Base64.getDecoder().decode(buf.toString()));
+        return new PemObject(type, headers, Base64.getDecoder().decode(stringBuffer.toString()));
     }
 
 }

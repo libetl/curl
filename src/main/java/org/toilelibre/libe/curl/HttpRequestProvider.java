@@ -30,8 +30,8 @@ class HttpRequestProvider {
         }
 
         final String [] headers = Optional.ofNullable (commandLine.getOptionValues (Arguments.HEADER.getOpt ())).orElse (new String [0]);
-        Arrays.asList (headers).stream ().map (optionAsString -> optionAsString.split (":")).map (optionAsArray -> new BasicHeader (optionAsArray [0].trim ().replaceAll ("^\"", "").replaceAll ("\\\"$", "").replaceAll ("^\\'", "").replaceAll ("\\'$", ""), optionAsArray [1].trim ()))
-                .forEach (basicHeader -> request.addHeader (basicHeader));
+        Arrays.stream (headers).map (optionAsString -> optionAsString.split (":")).map (optionAsArray -> new BasicHeader (optionAsArray [0].trim ().replaceAll ("^\"", "").replaceAll ("\\\"$", "").replaceAll ("^\\'", "").replaceAll ("\\'$", ""), optionAsArray [1].trim ()))
+                .forEach (request::addHeader);
 
         return request;
 
@@ -39,7 +39,7 @@ class HttpRequestProvider {
 
     private static HttpUriRequest getBuilder (final CommandLine cl) throws CurlException {
         try {
-            final String method = (cl.getOptionValue (Arguments.HTTP_METHOD.getOpt ()) == null ? "GET" : cl.getOptionValue (Arguments.HTTP_METHOD.getOpt ())).toString ();
+            final String method = (cl.getOptionValue(Arguments.HTTP_METHOD.getOpt()) == null ? "GET" : cl.getOptionValue(Arguments.HTTP_METHOD.getOpt()));
             return (HttpUriRequest) Class.forName (HttpRequestBase.class.getPackage ().getName () + ".Http" + StringUtils.capitalize (method.toLowerCase ().replaceAll ("[^a-z]", ""))).getConstructor (URI.class).newInstance (new URI (cl.getArgs () [0]));
         } catch (IllegalAccessException | IllegalArgumentException | SecurityException | IllegalStateException | InstantiationException | ClassNotFoundException | InvocationTargetException | NoSuchMethodException | URISyntaxException e) {
             throw new CurlException (e);

@@ -2,9 +2,8 @@ package org.toilelibre.libe.curl;
 
 class StringUtils {
 
-    public static String capitalize (final String str) {
-        int strLen;
-        if (str == null || (strLen = str.length ()) == 0) {
+    static String capitalize (final String str) {
+        if (str == null || str.length () == 0) {
             return str;
         }
 
@@ -14,7 +13,7 @@ class StringUtils {
             return str;
         }
 
-        return new StringBuilder (strLen).append (Character.toTitleCase (firstChar)).append (str.substring (1)).toString ();
+        return Character.toTitleCase (firstChar) + str.substring (1);
     }
 
 }

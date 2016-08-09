@@ -3,28 +3,15 @@ package org.toilelibre.libe.curl.pem;
 import java.util.Collections;
 import java.util.List;
 
-import static java.util.Collections.EMPTY_LIST;
-
 /**
  * A generic PEM object - type, header properties, and byte content.
  */
 public class PemObject
 {
 
-    private String type;
-    private List   headers;
-    private byte[] content;
-
-    /**
-     * Generic constructor for object without headers.
-     *
-     * @param type pem object type.
-     * @param content the binary content of the object.
-     */
-    public PemObject(String type, byte[] content)
-    {
-        this(type, EMPTY_LIST, content);
-    }
+    private String           type;
+    private List<PemHeader>  headers;
+    private byte[]           content;
 
     /**
      * Generic constructor for object with headers.
@@ -36,7 +23,7 @@ public class PemObject
     public PemObject(String type, List headers, byte[] content)
     {
         this.type = type;
-        this.headers = Collections.unmodifiableList(headers);
+        this.headers = Collections.<PemHeader>unmodifiableList(headers);
         this.content = content;
     }
 
@@ -45,18 +32,8 @@ public class PemObject
         return type;
     }
 
-    public List getHeaders()
-    {
-        return headers;
-    }
-
     public byte[] getContent()
     {
         return content;
-    }
-
-    public PemObject generate()
-    {
-        return this;
     }
 }

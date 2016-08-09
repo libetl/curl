@@ -31,7 +31,7 @@ public class Curl {
          */
         private static final long serialVersionUID = 1L;
 
-        public CurlException (final Throwable arg0) {
+        CurlException (final Throwable arg0) {
             super (arg0);
         }
     }

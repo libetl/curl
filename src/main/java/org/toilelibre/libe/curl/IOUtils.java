@@ -11,10 +11,10 @@ import java.nio.charset.Charset;
 
 class IOUtils {
 
-    public static final int  EOF                 = -1;
+    static final int  EOF                 = -1;
     private static final int DEFAULT_BUFFER_SIZE = 1024 * 4;
 
-    public static int copy (final Reader input, final Writer output) throws IOException {
+    private static int copy (final Reader input, final Writer output) throws IOException {
         final long count = IOUtils.copyLarge (input, output);
         if (count > Integer.MAX_VALUE) {
             return -1;
@@ -22,16 +22,16 @@ class IOUtils {
         return (int) count;
     }
 
-    public static void copy (final InputStream input, final Writer output, final Charset encoding) throws IOException {
+    private static void copy (final InputStream input, final Writer output, final Charset encoding) throws IOException {
         final InputStreamReader in = new InputStreamReader (input, encoding);
         IOUtils.copy (in, output);
     }
 
-    public static long copyLarge (final Reader input, final Writer output) throws IOException {
+    private static long copyLarge (final Reader input, final Writer output) throws IOException {
         return IOUtils.copyLarge (input, output, new char [IOUtils.DEFAULT_BUFFER_SIZE]);
     }
 
-    public static long copyLarge (final Reader input, final Writer output, final char [] buffer) throws IOException {
+    private static long copyLarge (final Reader input, final Writer output, final char [] buffer) throws IOException {
         long count = 0;
         int n = 0;
         while (IOUtils.EOF != (n = input.read (buffer))) {
@@ -41,29 +41,29 @@ class IOUtils {
         return count;
     }
 
-    public static String toString (final InputStream input) throws IOException {
+    static String toString (final InputStream input) throws IOException {
         return IOUtils.toString (input, Charset.defaultCharset ());
     }
 
-    public static InputStream toStream (final String input) throws IOException {
+    private static InputStream toStream (final String input) throws IOException {
         return IOUtils.toStream (input, Charset.defaultCharset ());
     }
 
-    public static InputStream toStream (final String input, final Charset defaultCharset) {
+    private static InputStream toStream (final String input, final Charset defaultCharset) {
         return new ByteArrayInputStream (input.getBytes (defaultCharset));
     }
 
-    public static InputStream markSupportedStream (final InputStream inputStream) throws IOException {
+    static InputStream markSupportedStream (final InputStream inputStream) throws IOException {
         return IOUtils.toStream (IOUtils.toString (inputStream));
     }
 
-    public static String toString (final InputStream input, final Charset encoding) throws IOException {
+    private static String toString (final InputStream input, final Charset encoding) throws IOException {
         final StringBuilderWriter sw = new StringBuilderWriter ();
         IOUtils.copy (input, sw, encoding);
         return sw.toString ();
     }
 
-    static class StringBuilderWriter extends Writer implements Serializable {
+    private static class StringBuilderWriter extends Writer implements Serializable {
 
         /**
          *
@@ -71,15 +71,15 @@ class IOUtils {
         private static final long   serialVersionUID = 8461966367767048539L;
         private final StringBuilder builder;
 
-        public StringBuilderWriter () {
+        StringBuilderWriter () {
             this.builder = new StringBuilder ();
         }
 
-        public StringBuilderWriter (final int capacity) {
+        private StringBuilderWriter (final int capacity) {
             this.builder = new StringBuilder (capacity);
         }
 
-        public StringBuilderWriter (final StringBuilder builder) {
+        private StringBuilderWriter (final StringBuilder builder) {
             this.builder = builder != null ? builder : new StringBuilder ();
         }
 
@@ -123,7 +123,7 @@ class IOUtils {
             }
         }
 
-        public StringBuilder getBuilder () {
+        StringBuilder getBuilder () {
             return this.builder;
         }
 

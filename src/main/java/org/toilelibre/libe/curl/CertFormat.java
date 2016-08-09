@@ -75,7 +75,7 @@ enum CertFormat {
     });
 
     @FunctionalInterface
-    static interface KeystoreFromFileGenerator {
+    interface KeystoreFromFileGenerator {
         KeyStore generate (InputStream inputStream, char [] passwordAsCharArray);
     }
 
