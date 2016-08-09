@@ -23,8 +23,6 @@ enum CertFormat {
     PEM ( (inputStream, passwordAsCharArray) -> {
         try {
             final KeyStore keyStore = KeyStore.getInstance ("JKS");
-            final KeyStore keyStore1 = KeyStore.getInstance ("pkcs12");
-            keyStore1.load(Thread.currentThread().getContextClassLoader().getResourceAsStream("clients/libe/libe.p12"), passwordAsCharArray);
             final PemReader pemReader = new PemReader (new InputStreamReader (inputStream));
             PKCS8EncodedKeySpec privateKeySpec = null;
             Certificate publicCertificate = null;
