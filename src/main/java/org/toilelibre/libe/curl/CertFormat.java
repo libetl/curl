@@ -15,9 +15,9 @@ import java.security.cert.CertificateFactory;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
 
-import org.bouncycastle.util.io.pem.PemObject;
-import org.bouncycastle.util.io.pem.PemReader;
 import org.toilelibre.libe.curl.Curl.CurlException;
+import org.toilelibre.libe.curl.pem.PemObject;
+import org.toilelibre.libe.curl.pem.PemReader;
 
 enum CertFormat {
     PEM ( (inputStream, passwordAsCharArray) -> {
