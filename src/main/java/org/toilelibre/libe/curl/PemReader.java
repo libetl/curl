@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.io.Reader;
 import java.util.ArrayList;
 import java.util.Base64;
+import java.util.Collections;
 import java.util.List;
 
 
@@ -83,5 +84,67 @@ class PemReader
 
         return new PemObject(type, headers, Base64.getDecoder().decode(stringBuffer.toString()));
     }
+    
+    static class PemHeader
+    {
+        private final String name;
+        private final String value;
 
+        /**
+         * Base constructor.
+         *
+         * @param name name of the header property.
+         * @param value value of the header property.
+         */
+        PemHeader(String name, String value)
+        {
+            this.name = name;
+            this.value = value;
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        public String getValue() {
+            return value;
+        }
+    }
+    
+    static class PemObject
+    {
+
+        private String           type;
+        private List<PemHeader>  headers;
+        private byte[]           content;
+
+        /**
+         * Generic constructor for object with headers.
+         *
+         * @param type pem object type.
+         * @param headers a list of PemHeader objects.
+         * @param content the binary content of the object.
+         */
+        PemObject(String type, List<PemHeader> headers, byte[] content)
+        {
+            this.type = type;
+            this.headers = Collections.unmodifiableList(headers);
+            this.content = content;
+        }
+
+        String getType()
+        {
+            return type;
+        }
+
+        byte[] getContent()
+        {
+            return content;
+        }
+
+    	List<PemHeader> getHeaders() {
+    		return headers;
+    	}
+        
+    }
 }

@@ -16,6 +16,7 @@ import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
 
 import org.toilelibre.libe.curl.Curl.CurlException;
+import org.toilelibre.libe.curl.PemReader.PemObject;
 
 enum CertFormat {
     PEM ( (inputStream, passwordAsCharArray) -> {

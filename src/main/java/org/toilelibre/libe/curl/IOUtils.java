@@ -75,14 +75,6 @@ class IOUtils {
             this.builder = new StringBuilder ();
         }
 
-        private StringBuilderWriter (final int capacity) {
-            this.builder = new StringBuilder (capacity);
-        }
-
-        private StringBuilderWriter (final StringBuilder builder) {
-            this.builder = builder != null ? builder : new StringBuilder ();
-        }
-
         @Override
         public Writer append (final char value) {
             this.builder.append (value);
@@ -121,10 +113,6 @@ class IOUtils {
             if (value != null) {
                 this.builder.append (value, offset, length);
             }
-        }
-
-        StringBuilder getBuilder () {
-            return this.builder;
         }
 
         @Override
