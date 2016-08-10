@@ -7,32 +7,33 @@ import org.apache.http.HttpResponse;
 
 public class Curl {
 
-    public static String $ (final String requestCommand) throws CurlException {
-        try {
-            return IOUtils.toString (Curl.curl (requestCommand).getEntity ().getContent ());
-        } catch (final IOException e) {
-            throw new CurlException (e);
-        }
-    }
+	public static String $(final String requestCommand) throws CurlException {
+		try {
+			return IOUtils.toString(Curl.curl(requestCommand).getEntity().getContent());
+		} catch (final IOException e) {
+			throw new CurlException(e);
+		}
+	}
 
-    public static HttpResponse curl (final String requestCommand) throws CurlException {
-        final CommandLine commandLine = ReadArguments.getCommandLineFromRequest (requestCommand);
-        try {
-            return HttpClientProvider.prepareHttpClient (commandLine).execute (HttpRequestProvider.prepareRequest (commandLine));
-        } catch (final IOException e) {
-            throw new CurlException (e);
-        }
-    }
-    
-    public static class CurlException extends RuntimeException {
+	public static HttpResponse curl(final String requestCommand) throws CurlException {
+		final CommandLine commandLine = ReadArguments.getCommandLineFromRequest(requestCommand);
+		try {
+			return HttpClientProvider.prepareHttpClient(commandLine)
+					.execute(HttpRequestProvider.prepareRequest(commandLine));
+		} catch (final IOException e) {
+			throw new CurlException(e);
+		}
+	}
 
-        /**
-         *
-         */
-        private static final long serialVersionUID = 1L;
+	public static class CurlException extends RuntimeException {
 
-        CurlException (final Throwable arg0) {
-            super (arg0);
-        }
-    }
+		/**
+		 *
+		 */
+		private static final long serialVersionUID = 1L;
+
+		CurlException(final Throwable arg0) {
+			super(arg0);
+		}
+	}
 }

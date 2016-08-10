@@ -5,30 +5,54 @@ import org.apache.commons.cli.Options;
 
 final class Arguments {
 
-    final static String  ARGS_SPLIT_REGEX = "([^'\"][^ ]*|(?:\"(?:[^\"]|\\\\\")+\")|(?:'(?:[^']|[^ ]+')+'))\\s+";
+	final static Options ALL_OPTIONS = new Options();
 
-    final static Option  HTTP_METHOD      = Option.builder ("X").longOpt ("request").desc ("Http Method").required (false).hasArg ().argName ("method").build ();
+	final static String ARGS_SPLIT_REGEX = "([^'\"][^ ]*|(?:\"(?:[^\"]|\\\\\")+\")|(?:'(?:[^']|[^ ]+')+'))\\s+";
 
-    final static Option  HEADER           = Option.builder ("H").longOpt ("header").desc ("Header").required (false).hasArg ().argName ("headerValue").build ();
+	final static Option HTTP_METHOD = add(Option.builder("X").longOpt("request").desc("Http Method").required(false)
+			.hasArg().argName("method").build());
 
-    final static Option  DATA             = Option.builder ("d").longOpt ("data").desc ("Data").required (false).hasArg ().argName ("payload").build ();
+	final static Option HEADER = add(Option.builder("H").longOpt("header").desc("Header").required(false).hasArg()
+			.argName("headerValue").build());
 
-    final static Option  SILENT           = Option.builder ("s").longOpt ("silent").desc ("silent").required (false).hasArg (false).build ();
+	final static Option DATA = add(
+			Option.builder("d").longOpt("data").desc("Data").required(false).hasArg().argName("payload").build());
 
-    final static Option  TRUST_INSECURE   = Option.builder ("k").longOpt ("insecure").desc ("trust insecure").required (false).hasArg (false).build ();
+	final static Option SILENT = add(
+			Option.builder("s").longOpt("silent").desc("silent").required(false).hasArg(false).build());
 
-    final static Option  NO_BUFFERING     = Option.builder ("n").longOpt ("no-buffer").desc ("no buffering").required (false).hasArg (false).build ();
+	final static Option TRUST_INSECURE = add(
+			Option.builder("k").longOpt("insecure").desc("trust insecure").required(false).hasArg(false).build());
 
-    final static Option  NTLM             = Option.builder ("ntlm").longOpt ("ntlm").desc ("NTLM auth").required (false).hasArg (false).build ();
+	final static Option NO_BUFFERING = add(
+			Option.builder("n").longOpt("no-buffer").desc("no buffering").required(false).hasArg(false).build());
 
-    final static Option  AUTH             = Option.builder ("u").longOpt ("username").desc ("credentials").required (false).hasArg (true).desc ("user:password").build ();
+	final static Option NTLM = add(
+			Option.builder("ntlm").longOpt("ntlm").desc("NTLM auth").required(false).hasArg(false).build());
 
-    final static Option  CERT             = Option.builder ("E").longOpt ("cert").desc ("client certificate").required (false).hasArg (true).desc ("CERT[:password]").build ();
+	final static Option AUTH = add(Option.builder("u").longOpt("username").desc("credentials").required(false)
+			.hasArg(true).desc("user:password").build());
 
-    final static Option  CERT_TYPE        = Option.builder ("ct").longOpt ("cert-type").desc ("certificate type").required (false).hasArg (true).desc ("DER|PEM|ENG").build ();
+	final static Option KEY = add(
+			Option.builder("key").longOpt("key").desc("key").required(false).hasArg(true).desc("KEY").build());
 
-    final static Option  FOLLOW_REDIRECTS = Option.builder ("L").longOpt ("location").desc ("follow redirects").required (false).hasArg (false).build ();
+	final static Option KEY_TYPE = add(Option.builder("kt").longOpt("key-type").desc("key type").required(false)
+			.hasArg(true).desc("DER|PEM|P12|ENG").build());
 
-    final static Options OPTIONS          = new Options ().addOption (Arguments.HTTP_METHOD).addOption (Arguments.HEADER).addOption (Arguments.DATA).addOption (Arguments.SILENT).addOption (Arguments.TRUST_INSECURE).addOption (Arguments.NO_BUFFERING).addOption (Arguments.NTLM)
-            .addOption (Arguments.CERT).addOption (Arguments.CERT_TYPE).addOption (Arguments.AUTH).addOption (Arguments.FOLLOW_REDIRECTS);
+	final static Option CERT = add(Option.builder("E").longOpt("cert").desc("client certificate").required(false)
+			.hasArg(true).desc("CERT[:password]").build());
+
+	final static Option CERT_TYPE = add(Option.builder("ct").longOpt("cert-type").desc("certificate type")
+			.required(false).hasArg(true).desc("DER|PEM|P12|ENG").build());
+
+	final static Option FOLLOW_REDIRECTS = add(
+			Option.builder("L").longOpt("location").desc("follow redirects").required(false).hasArg(false).build());
+
+	final static Option USER_AGENT = add(
+			Option.builder("A").longOpt("user-agent").desc("user agent").required(false).hasArg(true).build());
+
+	private static Option add(Option option) {
+		ALL_OPTIONS.addOption(option);
+		return option;
+	}
 }
