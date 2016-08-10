@@ -141,6 +141,11 @@ public class CurlTest {
 		this.assertOk(this.curl(
 				"-k --cert-type P12 --cert src/test/resources/clients/libe/libe.p12:mylibepass -X GET -A 'toto' -H 'Accept: */*' -H 'Host: localhost'  'https://localhost:%d/public'"));
 	}
+	
+	@Test(expected = CurlException.class)
+	public void readHelp() {
+		this.curl("--help");
+	}
 
 	private void assertUnauthorized(final HttpResponse curlResponse) {
 		Assertions.assertThat(curlResponse).isNotNull();

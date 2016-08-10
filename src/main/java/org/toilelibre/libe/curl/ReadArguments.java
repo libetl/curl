@@ -10,6 +10,8 @@ import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.ParseException;
 
+import org.toilelibre.libe.curl.Curl.CurlException;
+
 final class ReadArguments {
 
 	static CommandLine getCommandLineFromRequest(final String requestCommand) {
@@ -23,8 +25,8 @@ final class ReadArguments {
 		try {
 			commandLine = parser.parse(Arguments.ALL_OPTIONS, args);
 		} catch (final ParseException e) {
-			new HelpFormatter().printHelp("curl", Arguments.ALL_OPTIONS);
-			throw new RuntimeException(e);
+			new HelpFormatter().printHelp("curl [options] url", Arguments.ALL_OPTIONS);
+			throw new CurlException(e);
 		}
 		return commandLine;
 	}
