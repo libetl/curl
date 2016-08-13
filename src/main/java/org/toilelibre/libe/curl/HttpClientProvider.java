@@ -14,6 +14,8 @@ import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.security.cert.Certificate;
+import java.util.List;
+import java.util.stream.IntStream;
 
 import javax.security.cert.CertificateException;
 
@@ -103,17 +105,35 @@ final class HttpClientProvider {
 			final CertFormat keyFormat, final File keyFileObject, final char[] passwordAsCharArray)
 			throws KeyStoreException, NoSuchAlgorithmException, java.security.cert.CertificateException,
 			FileNotFoundException, IOException, CurlException, CertificateException {
-		Certificate certificate = certFormat.generateCredentialsFromFileAndPassword(new FileInputStream(certFileObject),
+		List<Certificate> certificates = certFormat.generateCredentialsFromFileAndPassword(new FileInputStream(certFileObject),
 				Kind.CERTIFICATE, passwordAsCharArray);
-		PrivateKey privateKey = keyFormat.generateCredentialsFromFileAndPassword(new FileInputStream(keyFileObject),
+		List<PrivateKey> privateKeys = keyFormat.generateCredentialsFromFileAndPassword(new FileInputStream(keyFileObject),
 				Kind.PRIVATE_KEY, passwordAsCharArray);
 
 		KeyStore keyStore = KeyStore.getInstance("JKS");
 		keyStore.load(null);
-		keyStore.setCertificateEntry("cert-alias", certificate);
-		keyStore.setKeyEntry("key-alias", privateKey, passwordAsCharArray, new Certificate[] { certificate });
+		Certificate[] certificatesAsArray = certificates.toArray(new Certificate[certificates.size()]);
+		IntStream.range(0, certificates.size()).forEach(i -> setCertificateEntry (keyStore, certificates, i));
+		IntStream.range(0, privateKeys.size()).forEach(i -> setPrivateKeyEntry (keyStore, privateKeys, passwordAsCharArray, certificatesAsArray, i));
 		return keyStore;
 
+	}
+
+	private static void setPrivateKeyEntry(KeyStore keyStore, List<PrivateKey> privateKeys,
+			char[] passwordAsCharArray, Certificate[] certificatesAsArray, int i) {
+		try {
+			keyStore.setKeyEntry("key-alias-" + i, privateKeys.get(i), passwordAsCharArray, certificatesAsArray);
+		} catch (KeyStoreException e) {
+			throw new CurlException (e);
+		}
+	}
+
+	private static void setCertificateEntry(KeyStore keyStore, List<Certificate> certificates, int i) {
+		try {
+			keyStore.setCertificateEntry("cert-alias-" + i, certificates.get(i));
+		} catch (KeyStoreException e) {
+			throw new CurlException (e);
+		}
 	}
 
 	private static File getFile(final String filePath) {

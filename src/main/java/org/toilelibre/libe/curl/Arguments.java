@@ -37,13 +37,13 @@ final class Arguments {
 			Option.builder("key").longOpt("key").desc("key").required(false).hasArg(true).desc("KEY").build());
 
 	final static Option KEY_TYPE = add(Option.builder("kt").longOpt("key-type").desc("key type").required(false)
-			.hasArg(true).desc("DER|PEM|P12|ENG").build());
+			.hasArg(true).desc("PEM|P12|JKS|DER|ENG").build());
 
 	final static Option CERT = add(Option.builder("E").longOpt("cert").desc("client certificate").required(false)
 			.hasArg(true).desc("CERT[:password]").build());
 
 	final static Option CERT_TYPE = add(Option.builder("ct").longOpt("cert-type").desc("certificate type")
-			.required(false).hasArg(true).desc("DER|PEM|P12|ENG").build());
+			.required(false).hasArg(true).desc("PEM|P12|JKS|DER|ENG").build());
 
 	final static Option FOLLOW_REDIRECTS = add(
 			Option.builder("L").longOpt("location").desc("follow redirects").required(false).hasArg(false).build());

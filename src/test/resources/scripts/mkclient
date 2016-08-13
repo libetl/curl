@@ -8,3 +8,6 @@ cat ../clients/$alias/$alias.key ../clients/$alias/$alias.crt > ../clients/$alia
 openssl pkcs12 -export -in ../clients/$alias/$alias.crt -inkey ../clients/$alias/$alias.key -CAfile ../ca/fakeCa.cert -passout pass:my"$alias"pass -out ../clients/$alias/$alias.p12 -name $alias
 
 keytool -import -noprompt -alias $alias -keystore ../server/$alias/$alias.jks -file ../clients/$alias/$alias.crt -storepass myserverpass
+
+keytool -import -noprompt -alias ca -trustcacerts -keystore ../clients/$alias/$alias.jks -file ../ca/fakeCa.crt -storepass my"$alias"pass
+keytool -import -noprompt -alias serverCert -keystore ../clients/$alias/$alias.jks -file ../clients/$alias/$alias.crt -storepass my"$alias"pass

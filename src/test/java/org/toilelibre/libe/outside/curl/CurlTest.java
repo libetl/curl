@@ -53,6 +53,12 @@ public class CurlTest {
 	}
 
 	@Test
+	public void curlJKS() {
+		this.assertOk(this.curl(
+				"-k --cert-type JKS --cert src/test/resources/clients/libe/libe.jks:mylibepass https://localhost:%d/public/"));
+	}
+
+	@Test
 	public void curlRoot() {
 		this.assertOk(this.curl(
 				"-k --cert-type PEM --cert src/test/resources/clients/libe/libe.pem:mylibepass https://localhost:%d/public/"));
