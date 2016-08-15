@@ -1,3 +1,0 @@
-#!/bin/bash
-. ./subject
-keytool  -keystore ../server/$alias/$alias.jks  -list -storepass myserverpass

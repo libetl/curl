@@ -1,0 +1,3 @@
+#!/bin/bash
+. ./vars
+keytool -keystore ../server/$server_alias/$server_alias.jks -list -storepass $server_pass
