@@ -9,6 +9,4 @@ openssl pkcs12 -export -in ../clients/$client_alias/$client_alias.crt -inkey ../
 
 keytool -import -noprompt -alias $client_alias -keystore ../server/$server_alias/$server_alias.jks -file ../clients/$client_alias/$client_alias.crt -storepass myserverpass
 
-keytool -import -noprompt -alias ca -trustcacerts -keystore ../clients/$client_alias/$client_alias.jks -file ../ca/fakeCa.crt -storepass $client_pass
-keytool -import -noprompt -alias serverCert -keystore ../clients/$client_alias/$client_alias.jks -file ../clients/$client_alias/$client_alias.crt -storepass $client_pass
 keytool -importkeystore -alias $client_alias -destalias privateKey -srcstorepass $client_pass -deststorepass $client_pass -destkeystore ../clients/$client_alias/$client_alias.jks -srckeystore ../clients/$client_alias/$client_alias.p12 -srcstoretype PKCS12
