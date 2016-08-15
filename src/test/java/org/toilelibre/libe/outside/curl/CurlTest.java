@@ -14,12 +14,16 @@ public class CurlTest {
 
 	@BeforeClass
 	public static void startRequestMonitor() {
-		RequestMonitor.start();
+		if (System.getProperty("skipServer") == null) {
+			RequestMonitor.start();
+		}
 	}
 
 	@AfterClass
 	public static void stopRequestMonitor() {
-		RequestMonitor.stop();
+		if (System.getProperty("skipServer") == null) {
+			RequestMonitor.stop();
+		}
 	}
 
 	private HttpResponse curl(final String requestCommand) {
@@ -56,6 +60,12 @@ public class CurlTest {
 	public void curlJKS() {
 		this.assertOk(this.curl(
 				"-k --cert-type JKS --cert src/test/resources/clients/libe/libe.jks:mylibepass https://localhost:%d/public/"));
+	}
+	
+	@Test
+	public void curlDER() {
+		this.assertOk(this.curl(
+				"-k --cert-type DER --cert src/test/resources/clients/libe/libe.der:mylibepass --key src/test/resources/clients/libe/libe.key.der --key-type DER https://localhost:%d/public/"));
 	}
 
 	@Test

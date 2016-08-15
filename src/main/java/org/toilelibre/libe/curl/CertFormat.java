@@ -13,6 +13,7 @@ import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
+import java.util.Arrays;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.List;
@@ -70,12 +71,22 @@ enum CertFormat {
 				| UnrecoverableKeyException e) {
 			throw new CurlException(e);
 		}
-	}), DER((inputStream, kind, passwordAsCharArray) -> {
+	}), DER((inputStream, kind, passwordAsCharArray) -> {		
 		try {
-			return KeyStore.getInstance("pkcs12");
-		} catch (final KeyStoreException e) {
-			throw new CurlException(e);
-		}
+			if (kind == Kind.CERTIFICATE){
+				CertificateFactory certificateFactory = CertificateFactory.getInstance("X.509");
+				return Arrays.asList(certificateFactory.generateCertificate(inputStream));
+			}
+			if (kind == Kind.PRIVATE_KEY){
+				byte [] content = IOUtils.toString(inputStream).getBytes();
+				KeyFactory keyFactory = KeyFactory.getInstance("RSA");
+				PKCS8EncodedKeySpec keySpec = new PKCS8EncodedKeySpec(content);
+				return Arrays.asList(keyFactory.generatePrivate(keySpec));
+			}
+		    return null;
+	} catch (CertificateException | NoSuchAlgorithmException | InvalidKeySpecException | IOException e) {
+		throw new CurlException(e);
+	}
 	}), ENG((inputStream, kind, passwordAsCharArray) -> {
 		try {
 			return KeyStore.getInstance("pkcs12");

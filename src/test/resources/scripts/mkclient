@@ -7,6 +7,8 @@ openssl x509 -req -days 36000 -passin pass:$ca_pass -in ../clients/$client_alias
 cat ../clients/$client_alias/$client_alias.key ../clients/$client_alias/$client_alias.crt > ../clients/$client_alias/$client_alias.pem
 openssl pkcs12 -export -in ../clients/$client_alias/$client_alias.crt -inkey ../clients/$client_alias/$client_alias.key -CAfile ../ca/fakeCa.cert -passout pass:$client_pass -out ../clients/$client_alias/$client_alias.p12 -name $client_alias
 
-keytool -import -noprompt -alias $client_alias -keystore ../server/$server_alias/$server_alias.jks -file ../clients/$client_alias/$client_alias.crt -storepass myserverpass
+openssl x509 -outform der -in ../clients/$client_alias/$client_alias.pem -out ../clients/$client_alias/$client_alias.der
+openssl pkcs8 -topk8 -inform PEM -outform DER -in ../clients/$client_alias/$client_alias.pem -out ../clients/$client_alias/$client_alias.key.der -nocrypt
 
+keytool -import -noprompt -alias $client_alias -keystore ../server/$server_alias/$server_alias.jks -file ../clients/$client_alias/$client_alias.crt -storepass myserverpass
 keytool -importkeystore -alias $client_alias -destalias privateKey -srcstorepass $client_pass -deststorepass $client_pass -destkeystore ../clients/$client_alias/$client_alias.jks -srckeystore ../clients/$client_alias/$client_alias.p12 -srcstoretype PKCS12
