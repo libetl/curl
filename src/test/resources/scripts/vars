@@ -1,5 +1,10 @@
 #!/bin/sh
 
 subject="//dummy=1/C=FR/ST=IDF/L=PARIS/O=TOILE-LIBRE/OU=LIBE/CN=localhost/emailAddress=server@localdomain"
-alias=libe
 
+server_alias=libe
+client_alias=libe
+
+ca_pass=mycapass
+server_pass=myserverpass
+client_pass=my"$client_alias"pass

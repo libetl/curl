@@ -1,16 +1,16 @@
 #!/bin/sh
-. ./subject
+. ./vars
 
-mkdir -p ../server/$alias/
-openssl genrsa -passout pass:myserverpass -des3 -out ../server/$alias/$alias.key 1024
-openssl req -new -passin pass:myserverpass -key ../server/$alias/$alias.key -out ../server/$alias/$alias.csr -subj "$subject"
-openssl rsa -in ../server/$alias/$alias.key -passin pass:myserverpass -out ../server/$alias/$alias.key.unprotected
-openssl x509 -req -passin pass:mycapass -days 36000 -in ../server/$alias/$alias.csr -CA ../ca/fakeCa.crt -CAkey ../ca/fakeCa.key -CAcreateserial -out ../server/$alias/$alias.crt
-cat ../server/$alias/$alias.key ../server/$alias/$alias.crt > ../server/$alias/$alias.pem
-mv ../scripts/.srl ../server/$alias/$alias.srl
-openssl x509 -outform der -in ../server/$alias/$alias.pem -out ../server/$alias/$alias.der
-openssl pkcs12 -export -in ../server/$alias/$alias.crt -inkey ../server/$alias/$alias.key -CAfile ../ca/fakeCa.cert -passin pass:myserverpass -passout pass:myserverpass -out ../server/$alias/$alias.p12 -name $alias
-rm ../server/$alias/$alias.jks 2>/dev/null || true
-keytool -import -noprompt -alias ca -trustcacerts -keystore ../server/$alias/$alias.jks -file ../ca/fakeCa.crt -storepass myserverpass
-keytool -import -noprompt -alias serverCert -keystore ../server/$alias/$alias.jks -file ../server/$alias/$alias.crt -storepass myserverpass
-keytool -alias $alias -destalias serverKey -importkeystore  -srcstorepass myserverpass -deststorepass myserverpass -destkeystore ../server/$alias/$alias.jks -srckeystore ../server/$alias/$alias.p12 -srcstoretype PKCS12
+mkdir -p ../server/$server_alias/
+openssl genrsa -passout pass:$server_pass -des3 -out ../server/$server_alias/$server_alias.key 1024
+openssl req -new -passin pass:$server_pass -key ../server/$server_alias/$server_alias.key -out ../server/$server_alias/$server_alias.csr -subj "$subject"
+openssl rsa -in ../server/$server_alias/$server_alias.key -passin pass:$server_pass -out ../server/$server_alias/$server_alias.key.unprotected
+openssl x509 -req -passin pass:$ca_pass -days 36000 -in ../server/$server_alias/$server_alias.csr -CA ../ca/fakeCa.crt -CAkey ../ca/fakeCa.key -CAcreateserial -out ../server/$server_alias/$server_alias.crt
+cat ../server/$server_alias/$server_alias.key ../server/$server_alias/$server_alias.crt > ../server/$server_alias/$server_alias.pem
+mv ../scripts/.srl ../server/$server_alias/$server_alias.srl
+openssl x509 -outform der -in ../server/$server_alias/$server_alias.pem -out ../server/$server_alias/$server_alias.der
+openssl pkcs12 -export -in ../server/$server_alias/$server_alias.crt -inkey ../server/$server_alias/$server_alias.key -CAfile ../ca/fakeCa.cert -passin pass:$server_pass -passout pass:$server_pass -out ../server/$server_alias/$server_alias.p12 -name $server_alias
+rm ../server/$server_alias/$server_alias.jks 2>/dev/null || true
+keytool -import -noprompt -alias ca -trustcacerts -keystore ../server/$server_alias/$server_alias.jks -file ../ca/fakeCa.crt -storepass $server_pass
+keytool -import -noprompt -alias serverCert -keystore ../server/$server_alias/$server_alias.jks -file ../server/$server_alias/$server_alias.crt -storepass $server_pass
+keytool -alias $server_alias -destalias serverKey -importkeystore -srcstorepass $server_pass -deststorepass $server_pass -destkeystore ../server/$server_alias/$server_alias.jks -srckeystore ../server/$server_alias/$server_alias.p12 -srcstoretype PKCS12
