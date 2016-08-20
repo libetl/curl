@@ -104,7 +104,7 @@ enum CertFormat {
     }
 
     enum Kind {
-        PRIVATE_KEY, CERTIFICATE;
+        PRIVATE_KEY, CERTIFICATE, CERTIFICATE_WITH_CACERT;
         static Kind fromValue (final String value) {
             try {
                 return Kind.valueOf (value.toUpperCase ().replace (' ', '_'));

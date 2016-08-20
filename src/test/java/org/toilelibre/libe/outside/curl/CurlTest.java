@@ -65,6 +65,11 @@ public class CurlTest {
     }
 
     @Test
+    public void curlWithCaCert () {
+        this.assertOk (this.curl ("-k --cacert src/test/resources/ca/fakeCa.crt --cert-type PEM --cert src/test/resources/clients/libe/libe.pem:mylibepass https://localhost:%d/public/"));
+    }
+
+    @Test
     public void curlRoot () {
         this.assertOk (this.curl ("-k --cert-type PEM --cert src/test/resources/clients/libe/libe.pem:mylibepass https://localhost:%d/public/"));
     }

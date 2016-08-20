@@ -29,6 +29,8 @@ final class Arguments {
 
     final static Option  KEY_TYPE         = Arguments.add (Option.builder ("kt").longOpt ("key-type").desc ("key type").required (false).hasArg (true).desc ("PEM|P12|JKS|DER|ENG").build ());
 
+    final static Option  CA_CERT          = Arguments.add (Option.builder ("cacert").longOpt ("cacert").desc ("CA certificate").required (false).hasArg (true).desc ("CA_CERT").build ());
+
     final static Option  CERT             = Arguments.add (Option.builder ("E").longOpt ("cert").desc ("client certificate").required (false).hasArg (true).desc ("CERT[:password]").build ());
 
     final static Option  CERT_TYPE        = Arguments.add (Option.builder ("ct").longOpt ("cert-type").desc ("certificate type").required (false).hasArg (true).desc ("PEM|P12|JKS|DER|ENG").build ());

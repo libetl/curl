@@ -13,7 +13,10 @@ import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.security.cert.Certificate;
+import java.security.cert.X509Certificate;
+import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import javax.security.cert.CertificateException;
@@ -65,8 +68,9 @@ final class HttpClientProvider {
 
         if (commandLine.hasOption (Arguments.CERT.getOpt ())) {
             final String [] credentials = commandLine.getOptionValue (Arguments.CERT.getOpt ()).split (":");
+            final String cacert = commandLine.getOptionValue (Arguments.CA_CERT.getOpt ()) == null ? null : commandLine.getOptionValue (Arguments.CA_CERT.getOpt ());
             final String key = commandLine.getOptionValue (Arguments.KEY.getOpt ()) == null ? credentials [0] : commandLine.getOptionValue (Arguments.KEY.getOpt ());
-            HttpClientProvider.addClientCredentials (builder, certFormat, credentials [0], keyFormat, key, credentials.length > 1 ? credentials [1] : null);
+            HttpClientProvider.addClientCredentials (builder, certFormat, cacert, credentials [0], keyFormat, key, credentials.length > 1 ? credentials [1] : null);
         }
 
         try {
@@ -77,19 +81,22 @@ final class HttpClientProvider {
         }
     }
 
-    private static void addClientCredentials (final SSLContextBuilder builder, final CertFormat certFormat, final String certFilePath, final CertFormat keyFormat, final String keyFilePath, final String password) throws CurlException {
+    private static void addClientCredentials (final SSLContextBuilder builder, final CertFormat certFormat, final String caCertFilePath, final String certFilePath, final CertFormat keyFormat, final String keyFilePath, final String password) throws CurlException {
         try {
+            final File caCertFileObject = caCertFilePath == null ? null : HttpClientProvider.getFile (caCertFilePath);
             final File certFileObject = HttpClientProvider.getFile (certFilePath);
             final File keyFileObject = HttpClientProvider.getFile (keyFilePath);
-            final KeyStore keyStore = HttpClientProvider.generateKeyStore (certFormat, certFileObject, keyFormat, keyFileObject, password == null ? null : password.toCharArray ());
+            final KeyStore keyStore = HttpClientProvider.generateKeyStore (certFormat, caCertFileObject, certFileObject, keyFormat, keyFileObject, password == null ? null : password.toCharArray ());
             builder.loadKeyMaterial (keyStore, password == null ? null : password.toCharArray ());
         } catch (GeneralSecurityException | IOException | CertificateException e) {
             throw new CurlException (e);
         }
     }
 
-    private static KeyStore generateKeyStore (final CertFormat certFormat, final File certFileObject, final CertFormat keyFormat, final File keyFileObject, final char [] passwordAsCharArray)
+    private static KeyStore generateKeyStore (final CertFormat certFormat, final File caCertFileObject, final File certFileObject, final CertFormat keyFormat, final File keyFileObject, final char [] passwordAsCharArray)
             throws KeyStoreException, NoSuchAlgorithmException, java.security.cert.CertificateException, FileNotFoundException, IOException, CurlException, CertificateException {
+        final List<Certificate> caCertificatesNotFiltered = caCertFileObject == null ? Collections.emptyList () : certFormat.generateCredentialsFromFileAndPassword (Kind.CERTIFICATE, IOUtils.toString (caCertFileObject), passwordAsCharArray);
+        final List<Certificate> caCertificatesFiltered = caCertificatesNotFiltered.stream ().filter ( (certificate) -> certificate instanceof X509Certificate && ((X509Certificate) certificate).getBasicConstraints () != -1).collect (Collectors.toList ());
         final List<Certificate> certificates = certFormat.generateCredentialsFromFileAndPassword (Kind.CERTIFICATE, IOUtils.toString (certFileObject), passwordAsCharArray);
         final List<PrivateKey> privateKeys = keyFormat.generateCredentialsFromFileAndPassword (Kind.PRIVATE_KEY, IOUtils.toString (keyFileObject), passwordAsCharArray);
 
@@ -97,6 +104,7 @@ final class HttpClientProvider {
         keyStore.load (null);
         final Certificate [] certificatesAsArray = certificates.toArray (new Certificate [certificates.size ()]);
         IntStream.range (0, certificates.size ()).forEach (i -> HttpClientProvider.setCertificateEntry (keyStore, certificates, i));
+        IntStream.range (0, caCertificatesFiltered.size ()).forEach (i -> HttpClientProvider.setCaCertificateEntry (keyStore, certificates, i));
         IntStream.range (0, privateKeys.size ()).forEach (i -> HttpClientProvider.setPrivateKeyEntry (keyStore, privateKeys, passwordAsCharArray, certificatesAsArray, i));
         return keyStore;
 
@@ -105,6 +113,14 @@ final class HttpClientProvider {
     private static void setPrivateKeyEntry (final KeyStore keyStore, final List<PrivateKey> privateKeys, final char [] passwordAsCharArray, final Certificate [] certificatesAsArray, final int i) {
         try {
             keyStore.setKeyEntry ("key-alias-" + i, privateKeys.get (i), passwordAsCharArray, certificatesAsArray);
+        } catch (final KeyStoreException e) {
+            throw new CurlException (e);
+        }
+    }
+
+    private static void setCaCertificateEntry (final KeyStore keyStore, final List<Certificate> certificates, final int i) {
+        try {
+            keyStore.setCertificateEntry ("ca-cert-alias-" + i, certificates.get (i));
         } catch (final KeyStoreException e) {
             throw new CurlException (e);
         }
