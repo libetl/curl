@@ -12,123 +12,123 @@ import java.util.List;
  * A generic PEM reader, based on the format outlined in RFC 1421
  */
 class PemReader extends BufferedReader {
-	private static final String BEGIN = "-----BEGIN ";
-	private static final String END = "-----END ";
+    private static final String BEGIN = "-----BEGIN ";
+    private static final String END   = "-----END ";
 
-	PemReader(Reader reader) {
-		super(reader);
-	}
+    PemReader (final Reader reader) {
+        super (reader);
+    }
 
-	PemObject readPemObject() throws IOException {
-		String line = readLine();
+    PemObject readPemObject () throws IOException {
+        String line = this.readLine ();
 
-		while (line != null && !line.startsWith(BEGIN)) {
-			line = readLine();
-		}
+        while (line != null && !line.startsWith (PemReader.BEGIN)) {
+            line = this.readLine ();
+        }
 
-		if (line != null) {
-			line = line.substring(BEGIN.length());
-			int index = line.indexOf('-');
-			String type = line.substring(0, index);
+        if (line != null) {
+            line = line.substring (PemReader.BEGIN.length ());
+            final int index = line.indexOf ('-');
+            final String type = line.substring (0, index);
 
-			if (index > 0) {
-				return loadObject(type);
-			}
-		}
+            if (index > 0) {
+                return this.loadObject (type);
+            }
+        }
 
-		return null;
-	}
+        return null;
+    }
 
-	private PemObject loadObject(String type) throws IOException {
-		String line;
-		String endMarker = END + type;
-		StringBuilder stringBuffer = new StringBuilder();
-		List<PemHeader> headers = new ArrayList<>();
+    private PemObject loadObject (final String type) throws IOException {
+        String line;
+        final String endMarker = PemReader.END + type;
+        final StringBuilder stringBuffer = new StringBuilder ();
+        final List<PemHeader> headers = new ArrayList<> ();
 
-		while ((line = readLine()) != null) {
-			if (line.contains(":")) {
-				int index = line.indexOf(':');
-				String hdr = line.substring(0, index);
-				String value = line.substring(index + 1).trim();
+        while ((line = this.readLine ()) != null) {
+            if (line.contains (":")) {
+                final int index = line.indexOf (':');
+                final String hdr = line.substring (0, index);
+                final String value = line.substring (index + 1).trim ();
 
-				headers.add(new PemHeader(hdr, value));
+                headers.add (new PemHeader (hdr, value));
 
-				continue;
-			}
+                continue;
+            }
 
-			if (line.contains(endMarker)) {
-				break;
-			}
+            if (line.contains (endMarker)) {
+                break;
+            }
 
-			stringBuffer.append(line.trim());
-		}
+            stringBuffer.append (line.trim ());
+        }
 
-		if (line == null) {
-			throw new IOException(endMarker + " not found");
-		}
+        if (line == null) {
+            throw new IOException (endMarker + " not found");
+        }
 
-		return new PemObject(type, headers, Base64.getDecoder().decode(stringBuffer.toString()));
-	}
+        return new PemObject (type, headers, Base64.getDecoder ().decode (stringBuffer.toString ()));
+    }
 
-	static class PemHeader {
-		private final String name;
-		private final String value;
+    static class PemHeader {
+        private final String name;
+        private final String value;
 
-		/**
-		 * Base constructor.
-		 *
-		 * @param name
-		 *            name of the header property.
-		 * @param value
-		 *            value of the header property.
-		 */
-		PemHeader(String name, String value) {
-			this.name = name;
-			this.value = value;
-		}
+        /**
+         * Base constructor.
+         *
+         * @param name
+         *            name of the header property.
+         * @param value
+         *            value of the header property.
+         */
+        PemHeader (final String name, final String value) {
+            this.name = name;
+            this.value = value;
+        }
 
-		public String getName() {
-			return name;
-		}
+        public String getName () {
+            return this.name;
+        }
 
-		public String getValue() {
-			return value;
-		}
-	}
+        public String getValue () {
+            return this.value;
+        }
+    }
 
-	static class PemObject {
+    static class PemObject {
 
-		private String type;
-		private List<PemHeader> headers;
-		private byte[] content;
+        private final String          type;
+        private final List<PemHeader> headers;
+        private final byte []         content;
 
-		/**
-		 * Generic constructor for object with headers.
-		 *
-		 * @param type
-		 *            pem object type.
-		 * @param headers
-		 *            a list of PemHeader objects.
-		 * @param content
-		 *            the binary content of the object.
-		 */
-		PemObject(String type, List<PemHeader> headers, byte[] content) {
-			this.type = type;
-			this.headers = Collections.unmodifiableList(headers);
-			this.content = content;
-		}
+        /**
+         * Generic constructor for object with headers.
+         *
+         * @param type
+         *            pem object type.
+         * @param headers
+         *            a list of PemHeader objects.
+         * @param content
+         *            the binary content of the object.
+         */
+        PemObject (final String type, final List<PemHeader> headers, final byte [] content) {
+            this.type = type;
+            this.headers = Collections.unmodifiableList (headers);
+            this.content = content;
+        }
 
-		String getType() {
-			return type;
-		}
+        String getType () {
+            return this.type;
+        }
 
-		byte[] getContent() {
-			return content;
-		}
+        byte [] getContent () {
+            return this.content;
+        }
 
-		List<PemHeader> getHeaders() {
-			return headers;
-		}
+        List<PemHeader> getHeaders () {
+            return this.headers;
+        }
 
-	}
+    }
 }
