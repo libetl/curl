@@ -1,7 +1,6 @@
 package org.toilelibre.libe.curl;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.InetAddress;
@@ -105,10 +104,10 @@ final class HttpClientProvider {
 			final CertFormat keyFormat, final File keyFileObject, final char[] passwordAsCharArray)
 			throws KeyStoreException, NoSuchAlgorithmException, java.security.cert.CertificateException,
 			FileNotFoundException, IOException, CurlException, CertificateException {
-		List<Certificate> certificates = certFormat.generateCredentialsFromFileAndPassword(new FileInputStream(certFileObject),
-				Kind.CERTIFICATE, passwordAsCharArray);
-		List<PrivateKey> privateKeys = keyFormat.generateCredentialsFromFileAndPassword(new FileInputStream(keyFileObject),
-				Kind.PRIVATE_KEY, passwordAsCharArray);
+		List<Certificate> certificates = certFormat.generateCredentialsFromFileAndPassword(Kind.CERTIFICATE,
+		        IOUtils.toString(certFileObject), passwordAsCharArray);
+		List<PrivateKey> privateKeys = keyFormat.generateCredentialsFromFileAndPassword(Kind.PRIVATE_KEY,
+		        IOUtils.toString(keyFileObject), passwordAsCharArray);
 
 		KeyStore keyStore = KeyStore.getInstance("JKS");
 		keyStore.load(null);

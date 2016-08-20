@@ -1,6 +1,9 @@
 package org.toilelibre.libe.curl;
 
 import java.io.ByteArrayInputStream;
+import java.io.DataInputStream;
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -44,6 +47,16 @@ class IOUtils {
 	static String toString(final InputStream input) throws IOException {
 		return IOUtils.toString(input, Charset.defaultCharset());
 	}
+
+    static byte[] toString (File fileObject) throws IOException {
+        byte [] result = new byte [(int)fileObject.length ()];
+        FileInputStream fis = new FileInputStream (fileObject);
+        DataInputStream dis = new DataInputStream (fis);
+        dis.readFully (result);
+        dis.close ();
+        fis.close ();
+        return result;
+    }
 
 	private static InputStream toStream(final String input) throws IOException {
 		return IOUtils.toStream(input, Charset.defaultCharset());

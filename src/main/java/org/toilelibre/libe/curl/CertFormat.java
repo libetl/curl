@@ -2,7 +2,6 @@ package org.toilelibre.libe.curl;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.security.KeyFactory;
 import java.security.KeyStore;
@@ -12,6 +11,7 @@ import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.security.spec.InvalidKeySpecException;
+import java.security.spec.KeySpec;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.util.Arrays;
 import java.util.ArrayList;
@@ -19,15 +19,16 @@ import java.util.Enumeration;
 import java.util.List;
 
 import org.toilelibre.libe.curl.Curl.CurlException;
+import org.toilelibre.libe.curl.DerReader.Asn1Object;
 import org.toilelibre.libe.curl.PemReader.PemObject;
 
 enum CertFormat {
 
-	PEM((inputStream, kind, passwordAsCharArray) -> {
+	PEM((kind, content, passwordAsCharArray) -> {
 		PemReader pemReader = null;
 		List<Object> result = new ArrayList<>();
 		try {
-			pemReader = new PemReader(new InputStreamReader(inputStream));
+			pemReader = new PemReader(new InputStreamReader (new ByteArrayInputStream(content)));
 			PKCS8EncodedKeySpec privateKeySpec = null;
 			PemObject pemObject;
 			while ((pemObject = pemReader.readPemObject()) != null) {
@@ -57,37 +58,38 @@ enum CertFormat {
 				} catch (IOException e) {
 				}
 		}
-	}), P12((inputStream, kind, passwordAsCharArray) -> {
+	}), P12((kind, content, passwordAsCharArray) -> {
 		try {
-			return readFromKeystoreType ("pkcs12", inputStream, kind, passwordAsCharArray);
+			return readFromKeystoreType ("pkcs12", content, kind, passwordAsCharArray);
 		} catch (NoSuchAlgorithmException | CertificateException | IOException | KeyStoreException
 				| UnrecoverableKeyException e) {
 			throw new CurlException(e);
 		}
-	}), JKS((inputStream, kind, passwordAsCharArray) -> {
+	}), JKS((kind, content, passwordAsCharArray) -> {
 		try {
-			return readFromKeystoreType ("jks", inputStream, kind, passwordAsCharArray);
+			return readFromKeystoreType ("jks", content, kind, passwordAsCharArray);
 		} catch (NoSuchAlgorithmException | CertificateException | IOException | KeyStoreException
 				| UnrecoverableKeyException e) {
 			throw new CurlException(e);
 		}
-	}), DER((inputStream, kind, passwordAsCharArray) -> {		
+	}), DER((kind, content, passwordAsCharArray) -> {		
 		try {
 			if (kind == Kind.CERTIFICATE){
 				CertificateFactory certificateFactory = CertificateFactory.getInstance("X.509");
-				return Arrays.asList(certificateFactory.generateCertificate(inputStream));
+				return Arrays.asList(certificateFactory.generateCertificate(new ByteArrayInputStream (content)));
 			}
 			if (kind == Kind.PRIVATE_KEY){
-				byte [] content = IOUtils.toString(inputStream).getBytes();
-				KeyFactory keyFactory = KeyFactory.getInstance("RSA");
-				PKCS8EncodedKeySpec keySpec = new PKCS8EncodedKeySpec(content);
+                DerReader derReader = new DerReader (content);
+                Asn1Object asn1 = derReader.read();
+                KeyFactory keyFactory = KeyFactory.getInstance("RSA");
+                KeySpec keySpec = asn1.getKeySpec();
 				return Arrays.asList(keyFactory.generatePrivate(keySpec));
 			}
 		    return null;
 	} catch (CertificateException | NoSuchAlgorithmException | InvalidKeySpecException | IOException e) {
 		throw new CurlException(e);
 	}
-	}), ENG((inputStream, kind, passwordAsCharArray) -> {
+	}), ENG((content, kind, passwordAsCharArray) -> {
 		try {
 			return KeyStore.getInstance("pkcs12");
 		} catch (final KeyStoreException e) {
@@ -97,7 +99,7 @@ enum CertFormat {
 
 	@FunctionalInterface
 	interface KeystoreFromFileGenerator {
-		Object generate(InputStream inputStream, Kind kind, char[] passwordAsCharArray);
+		Object generate(Kind kind, byte[] content, char[] passwordAsCharArray);
 	}
 
 	enum Kind {
@@ -117,9 +119,9 @@ enum CertFormat {
 		this.generator = generator1;
 	}
 
-	private static List<Object> readFromKeystoreType(String type, InputStream inputStream, Kind kind, char[] passwordAsCharArray) throws KeyStoreException, NoSuchAlgorithmException, CertificateException, IOException, UnrecoverableKeyException {
+	private static List<Object> readFromKeystoreType(String type, byte[] content, Kind kind, char[] passwordAsCharArray) throws KeyStoreException, NoSuchAlgorithmException, CertificateException, IOException, UnrecoverableKeyException {
 		final KeyStore keyStore = KeyStore.getInstance(type);
-		keyStore.load(inputStream, passwordAsCharArray);
+		keyStore.load(new ByteArrayInputStream (content), passwordAsCharArray);
 		Enumeration<String> aliases = keyStore.aliases();
 		List<Object> result = new ArrayList<>();
 		while (aliases.hasMoreElements()) {
@@ -139,8 +141,8 @@ enum CertFormat {
 	}
 
 	@SuppressWarnings("unchecked")
-	public <T> List<T> generateCredentialsFromFileAndPassword(final InputStream inputStream, final Kind kind,
+	public <T> List<T> generateCredentialsFromFileAndPassword(final Kind kind, final byte[] content,
 			final char[] passwordAsCharArray) {
-		return (List<T>) this.generator.generate(inputStream, kind, passwordAsCharArray);
+		return (List<T>) this.generator.generate(kind, content, passwordAsCharArray);
 	}
 }
