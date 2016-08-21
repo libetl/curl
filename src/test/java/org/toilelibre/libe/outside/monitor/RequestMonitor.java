@@ -1,12 +1,15 @@
 package org.toilelibre.libe.outside.monitor;
 
 import java.io.IOException;
+import java.util.Collection;
 import java.util.Enumeration;
 import java.util.Map;
 import java.util.Random;
 
+import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.Part;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -151,12 +154,21 @@ public class RequestMonitor {
             RequestMonitor.LOGGER.info (map.toString ());
             return this.logRequest (request, body);
         }
+        
+        @RequestMapping (value = "/public/form", produces = MediaType.TEXT_PLAIN_VALUE)
+        @ResponseStatus (code = HttpStatus.OK)
+        @ResponseBody
+        public String form (final HttpServletRequest request) throws ServletException, IOException {
+            Collection<Part> parts = request.getParts ();
+            RequestMonitor.LOGGER.info (parts.toString ());
+            return this.logRequest (request, "");
+        }
 
         private String logRequest (final HttpServletRequest request, final String body) {
             final StringBuffer curlLog = new StringBuffer ("curl");
 
             curlLog.append (" -k ");
-            curlLog.append ("--cert-type P12 --cert src/test/resources/clients/libe/libe.p12:mylibepass");
+            curlLog.append ("-E src/test/resources/clients/libe/libe.pem");
             curlLog.append (" -X ");
             curlLog.append (request.getMethod ());
 

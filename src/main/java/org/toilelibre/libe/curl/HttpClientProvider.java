@@ -70,7 +70,7 @@ final class HttpClientProvider {
             final String [] credentials = commandLine.getOptionValue (Arguments.CERT.getOpt ()).split (":");
             final String cacert = commandLine.getOptionValue (Arguments.CA_CERT.getOpt ()) == null ? null : commandLine.getOptionValue (Arguments.CA_CERT.getOpt ());
             final String key = commandLine.getOptionValue (Arguments.KEY.getOpt ()) == null ? credentials [0] : commandLine.getOptionValue (Arguments.KEY.getOpt ());
-            HttpClientProvider.addClientCredentials (builder, certFormat, cacert, credentials [0], keyFormat, key, credentials.length > 1 ? credentials [1] : null);
+            HttpClientProvider.addClientCredentials (builder, certFormat, cacert, credentials [0], keyFormat, key, credentials.length > 1 ? credentials [1] : "");
         }
 
         try {

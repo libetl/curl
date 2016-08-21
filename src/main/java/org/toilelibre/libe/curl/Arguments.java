@@ -39,6 +39,8 @@ final class Arguments {
 
     final static Option  USER_AGENT       = Arguments.add (Option.builder ("A").longOpt ("user-agent").desc ("user agent").required (false).hasArg (true).build ());
 
+    final static Option  FORM             = Arguments.add (Option.builder ("F").longOpt ("form").desc ("http multipart post data").required (false).hasArg (true).build ());
+
     private static Option add (final Option option) {
         Arguments.ALL_OPTIONS.addOption (option);
         return option;
