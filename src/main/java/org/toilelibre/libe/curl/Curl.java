@@ -7,6 +7,10 @@ import org.apache.http.HttpResponse;
 
 public class Curl {
 
+    public static ArgumentsBuilder curl () {
+        return new ArgumentsBuilder ();
+    }
+
     public static String $ (final String requestCommand) throws CurlException {
         try {
             return IOUtils.toString (Curl.curl (requestCommand).getEntity ().getContent ());
