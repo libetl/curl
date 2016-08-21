@@ -3,7 +3,7 @@ package org.toilelibre.libe.curl;
 import org.apache.http.HttpResponse;
 import org.toilelibre.libe.curl.Curl.CurlException;
 
-class ArgumentsBuilder {
+public class ArgumentsBuilder {
     
     private final StringBuilder curlCommand = new StringBuilder ("curl ");
 
