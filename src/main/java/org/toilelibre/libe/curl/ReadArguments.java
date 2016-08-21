@@ -41,6 +41,9 @@ final class ReadArguments {
     }
 
     private static String removeSlashes (final String arg) {
+        if (arg.length () == 0) {
+            return arg;
+        }
         if (arg.charAt (0) == '\"') {
             return arg.substring (1, arg.length () - 1).replaceAll ("\\\"", "\"");
         }
