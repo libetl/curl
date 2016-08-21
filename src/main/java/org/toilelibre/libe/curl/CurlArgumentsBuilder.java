@@ -9,11 +9,13 @@ public class CurlArgumentsBuilder {
     
     CurlArgumentsBuilder () {}
     
-    public HttpResponse run () throws CurlException {
+    public HttpResponse run (String url) throws CurlException {
+        curlCommand.append (url + " ");
         return Curl.curl (curlCommand.toString ());
     }
 
-    public String $ () throws CurlException {
+    public String $ (String url) throws CurlException {
+        curlCommand.append (url + " ");
         return Curl.$ (curlCommand.toString ());
     }
 
