@@ -6,7 +6,9 @@ import org.toilelibre.libe.curl.Curl.CurlException;
 public class ArgumentsBuilder {
     
     private final StringBuilder curlCommand = new StringBuilder ("curl ");
-
+    
+    ArgumentsBuilder () {}
+    
     public HttpResponse run () throws CurlException {
         return Curl.curl (curlCommand.toString ());
     }
