@@ -3,11 +3,11 @@ package org.toilelibre.libe.curl;
 import org.apache.http.HttpResponse;
 import org.toilelibre.libe.curl.Curl.CurlException;
 
-public class ArgumentsBuilder {
+public class CurlArgumentsBuilder {
     
     private final StringBuilder curlCommand = new StringBuilder ("curl ");
     
-    ArgumentsBuilder () {}
+    CurlArgumentsBuilder () {}
     
     public HttpResponse run () throws CurlException {
         return Curl.curl (curlCommand.toString ());

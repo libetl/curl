@@ -7,8 +7,8 @@ import org.apache.http.HttpResponse;
 
 public class Curl {
 
-    public static ArgumentsBuilder curl () {
-        return new ArgumentsBuilder ();
+    public static CurlArgumentsBuilder curl () {
+        return new CurlArgumentsBuilder ();
     }
 
     public static String $ (final String requestCommand) throws CurlException {

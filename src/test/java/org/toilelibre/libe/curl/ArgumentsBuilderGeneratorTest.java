@@ -21,7 +21,7 @@ public class ArgumentsBuilderGeneratorTest {
     public void addOptionsToArgumentsBuilder () throws ClassNotFoundException, NotFoundException, CannotCompileException, IOException {
 
         final ClassPool pool = ClassPool.getDefault ();
-        final CtClass argsBuilderClass = pool.get (ArgumentsBuilder.class.getName ());
+        final CtClass argsBuilderClass = pool.get (CurlArgumentsBuilder.class.getName ());
         final CtClass stringType = pool.get (String.class.getName ());
         argsBuilderClass.defrost ();
 
