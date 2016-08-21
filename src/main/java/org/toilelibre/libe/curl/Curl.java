@@ -39,4 +39,23 @@ public class Curl {
             super (arg0);
         }
     }
+    
+    public static class CurlArgumentsBuilder {
+        
+        private final StringBuilder curlCommand = new StringBuilder ("curl ");
+        
+        CurlArgumentsBuilder () {}
+        
+        public HttpResponse run (String url) throws CurlException {
+            curlCommand.append (url + " ");
+            return Curl.curl (curlCommand.toString ());
+        }
+
+        public String $ (String url) throws CurlException {
+            curlCommand.append (url + " ");
+            return Curl.$ (curlCommand.toString ());
+        }
+
+    }
+
 }

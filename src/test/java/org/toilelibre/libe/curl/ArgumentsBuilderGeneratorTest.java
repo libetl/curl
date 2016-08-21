@@ -6,6 +6,7 @@ import java.util.regex.Pattern;
 
 import org.apache.commons.cli.Option;
 import org.junit.Test;
+import org.toilelibre.libe.curl.Curl.CurlArgumentsBuilder;
 
 import javassist.CannotCompileException;
 import javassist.ClassPool;
