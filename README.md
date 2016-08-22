@@ -2,14 +2,13 @@
 curl command in java (using Apache libs : HttpClient and commons-cli)
 
 Setup
-
 `<dependency>`
 
 `    <groupId>org.toile-libre.libe</groupId>`
 
 `    <artifactId>curl</artifactId>`
 
-`    <version>`![version](https://img.shields.io/maven-central/v/org.toile-libre.libe/curl.svg?logoWidth=-91)`</version>`
+`    <version>`![LATEST](https://img.shields.io/maven-central/v/org.toile-libre.libe/curl.svg?logoWidth=-91)`</version>`
 
 `</dependency>`
 
