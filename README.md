@@ -1,4 +1,4 @@
-# curl
+# curl [![Licence](https://img.shields.io/badge/licence-Apache%20Licence%20%282.0%29-blue.svg)](https://www.apache.org/licenses/LICENSE-2.0)
 curl command in java (using Apache libs : HttpClient and commons-cli)
 
 Setup with maven
