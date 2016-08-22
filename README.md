@@ -5,11 +5,11 @@ Setup
 
 `<dependency>`
 
-`    <groupId>org.toile-libre.libe</groupId>`
+&nbsp;&nbsp;&nbsp;&nbsp;`<groupId>org.toile-libre.libe</groupId>`
 
-`    <artifactId>curl</artifactId>`
+&nbsp;&nbsp;&nbsp;&nbsp;`<artifactId>curl</artifactId>`
 
-`    <version>`![LATEST](https://img.shields.io/maven-central/v/org.toile-libre.libe/curl.svg?logoWidth=-102)`</version>`
+&nbsp;&nbsp;&nbsp;&nbsp;`<version>`![LATEST](https://img.shields.io/maven-central/v/org.toile-libre.libe/curl.svg?logoWidth=-102)`</version>`
 
 `</dependency>`
 
