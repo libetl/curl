@@ -30,6 +30,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
@@ -155,7 +156,7 @@ public class RequestMonitor {
             return this.logRequest (request, body);
         }
         
-        @RequestMapping (value = "/public/form", produces = MediaType.TEXT_PLAIN_VALUE)
+        @RequestMapping (value = "/public/form", produces = MediaType.TEXT_PLAIN_VALUE, method = RequestMethod.POST)
         @ResponseStatus (code = HttpStatus.OK)
         @ResponseBody
         public String form (final HttpServletRequest request) throws ServletException, IOException {
