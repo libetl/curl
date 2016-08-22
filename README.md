@@ -1,7 +1,7 @@
 # curl
 curl command in java (using Apache libs : HttpClient and commons-cli)
 
-Setup
+Setup with maven
 
 `<dependency>`
 
@@ -40,3 +40,8 @@ Examples :
     curl("-L -k -X GET -H 'User-Agent: curl/7.49.1' -H 'Accept: */*' -H 'Host: localhost' -u user:password 'https://localhost:8443/private/login'");
     curl("-k -X POST 'https://localhost:8443/public/json' -d '{\"var1\":\"val1\",\"var2\":\"val2\"}'");
 ```
+
+It also works with a builder
+```java
+    HttpResponse response = curl().k().X("POST").d("{\"var1\":\"val1\",\"var2\":\"val2\"}")').run ("https://localhost:8443/public/json");
+````
