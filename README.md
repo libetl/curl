@@ -43,5 +43,5 @@ Examples :
 
 It also works with a builder
 ```java
-    HttpResponse response = curl().k().X("POST").d("{\"var1\":\"val1\",\"var2\":\"val2\"}").run ("https://localhost:8443/public/json");
+    HttpResponse response = curl().k().X("POST").d("{\"var1\":\"val1\",\"var2\":\"val2\"}").run("https://localhost:8443/public/json");
 ````
