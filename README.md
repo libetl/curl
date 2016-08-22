@@ -1,6 +1,15 @@
 # curl
 curl command in java (using Apache libs : HttpClient and commons-cli)
 
+Setup
+```xml
+<dependency>
+    <groupId>org.toile-libre.libe</groupId>
+    <artifactId>curl</artifactId>
+    <version>[version](https://img.shields.io/maven-central/v/org.toile-libre.libe/curl.svg?logoWidth=-91)</version>
+</dependency>
+```
+
 Usage
 ```java
     org.apache.http.HttpResponse org.toilelibre.libe.curl.Curl.curl (String curlParams);
