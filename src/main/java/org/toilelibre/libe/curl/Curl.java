@@ -6,6 +6,8 @@ import org.apache.commons.cli.CommandLine;
 import org.apache.http.HttpResponse;
 
 public class Curl {
+    
+    private Curl () {}
 
     public static String $ (final String requestCommand) throws CurlException {
         try {
