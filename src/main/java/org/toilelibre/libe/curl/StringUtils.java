@@ -3,7 +3,7 @@ package org.toilelibre.libe.curl;
 class StringUtils {
 
     static String capitalize (final String str) {
-        if (str == null || str.length () == 0) {
+        if ((str == null) || (str.length () == 0)) {
             return str;
         }
 

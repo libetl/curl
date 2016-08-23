@@ -7,10 +7,6 @@ import org.apache.http.HttpResponse;
 
 public class Curl {
 
-    public static CurlArgumentsBuilder curl () {
-        return new CurlArgumentsBuilder ();
-    }
-
     public static String $ (final String requestCommand) throws CurlException {
         try {
             return IOUtils.toString (Curl.curl (requestCommand).getEntity ().getContent ());
@@ -19,13 +15,36 @@ public class Curl {
         }
     }
 
+    public static CurlArgumentsBuilder curl () {
+        return new CurlArgumentsBuilder ();
+    }
+
     public static HttpResponse curl (final String requestCommand) throws CurlException {
         final CommandLine commandLine = ReadArguments.getCommandLineFromRequest (requestCommand);
         try {
-            return HttpClientProvider.prepareHttpClient (commandLine).execute (HttpRequestProvider.prepareRequest (commandLine));
-        } catch (final IOException e) {
+            return HttpClientProvider.prepareHttpClient (commandLine)
+                    .execute (HttpRequestProvider.prepareRequest (commandLine));
+        } catch (final IOException | IllegalArgumentException e) {
             throw new CurlException (e);
         }
+    }
+    public static class CurlArgumentsBuilder {
+
+        private final StringBuilder curlCommand = new StringBuilder ("curl ");
+
+        CurlArgumentsBuilder () {
+        }
+
+        public String $ (final String url) throws CurlException {
+            this.curlCommand.append (url + " ");
+            return Curl.$ (this.curlCommand.toString ());
+        }
+
+        public HttpResponse run (final String url) throws CurlException {
+            this.curlCommand.append (url + " ");
+            return Curl.curl (this.curlCommand.toString ());
+        }
+
     }
 
     public static class CurlException extends RuntimeException {
@@ -39,23 +58,6 @@ public class Curl {
             super (arg0);
         }
     }
-    
-    public static class CurlArgumentsBuilder {
-        
-        private final StringBuilder curlCommand = new StringBuilder ("curl ");
-        
-        CurlArgumentsBuilder () {}
-        
-        public HttpResponse run (String url) throws CurlException {
-            curlCommand.append (url + " ");
-            return Curl.curl (curlCommand.toString ());
-        }
 
-        public String $ (String url) throws CurlException {
-            curlCommand.append (url + " ");
-            return Curl.$ (curlCommand.toString ());
-        }
-
-    }
 
 }

@@ -24,56 +24,7 @@ import org.toilelibre.libe.curl.PemReader.PemObject;
 
 enum CertFormat {
 
-    PEM ( (kind, content, passwordAsCharArray) -> {
-        PemReader pemReader = null;
-        final List<Object> result = new ArrayList<> ();
-        try {
-            pemReader = new PemReader (new InputStreamReader (new ByteArrayInputStream (content)));
-            PKCS8EncodedKeySpec privateKeySpec = null;
-            PemObject pemObject;
-            while ((pemObject = pemReader.readPemObject ()) != null) {
-                final Kind readKind = Kind.fromValue (pemObject.getType ());
-                if (kind != readKind) {
-                    continue;
-                }
-                switch (kind) {
-                    case PRIVATE_KEY :
-                        privateKeySpec = new PKCS8EncodedKeySpec (pemObject.getContent ());
-                        final KeyFactory keyFactory = KeyFactory.getInstance ("RSA");
-                        result.add (keyFactory.generatePrivate (privateKeySpec));
-                        break;
-                    case CERTIFICATE :
-                        final CertificateFactory certificateFactory = CertificateFactory.getInstance ("X.509");
-                        result.add (certificateFactory.generateCertificate (new ByteArrayInputStream (pemObject.getContent ())));
-                        break;
-                    default :
-                        break;
-                }
-            }
-            return result;
-        } catch (NoSuchAlgorithmException | CertificateException | IOException | InvalidKeySpecException e) {
-            throw new CurlException (e);
-        } finally {
-            if (pemReader != null) {
-                try {
-                    pemReader.close ();
-                } catch (final IOException e) {
-                }
-            }
-        }
-    }), P12 ( (kind, content, passwordAsCharArray) -> {
-        try {
-            return CertFormat.readFromKeystoreType ("pkcs12", content, kind, passwordAsCharArray);
-        } catch (NoSuchAlgorithmException | CertificateException | IOException | KeyStoreException | UnrecoverableKeyException e) {
-            throw new CurlException (e);
-        }
-    }), JKS ( (kind, content, passwordAsCharArray) -> {
-        try {
-            return CertFormat.readFromKeystoreType ("jks", content, kind, passwordAsCharArray);
-        } catch (NoSuchAlgorithmException | CertificateException | IOException | KeyStoreException | UnrecoverableKeyException e) {
-            throw new CurlException (e);
-        }
-    }), DER ( (kind, content, passwordAsCharArray) -> {
+    DER ( (kind, content, passwordAsCharArray) -> {
         try {
             if (kind == Kind.CERTIFICATE) {
                 final CertificateFactory certificateFactory = CertificateFactory.getInstance ("X.509");
@@ -96,7 +47,75 @@ enum CertFormat {
         } catch (final KeyStoreException e) {
             throw new CurlException (e);
         }
+    }), JKS ( (kind, content, passwordAsCharArray) -> {
+        try {
+            return CertFormat.readFromKeystoreType ("jks", content, kind, passwordAsCharArray);
+        } catch (NoSuchAlgorithmException | CertificateException | IOException | KeyStoreException
+                | UnrecoverableKeyException e) {
+            throw new CurlException (e);
+        }
+    }), P12 ( (kind, content, passwordAsCharArray) -> {
+        try {
+            return CertFormat.readFromKeystoreType ("pkcs12", content, kind, passwordAsCharArray);
+        } catch (NoSuchAlgorithmException | CertificateException | IOException | KeyStoreException
+                | UnrecoverableKeyException e) {
+            throw new CurlException (e);
+        }
+    }), PEM ( (kind, content, passwordAsCharArray) -> {
+        PemReader pemReader = null;
+        final List<Object> result = new ArrayList<> ();
+        try {
+            pemReader = new PemReader (new InputStreamReader (new ByteArrayInputStream (content)));
+            PKCS8EncodedKeySpec privateKeySpec = null;
+            PemObject pemObject;
+            while ((pemObject = pemReader.readPemObject ()) != null) {
+                final Kind readKind = Kind.fromValue (pemObject.getType ());
+                if (kind != readKind) {
+                    continue;
+                }
+                switch (kind) {
+                    case PRIVATE_KEY :
+                        privateKeySpec = new PKCS8EncodedKeySpec (pemObject.getContent ());
+                        final KeyFactory keyFactory = KeyFactory.getInstance ("RSA");
+                        result.add (keyFactory.generatePrivate (privateKeySpec));
+                        break;
+                    case CERTIFICATE :
+                        final CertificateFactory certificateFactory = CertificateFactory.getInstance ("X.509");
+                        result.add (certificateFactory
+                                .generateCertificate (new ByteArrayInputStream (pemObject.getContent ())));
+                        break;
+                    default:
+                        break;
+                }
+            }
+            return result;
+        } catch (NoSuchAlgorithmException | CertificateException | IOException | InvalidKeySpecException e) {
+            throw new CurlException (e);
+        } finally {
+            if (pemReader != null) {
+                try {
+                    pemReader.close ();
+                } catch (final IOException e) {
+                }
+            }
+        }
     });
+
+    private KeystoreFromFileGenerator generator;
+
+    CertFormat (final KeystoreFromFileGenerator generator1) {
+        this.generator = generator1;
+    }
+
+    @SuppressWarnings ("unchecked")
+    public <T> List<T> generateCredentialsFromFileAndPassword (final Kind kind, final byte [] content,
+            final char [] passwordAsCharArray) {
+        return (List<T>) this.generator.generate (kind, content, passwordAsCharArray);
+    }
+
+    public KeystoreFromFileGenerator getGenerator () {
+        return this.generator;
+    }
 
     @FunctionalInterface
     interface KeystoreFromFileGenerator {
@@ -104,7 +123,7 @@ enum CertFormat {
     }
 
     enum Kind {
-        PRIVATE_KEY, CERTIFICATE, CERTIFICATE_WITH_CACERT;
+        CERTIFICATE, CERTIFICATE_WITH_CACERT, PRIVATE_KEY;
         static Kind fromValue (final String value) {
             try {
                 return Kind.valueOf (value.toUpperCase ().replace (' ', '_'));
@@ -114,35 +133,22 @@ enum CertFormat {
         }
     }
 
-    private KeystoreFromFileGenerator generator;
-
-    CertFormat (final KeystoreFromFileGenerator generator1) {
-        this.generator = generator1;
-    }
-
-    private static List<Object> readFromKeystoreType (final String type, final byte [] content, final Kind kind, final char [] passwordAsCharArray) throws KeyStoreException, NoSuchAlgorithmException, CertificateException, IOException, UnrecoverableKeyException {
+    private static List<Object> readFromKeystoreType (final String type, final byte [] content, final Kind kind,
+            final char [] passwordAsCharArray) throws KeyStoreException, NoSuchAlgorithmException, CertificateException,
+            IOException, UnrecoverableKeyException {
         final KeyStore keyStore = KeyStore.getInstance (type);
         keyStore.load (new ByteArrayInputStream (content), passwordAsCharArray);
         final Enumeration<String> aliases = keyStore.aliases ();
         final List<Object> result = new ArrayList<> ();
         while (aliases.hasMoreElements ()) {
             final String alias = aliases.nextElement ();
-            if (keyStore.getCertificate (alias) != null && kind == Kind.CERTIFICATE) {
+            if ((keyStore.getCertificate (alias) != null) && (kind == Kind.CERTIFICATE)) {
                 result.add (keyStore.getCertificate (alias));
             }
-            if (keyStore.getKey (alias, passwordAsCharArray) != null && kind == Kind.PRIVATE_KEY) {
+            if ((keyStore.getKey (alias, passwordAsCharArray) != null) && (kind == Kind.PRIVATE_KEY)) {
                 result.add (keyStore.getKey (alias, passwordAsCharArray));
             }
         }
         return result;
-    }
-
-    public KeystoreFromFileGenerator getGenerator () {
-        return this.generator;
-    }
-
-    @SuppressWarnings ("unchecked")
-    public <T> List<T> generateCredentialsFromFileAndPassword (final Kind kind, final byte [] content, final char [] passwordAsCharArray) {
-        return (List<T>) this.generator.generate (kind, content, passwordAsCharArray);
     }
 }
