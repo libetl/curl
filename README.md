@@ -49,6 +49,6 @@ It also works with a builder
 How to get Google Homepage with this lib :
 ```java
     public String getGoogleHomepage (){
-        return org.toilelibre.libe.curl.Curl.curl ().l ().$ ("https://www.google.com/");
+        return curl ().l ().$ ("https://www.google.com/");
     }
 ```
