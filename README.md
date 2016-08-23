@@ -49,6 +49,7 @@ It also works with a builder
 How to get Google Homepage with this lib :
 ```java
     public String getGoogleHomepage (){
+        //-L is passed to follow the redirects
         return curl ().l ().$ ("https://www.google.com/");
     }
 ```
