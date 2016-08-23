@@ -45,3 +45,10 @@ It also works with a builder
 ```java
     HttpResponse response = curl().k().X("POST").d("{\"var1\":\"val1\",\"var2\":\"val2\"}").run("https://localhost:8443/public/json");
 ````
+
+How to get Google Homepage with this lib :
+```java
+    public static String getGoogleHomepage (){
+        return org.toilelibre.libe.curl.Curl.curl ().l ().$ ("https://www.google.com/");
+    }
+```
