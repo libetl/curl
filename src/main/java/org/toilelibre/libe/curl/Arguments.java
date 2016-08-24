@@ -37,6 +37,18 @@ final class Arguments {
 
     final static Option  SILENT           = Arguments.add (Option.builder ("s").longOpt ("silent").desc ("silent").required (false).hasArg (false).build ());
 
+    final static Option  TLS_V1           = Arguments.add (Option.builder ("1").longOpt ("tlsv1").desc ("use >= TLSv1 (SSL)").required (false).hasArg (false).build ());
+
+    final static Option  TLS_V10          = Arguments.add (Option.builder ("tlsv10").longOpt ("tlsv1.0").desc ("use TLSv1.0 (SSL)").required (false).hasArg (false).build ());
+
+    final static Option  TLS_V11          = Arguments.add (Option.builder ("tlsv11").longOpt ("tlsv1.1").desc ("use TLSv1.1 (SSL)").required (false).hasArg (false).build ());
+
+    final static Option  TLS_V12          = Arguments.add (Option.builder ("tlsv12").longOpt ("tlsv1.2").desc ("use TLSv1.2 (SSL)").required (false).hasArg (false).build ());
+
+    final static Option  SSL_V2           = Arguments.add (Option.builder ("2").longOpt ("sslv2").desc ("use SSLv2 (SSL)").required (false).hasArg (false).build ());
+
+    final static Option  SSL_V3           = Arguments.add (Option.builder ("3").longOpt ("sslv3").desc ("use SSLv3 (SSL)").required (false).hasArg (false).build ());
+
     final static Option  TRUST_INSECURE   = Arguments.add (Option.builder ("k").longOpt ("insecure").desc ("trust insecure").required (false).hasArg (false).build ());
 
     final static Option  USER_AGENT       = Arguments.add (Option.builder ("A").longOpt ("user-agent").desc ("user agent").required (false).hasArg (true).build ());

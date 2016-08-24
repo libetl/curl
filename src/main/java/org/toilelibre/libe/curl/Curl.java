@@ -6,8 +6,9 @@ import org.apache.commons.cli.CommandLine;
 import org.apache.http.HttpResponse;
 
 public class Curl {
-    
-    private Curl () {}
+
+    private Curl () {
+    }
 
     public static String $ (final String requestCommand) throws CurlException {
         try {
@@ -24,12 +25,12 @@ public class Curl {
     public static HttpResponse curl (final String requestCommand) throws CurlException {
         final CommandLine commandLine = ReadArguments.getCommandLineFromRequest (requestCommand);
         try {
-            return HttpClientProvider.prepareHttpClient (commandLine)
-                    .execute (HttpRequestProvider.prepareRequest (commandLine));
+            return HttpClientProvider.prepareHttpClient (commandLine).execute (HttpRequestProvider.prepareRequest (commandLine));
         } catch (final IOException | IllegalArgumentException e) {
             throw new CurlException (e);
         }
     }
+
     public static class CurlArgumentsBuilder {
 
         private final StringBuilder curlCommand = new StringBuilder ("curl ");
@@ -60,6 +61,5 @@ public class Curl {
             super (arg0);
         }
     }
-
 
 }

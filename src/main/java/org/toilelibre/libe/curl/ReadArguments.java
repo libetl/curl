@@ -30,7 +30,6 @@ final class ReadArguments {
         return commandLine;
     }
 
-    
     private static String [] getArgsFromCommand (final String requestCommandWithoutBasename) {
         final String requestCommandInput = requestCommandWithoutBasename.replaceAll ("\\s+-([a-zA-Z0-9])", " -$1 ");
         final Matcher matcher = Pattern.compile (Arguments.ARGS_SPLIT_REGEX).matcher (requestCommandInput);
@@ -40,7 +39,7 @@ final class ReadArguments {
         }
         return args.toArray (new String [args.size ()]);
     }
-    
+
     private static String removeSlashes (final String arg) {
         if (arg.length () == 0) {
             return arg;

@@ -50,15 +50,13 @@ enum CertFormat {
     }), JKS ( (kind, content, passwordAsCharArray) -> {
         try {
             return CertFormat.readFromKeystoreType ("jks", content, kind, passwordAsCharArray);
-        } catch (NoSuchAlgorithmException | CertificateException | IOException | KeyStoreException
-                | UnrecoverableKeyException e) {
+        } catch (NoSuchAlgorithmException | CertificateException | IOException | KeyStoreException | UnrecoverableKeyException e) {
             throw new CurlException (e);
         }
     }), P12 ( (kind, content, passwordAsCharArray) -> {
         try {
             return CertFormat.readFromKeystoreType ("pkcs12", content, kind, passwordAsCharArray);
-        } catch (NoSuchAlgorithmException | CertificateException | IOException | KeyStoreException
-                | UnrecoverableKeyException e) {
+        } catch (NoSuchAlgorithmException | CertificateException | IOException | KeyStoreException | UnrecoverableKeyException e) {
             throw new CurlException (e);
         }
     }), PEM ( (kind, content, passwordAsCharArray) -> {
@@ -81,8 +79,7 @@ enum CertFormat {
                         break;
                     case CERTIFICATE :
                         final CertificateFactory certificateFactory = CertificateFactory.getInstance ("X.509");
-                        result.add (certificateFactory
-                                .generateCertificate (new ByteArrayInputStream (pemObject.getContent ())));
+                        result.add (certificateFactory.generateCertificate (new ByteArrayInputStream (pemObject.getContent ())));
                         break;
                     default:
                         break;
@@ -108,8 +105,7 @@ enum CertFormat {
     }
 
     @SuppressWarnings ("unchecked")
-    public <T> List<T> generateCredentialsFromFileAndPassword (final Kind kind, final byte [] content,
-            final char [] passwordAsCharArray) {
+    public <T> List<T> generateCredentialsFromFileAndPassword (final Kind kind, final byte [] content, final char [] passwordAsCharArray) {
         return (List<T>) this.generator.generate (kind, content, passwordAsCharArray);
     }
 
@@ -133,9 +129,7 @@ enum CertFormat {
         }
     }
 
-    private static List<Object> readFromKeystoreType (final String type, final byte [] content, final Kind kind,
-            final char [] passwordAsCharArray) throws KeyStoreException, NoSuchAlgorithmException, CertificateException,
-            IOException, UnrecoverableKeyException {
+    private static List<Object> readFromKeystoreType (final String type, final byte [] content, final Kind kind, final char [] passwordAsCharArray) throws KeyStoreException, NoSuchAlgorithmException, CertificateException, IOException, UnrecoverableKeyException {
         final KeyStore keyStore = KeyStore.getInstance (type);
         keyStore.load (new ByteArrayInputStream (content), passwordAsCharArray);
         final Enumeration<String> aliases = keyStore.aliases ();

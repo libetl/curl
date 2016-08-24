@@ -59,8 +59,7 @@ public class RequestMonitor {
         @RequestMapping (value = "/public/json", produces = MediaType.TEXT_PLAIN_VALUE)
         @ResponseStatus (code = HttpStatus.OK)
         @ResponseBody
-        public String json (final HttpServletRequest request, @RequestBody (required = true) final String body)
-                throws JsonParseException, JsonMappingException, IOException {
+        public String json (final HttpServletRequest request, @RequestBody (required = true) final String body) throws JsonParseException, JsonMappingException, IOException {
             @SuppressWarnings ("unchecked")
             final Map<String, Object> map = new ObjectMapper ().readValue (body, Map.class);
             RequestMonitor.LOGGER.info (map.toString ());
@@ -70,8 +69,7 @@ public class RequestMonitor {
         @RequestMapping (value = "/private/login", produces = MediaType.TEXT_PLAIN_VALUE)
         @ResponseStatus (code = HttpStatus.FOUND)
         @ResponseBody
-        public String login (final HttpServletRequest request, final HttpServletResponse response,
-                @RequestBody (required = false) final String body, final Authentication auth) {
+        public String login (final HttpServletRequest request, final HttpServletResponse response, @RequestBody (required = false) final String body, final Authentication auth) {
             response.setHeader ("Location", this.serverLocation (request) + "/private/logged");
             this.logRequest (request, body);
             return "";
@@ -85,8 +83,7 @@ public class RequestMonitor {
             curlLog.append (" -X ");
             curlLog.append (request.getMethod ());
 
-            for (final Enumeration<String> headerNameEnumeration = request.getHeaderNames (); headerNameEnumeration
-                    .hasMoreElements ();) {
+            for (final Enumeration<String> headerNameEnumeration = request.getHeaderNames (); headerNameEnumeration.hasMoreElements ();) {
                 final String headerName = headerNameEnumeration.nextElement ();
                 final String headerValue = request.getHeader (headerName);
                 curlLog.append (" -H '");
@@ -105,8 +102,7 @@ public class RequestMonitor {
 
             curlLog.append (" ");
             curlLog.append (" '");
-            curlLog.append (this.serverLocation (request) + request.getServletPath ()
-                    + (request.getQueryString () == null ? "" : "?" + request.getQueryString ()));
+            curlLog.append (this.serverLocation (request) + request.getServletPath () + (request.getQueryString () == null ? "" : "?" + request.getQueryString ()));
             curlLog.append ("'");
             RequestMonitor.LOGGER.info (curlLog.toString ());
             return curlLog.toString ();
@@ -115,16 +111,14 @@ public class RequestMonitor {
         @RequestMapping (produces = MediaType.TEXT_PLAIN_VALUE)
         @ResponseStatus (code = HttpStatus.OK)
         @ResponseBody
-        public String receiveRequest (final HttpServletRequest request,
-                @RequestBody (required = false) final String body) {
+        public String receiveRequest (final HttpServletRequest request, @RequestBody (required = false) final String body) {
             return this.logRequest (request, body);
         }
 
         @RequestMapping (value = "/public/redirection", produces = MediaType.TEXT_PLAIN_VALUE)
         @ResponseStatus (code = HttpStatus.FOUND)
         @ResponseBody
-        public String redirection (final HttpServletRequest request, final HttpServletResponse response,
-                @RequestBody (required = false) final String body) {
+        public String redirection (final HttpServletRequest request, final HttpServletResponse response, @RequestBody (required = false) final String body) {
             response.setHeader ("Location", this.serverLocation (request) + "/public/redirectedThere");
             this.logRequest (request, body);
             return "";
@@ -137,8 +131,7 @@ public class RequestMonitor {
         @RequestMapping (value = "/public/unauthorized", produces = MediaType.TEXT_PLAIN_VALUE)
         @ResponseStatus (code = HttpStatus.UNAUTHORIZED)
         @ResponseBody
-        public String unauthorized (final HttpServletRequest request, final HttpServletResponse response,
-                @RequestBody (required = false) final String body) {
+        public String unauthorized (final HttpServletRequest request, final HttpServletResponse response, @RequestBody (required = false) final String body) {
             response.setHeader ("Location", this.serverLocation (request) + "/public/tryagain");
             this.logRequest (request, body);
             return "";
@@ -150,8 +143,7 @@ public class RequestMonitor {
     static class WebSecurityConfig extends WebSecurityConfigurerAdapter {
         @Override
         protected void configure (final HttpSecurity http) throws Exception {
-            http.authorizeRequests ().antMatchers ("/private").permitAll ().anyRequest ().authenticated ().and ()
-                    .httpBasic ().realmName ("basic").and ().logout ().permitAll ();
+            http.authorizeRequests ().antMatchers ("/private").permitAll ().anyRequest ().authenticated ().and ().httpBasic ().realmName ("basic").and ().logout ().permitAll ();
         }
 
         @Override
