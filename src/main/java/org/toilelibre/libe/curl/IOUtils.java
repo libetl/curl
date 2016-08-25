@@ -116,8 +116,13 @@ class IOUtils {
     }
 
     static byte [] toByteArray (final File fileObject) throws IOException {
-        final byte [] result = new byte [(int) fileObject.length ()];
         final FileInputStream fis = new FileInputStream (fileObject);
+        return IOUtils.toByteArray (fis, (int) fileObject.length ());
+
+    }
+
+    static byte [] toByteArray (final InputStream fis, final int length) throws IOException {
+        final byte [] result = new byte [length];
         final DataInputStream dis = new DataInputStream (fis);
         dis.readFully (result);
         dis.close ();

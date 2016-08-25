@@ -25,7 +25,9 @@ public class Curl {
     public static HttpResponse curl (final String requestCommand) throws CurlException {
         final CommandLine commandLine = ReadArguments.getCommandLineFromRequest (requestCommand);
         try {
-            return HttpClientProvider.prepareHttpClient (commandLine).execute (HttpRequestProvider.prepareRequest (commandLine));
+            final HttpResponse response = HttpClientProvider.prepareHttpClient (commandLine).execute (HttpRequestProvider.prepareRequest (commandLine));
+            AfterResponse.handle (commandLine, response);
+            return response;
         } catch (final IOException | IllegalArgumentException e) {
             throw new CurlException (e);
         }

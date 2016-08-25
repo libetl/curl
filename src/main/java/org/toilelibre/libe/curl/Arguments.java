@@ -35,6 +35,8 @@ final class Arguments {
 
     final static Option  NTLM             = Arguments.add (Option.builder ("ntlm").longOpt ("ntlm").desc ("NTLM auth").required (false).hasArg (false).build ());
 
+    final static Option  OUTPUT           = Arguments.add (Option.builder ("o").longOpt ("output").desc ("write to file").required (false).hasArg (true).argName ("FILE").build ());
+
     final static Option  SILENT           = Arguments.add (Option.builder ("s").longOpt ("silent").desc ("silent").required (false).hasArg (false).build ());
 
     final static Option  TLS_V1           = Arguments.add (Option.builder ("1").longOpt ("tlsv1").desc ("use >= TLSv1 (SSL)").required (false).hasArg (false).build ());

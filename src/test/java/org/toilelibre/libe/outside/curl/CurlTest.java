@@ -1,9 +1,12 @@
 package org.toilelibre.libe.outside.curl;
 
+import java.io.File;
+
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.fest.assertions.Assertions;
 import org.junit.AfterClass;
+import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.toilelibre.libe.curl.Curl;
@@ -171,6 +174,12 @@ public class CurlTest {
     @Test
     public void withUserAgent () {
         this.assertOk (this.curl ("-k -E src/test/resources/clients/libe/libe.pem -X GET -A 'toto' -H 'Accept: */*' -H 'Host: localhost' 'https://localhost:%d/public'"));
+    }
+
+    @Test
+    public void outputFile () {
+        this.assertOk (this.curl ("-k -E src/test/resources/clients/libe/libe.pem -X GET -A 'toto' -H 'Accept: */*' -H 'Host: localhost' 'https://localhost:%d/public' -o target/classes/downloadedCurl"));
+        Assert.assertTrue (new File ("target/classes/downloadedCurl").exists ());
     }
 
     @Test (expected = CurlException.class)
