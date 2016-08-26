@@ -19,6 +19,7 @@ public class CurlTest {
     public static void startRequestMonitor () {
         if (System.getProperty ("skipServer") == null) {
             RequestMonitor.start ();
+            SimpleProxyServer.start (RequestMonitor.port ());
         }
     }
 
@@ -230,5 +231,10 @@ public class CurlTest {
     @Test (expected = CurlException.class)
     public void curlSslV3 () {
         this.assertOk (this.curl ("-k -E src/test/resources/clients/libe/libe.pem https://localhost:%d/public/ -3"));
+    }
+
+    @Test
+    public void curlWithProxy () {
+        this.assertOk (this.curl ("-x http://localhost:8080 -k -E src/test/resources/clients/libe/libe.pem https://localhost:%d/public/"));
     }
 }

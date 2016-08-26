@@ -54,6 +54,10 @@ public class ArgumentsBuilderGeneratorTest {
     }
 
     private String methodNameOf (final String opt) {
+        if ((opt.length () == 1) && (opt.charAt (0) >= 'A') && (opt.charAt (0) <= 'Z')) {
+            return opt.toLowerCase () + "UpperCase";
+        }
+
         final String lowerCased = ("" + Character.toLowerCase (opt.charAt (0)) + opt.substring (1)).replace ('.', '-');
         final String notStartingWithADigitAndLowerCased = this.removeLeadingDigits ('-' + lowerCased);
         return this.capitalizeParts (notStartingWithADigitAndLowerCased.replaceAll ("-", ""));

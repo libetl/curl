@@ -37,6 +37,8 @@ final class Arguments {
 
     final static Option  OUTPUT           = Arguments.add (Option.builder ("o").longOpt ("output").desc ("write to file").required (false).hasArg (true).argName ("FILE").build ());
 
+    final static Option  PROXY            = Arguments.add (Option.builder ("x").longOpt ("proxy").desc ("use the specified HTTP proxy").required (false).hasArg (true).argName ("<[protocol://][user:password@]proxyhost[:port]>").build ());
+
     final static Option  SILENT           = Arguments.add (Option.builder ("s").longOpt ("silent").desc ("silent").required (false).hasArg (false).build ());
 
     final static Option  TLS_V1           = Arguments.add (Option.builder ("1").longOpt ("tlsv1").desc ("use >= TLSv1 (SSL)").required (false).hasArg (false).build ());

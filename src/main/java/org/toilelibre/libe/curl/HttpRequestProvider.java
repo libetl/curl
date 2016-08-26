@@ -12,7 +12,11 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.apache.commons.cli.CommandLine;
+import org.apache.http.HttpEntity;
 import org.apache.http.HttpEntityEnclosingRequest;
+import org.apache.http.HttpHost;
+import org.apache.http.client.config.RequestConfig;
+import org.apache.http.client.config.RequestConfig.Builder;
 import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.entity.StringEntity;
@@ -24,13 +28,20 @@ class HttpRequestProvider {
 
     static HttpUriRequest prepareRequest (final CommandLine commandLine) throws CurlException {
 
-        final HttpUriRequest request = HttpRequestProvider.getBuilder (commandLine);
+        final HttpRequestBase request = HttpRequestProvider.getBuilder (commandLine);
 
-        HttpRequestProvider.setData (commandLine, request);
+        if (request instanceof HttpEntityEnclosingRequest) {
+            final HttpEntityEnclosingRequest requestWithPayload = (HttpEntityEnclosingRequest) request;
+            requestWithPayload.setEntity (HttpRequestProvider.getData (commandLine));
 
-        HttpRequestProvider.setForm (commandLine, request);
+            if (requestWithPayload.getEntity () == null) {
+                requestWithPayload.setEntity (HttpRequestProvider.getForm (commandLine));
+            }
+        }
 
         HttpRequestProvider.setHeaders (commandLine, request);
+
+        request.setConfig (HttpRequestProvider.getConfig (commandLine));
 
         return request;
 
@@ -54,30 +65,31 @@ class HttpRequestProvider {
         }
     }
 
-    private static HttpUriRequest getBuilder (final CommandLine cl) throws CurlException {
+    private static HttpRequestBase getBuilder (final CommandLine cl) throws CurlException {
         try {
             final String method = cl.getOptionValue (Arguments.HTTP_METHOD.getOpt ()) == null ? "GET" : cl.getOptionValue (Arguments.HTTP_METHOD.getOpt ());
-            return (HttpUriRequest) Class.forName (HttpRequestBase.class.getPackage ().getName () + ".Http" + StringUtils.capitalize (method.toLowerCase ().replaceAll ("[^a-z]", ""))).getConstructor (URI.class).newInstance (new URI (cl.getArgs () [0]));
+            return (HttpRequestBase) Class.forName (HttpRequestBase.class.getPackage ().getName () + ".Http" + StringUtils.capitalize (method.toLowerCase ().replaceAll ("[^a-z]", ""))).getConstructor (URI.class).newInstance (new URI (cl.getArgs () [0]));
         } catch (IllegalAccessException | IllegalArgumentException | SecurityException | IllegalStateException | InstantiationException | ClassNotFoundException | InvocationTargetException | NoSuchMethodException | URISyntaxException e) {
             throw new CurlException (e);
         }
     }
 
-    private static void setData (final CommandLine commandLine, final HttpUriRequest request) {
-        if (commandLine.hasOption (Arguments.DATA.getOpt ()) && (request instanceof HttpEntityEnclosingRequest)) {
+    private static StringEntity getData (final CommandLine commandLine) {
+        if (commandLine.hasOption (Arguments.DATA.getOpt ())) {
             try {
-                ((HttpEntityEnclosingRequest) request).setEntity (new StringEntity (commandLine.getOptionValue (Arguments.DATA.getOpt ()).toString ()));
+                return new StringEntity (commandLine.getOptionValue (Arguments.DATA.getOpt ()).toString ());
             } catch (final UnsupportedEncodingException e) {
                 throw new CurlException (e);
             }
         }
+        return null;
     }
 
-    private static void setForm (final CommandLine commandLine, final HttpUriRequest request) {
+    private static HttpEntity getForm (final CommandLine commandLine) {
         final String [] forms = Optional.ofNullable (commandLine.getOptionValues (Arguments.FORM.getOpt ())).orElse (new String [0]);
 
         if (forms.length == 0) {
-            return;
+            return null;
         }
 
         final MultipartEntityBuilder multiPartBuilder = MultipartEntityBuilder.create ();
@@ -94,11 +106,11 @@ class HttpRequestProvider {
         binaryForms.forEach (arg -> multiPartBuilder.addBinaryBody (arg.substring (0, arg.indexOf ('=')), HttpRequestProvider.dataBehind (arg.substring (arg.indexOf ('=') + 1))));
         textForms.forEach (arg -> multiPartBuilder.addTextBody (arg.substring (0, arg.indexOf ('=')), arg.substring (arg.indexOf ('=') + 1)));
 
-        ((HttpEntityEnclosingRequest) request).setEntity (multiPartBuilder.build ());
+        return multiPartBuilder.build ();
 
     }
 
-    private static void setHeaders (final CommandLine commandLine, final HttpUriRequest request) {
+    private static void setHeaders (final CommandLine commandLine, final HttpRequestBase request) {
         final String [] headers = Optional.ofNullable (commandLine.getOptionValues (Arguments.HEADER.getOpt ())).orElse (new String [0]);
 
         Arrays.stream (headers).filter (optionAsString -> optionAsString.indexOf (':') != -1).map (optionAsString -> optionAsString.split (":"))
@@ -107,5 +119,15 @@ class HttpRequestProvider {
         if (commandLine.hasOption (Arguments.USER_AGENT.getOpt ())) {
             request.addHeader ("User-Agent", commandLine.getOptionValue (Arguments.USER_AGENT.getOpt ()));
         }
+    }
+
+    private static RequestConfig getConfig (final CommandLine commandLine) {
+        final Builder requestConfig = RequestConfig.custom ();
+
+        if (commandLine.hasOption (Arguments.PROXY.getOpt ())) {
+            requestConfig.setProxy (HttpHost.create (commandLine.getOptionValue (Arguments.PROXY.getOpt ())));
+        }
+
+        return requestConfig.build ();
     }
 }
