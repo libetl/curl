@@ -1,6 +1,8 @@
 package org.toilelibre.libe.outside.curl;
 
 import java.io.File;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
@@ -14,6 +16,7 @@ import org.toilelibre.libe.curl.Curl.CurlException;
 import org.toilelibre.libe.outside.monitor.RequestMonitor;
 
 public class CurlTest {
+    private static Logger LOGGER = Logger.getLogger(CurlTest.class.getName());
 
     @BeforeClass
     public static void startRequestMonitor () {
@@ -179,6 +182,10 @@ public class CurlTest {
 
     @Test
     public void outputFile () {
+        File file = new File("target/classes/downloadedCurl");
+
+        boolean fileDeleted = file.delete();
+        LOGGER.log(Level.FINE, "output file deleted : " + fileDeleted);
         this.assertOk (this.curl ("-k -E src/test/resources/clients/libe/libe.pem -X GET -A 'toto' -H 'Accept: */*' -H 'Host: localhost' 'https://localhost:%d/public' -o target/classes/downloadedCurl"));
         Assert.assertTrue (new File ("target/classes/downloadedCurl").exists ());
     }

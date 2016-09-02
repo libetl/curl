@@ -51,7 +51,7 @@ class AfterResponse {
         final File file = new File (fileName);
         try {
             if (!file.createNewFile()){
-                throw new CurlException(new RuntimeException("Could not create the file"));
+                throw new CurlException(new RuntimeException("Could not create the file. Does it already exist ?"));
             }
         } catch (IOException e) {
             LOGGER.log(Level.WARNING, "Cannot flush the output file");
