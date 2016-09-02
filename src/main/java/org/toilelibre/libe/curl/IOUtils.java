@@ -1,6 +1,5 @@
 package org.toilelibre.libe.curl;
 
-import java.io.ByteArrayInputStream;
 import java.io.DataInputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -59,22 +58,18 @@ class IOUtils {
 
         @Override
         public void write (final char [] value, final int offset, final int length) {
-            if (value != null) {
-                this.builder.append (value, offset, length);
-            }
+            this.builder.append (value, offset, length);
         }
 
         @Override
         public void write (final String value) {
-            if (value != null) {
-                this.builder.append (value);
-            }
+            this.builder.append (value);
         }
     }
 
     private static final int DEFAULT_BUFFER_SIZE = 1024 * 4;
 
-    static final int         EOF                 = -1;
+    private static final int EOF                 = -1;
 
     private static void copy (final InputStream input, final Writer output, final Charset encoding) throws IOException {
         final InputStreamReader in = new InputStreamReader (input, encoding);
@@ -95,24 +90,12 @@ class IOUtils {
 
     private static long copyLarge (final Reader input, final Writer output, final char [] buffer) throws IOException {
         long count = 0;
-        int n = 0;
+        int n;
         while (IOUtils.EOF != (n = input.read (buffer))) {
             output.write (buffer, 0, n);
             count += n;
         }
         return count;
-    }
-
-    static InputStream markSupportedStream (final InputStream inputStream) throws IOException {
-        return IOUtils.toStream (IOUtils.toString (inputStream));
-    }
-
-    private static InputStream toStream (final String input) throws IOException {
-        return IOUtils.toStream (input, Charset.defaultCharset ());
-    }
-
-    private static InputStream toStream (final String input, final Charset defaultCharset) {
-        return new ByteArrayInputStream (input.getBytes (defaultCharset));
     }
 
     static byte [] toByteArray (final File fileObject) throws IOException {

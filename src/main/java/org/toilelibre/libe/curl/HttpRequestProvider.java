@@ -77,7 +77,7 @@ class HttpRequestProvider {
     private static StringEntity getData (final CommandLine commandLine) {
         if (commandLine.hasOption (Arguments.DATA.getOpt ())) {
             try {
-                return new StringEntity (commandLine.getOptionValue (Arguments.DATA.getOpt ()).toString ());
+                return new StringEntity (commandLine.getOptionValue (Arguments.DATA.getOpt ()));
             } catch (final UnsupportedEncodingException e) {
                 throw new CurlException (e);
             }
@@ -101,7 +101,7 @@ class HttpRequestProvider {
         });
 
         final List<String> binaryForms = Arrays.stream (forms).filter (arg -> HttpRequestProvider.isBinary (arg.substring (arg.indexOf ('=') + 1))).collect (Collectors.toList ());
-        final List<String> textForms = Arrays.asList (forms).stream ().filter (form -> !binaryForms.contains (form)).collect (Collectors.toList ());
+        final List<String> textForms = Arrays.stream (forms).filter (form -> !binaryForms.contains (form)).collect (Collectors.toList ());
 
         binaryForms.forEach (arg -> multiPartBuilder.addBinaryBody (arg.substring (0, arg.indexOf ('=')), HttpRequestProvider.dataBehind (arg.substring (arg.indexOf ('=') + 1))));
         textForms.forEach (arg -> multiPartBuilder.addTextBody (arg.substring (0, arg.indexOf ('=')), arg.substring (arg.indexOf ('=') + 1)));

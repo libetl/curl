@@ -41,12 +41,12 @@ public class Curl {
         }
 
         public String $ (final String url) throws CurlException {
-            this.curlCommand.append (url + " ");
+            this.curlCommand.append (url).append(" ");
             return Curl.$ (this.curlCommand.toString ());
         }
 
         public HttpResponse run (final String url) throws CurlException {
-            this.curlCommand.append (url + " ");
+            this.curlCommand.append (url).append(" ");
             return Curl.curl (this.curlCommand.toString ());
         }
 

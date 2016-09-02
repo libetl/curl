@@ -3,45 +3,16 @@ package org.toilelibre.libe.curl;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.Reader;
-import java.util.ArrayList;
 import java.util.Base64;
-import java.util.Collections;
-import java.util.List;
 
 /**
  * A generic PEM reader, based on the format outlined in RFC 1421
  */
 class PemReader extends BufferedReader {
-    static class PemHeader {
-        private final String name;
-        private final String value;
-
-        /**
-         * Base constructor.
-         *
-         * @param name
-         *            name of the header property.
-         * @param value
-         *            value of the header property.
-         */
-        PemHeader (final String name, final String value) {
-            this.name = name;
-            this.value = value;
-        }
-
-        public String getName () {
-            return this.name;
-        }
-
-        public String getValue () {
-            return this.value;
-        }
-    }
 
     static class PemObject {
 
         private final byte []         content;
-        private final List<PemHeader> headers;
         private final String          type;
 
         /**
@@ -49,23 +20,16 @@ class PemReader extends BufferedReader {
          *
          * @param type
          *            pem object type.
-         * @param headers
-         *            a list of PemHeader objects.
          * @param content
          *            the binary content of the object.
          */
-        PemObject (final String type, final List<PemHeader> headers, final byte [] content) {
+        PemObject (final String type, final byte [] content) {
             this.type = type;
-            this.headers = Collections.unmodifiableList (headers);
             this.content = content;
         }
 
         byte [] getContent () {
             return this.content;
-        }
-
-        List<PemHeader> getHeaders () {
-            return this.headers;
         }
 
         String getType () {
@@ -86,16 +50,10 @@ class PemReader extends BufferedReader {
         String line;
         final String endMarker = PemReader.END + type;
         final StringBuilder stringBuffer = new StringBuilder ();
-        final List<PemHeader> headers = new ArrayList<> ();
 
         while ((line = this.readLine ()) != null) {
             if (line.contains (":")) {
-                final int index = line.indexOf (':');
-                final String hdr = line.substring (0, index);
-                final String value = line.substring (index + 1).trim ();
-
-                headers.add (new PemHeader (hdr, value));
-
+                //there is an header. But we don't need them
                 continue;
             }
 
@@ -110,7 +68,7 @@ class PemReader extends BufferedReader {
             throw new IOException (endMarker + " not found");
         }
 
-        return new PemObject (type, headers, Base64.getDecoder ().decode (stringBuffer.toString ()));
+        return new PemObject (type, Base64.getDecoder ().decode (stringBuffer.toString ()));
     }
 
     PemObject readPemObject () throws IOException {

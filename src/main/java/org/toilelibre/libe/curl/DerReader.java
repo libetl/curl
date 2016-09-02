@@ -10,20 +10,18 @@ import java.security.spec.RSAPrivateCrtKeySpec;
 class DerReader {
     static class Asn1Object {
         private static final byte LOWER_5_BITS = (byte) 0x1F;
-        private final int         length;
         private final int         tag;
         private final int         type;
 
         private final byte []     value;
 
-        public Asn1Object (final int tag, final int length, final byte [] value) {
+        Asn1Object (final int tag, final byte [] value) {
             this.tag = tag;
             this.type = tag & Asn1Object.LOWER_5_BITS;
-            this.length = length;
             this.value = value;
         }
 
-        public BigInteger getInteger () throws IOException {
+        BigInteger getInteger () throws IOException {
             if (this.type != DerReader.INTEGER) {
                 throw new IOException ("Invalid DER: object is not integer");
             }
@@ -31,7 +29,7 @@ class DerReader {
             return new BigInteger (this.value);
         }
 
-        public KeySpec getKeySpec () throws IOException {
+        KeySpec getKeySpec () throws IOException {
 
             final DerReader parser = this.getReader ();
 
@@ -48,11 +46,7 @@ class DerReader {
             return new RSAPrivateCrtKeySpec (modulus, publicExp, privateExp, prime1, prime2, exp1, exp2, crtCoef);
         }
 
-        public int getLength () {
-            return this.length;
-        }
-
-        public DerReader getReader () throws IOException {
+        DerReader getReader () throws IOException {
             if (!this.isConstructed ()) {
                 throw new IOException ("Invalid DER: can't parse primitive entity");
             }
@@ -94,63 +88,36 @@ class DerReader {
             return new String (this.value, encoding);
         }
 
-        public int getType () {
-            return this.type;
-        }
-
-        public byte [] getValue () {
-            return this.value;
-        }
-
-        public boolean isConstructed () {
+        boolean isConstructed () {
             return (this.tag & DerReader.CONSTRUCTED) == DerReader.CONSTRUCTED;
         }
     }
 
-    public static final int   ANY                 = 0x00;
-    public static final int   APPLICATION         = 0x40;
-    public static final int   BIT_STRING          = 0x03;
-    public static final int   BMP_STRING          = 0x1E;
+    private static final int   BMP_STRING          = 0x1E;
 
-    public static final int   BOOLEAN             = 0x01;
+    private static final int   BYTE_MAX            = 0xFF;
+    private static final int   CONSTRUCTED         = 0x20;
+    private static final int   GENERAL_STRING      = 0x1B;
+    private static final int   GRAPHIC_STRING      = 0x19;
+    private static final int   IA5_STRING          = 0x16;
+    private static final int   INTEGER             = 0x02;
+    private static final int   ISO646_STRING       = 0x1A;
+    private static final byte  LOWER_7_BITS        = (byte) 0x7F;
+    private static final int   MAX_NUMBER_OF_BYTES = 4;
+    private static final int   NUMERIC_STRING      = 0x12;
+    private static final int   PRINTABLE_STRING    = 0x13;
+    private static final int   UNIVERSAL_STRING    = 0x1C;
 
-    public static final int   BYTE_MAX            = 0xFF;
-    public static final int   CONSTRUCTED         = 0x20;
-    public static final int   CONTEXT             = 0x80;
-    public static final int   ENUMERATED          = 0x0a;
-    public static final int   GENERAL_STRING      = 0x1B;
-    public static final int   GENERALIZED_TIME    = 0x18;
-    public static final int   GRAPHIC_STRING      = 0x19;
-    public static final int   IA5_STRING          = 0x16;
-    public static final int   INTEGER             = 0x02;
-    public static final int   ISO646_STRING       = 0x1A;
-    public static final byte  LOWER_7_BITS        = (byte) 0x7F;
-    public static final int   MAX_NUMBER_OF_BYTES = 4;
-    public static final int   NULL                = 0x05;
-    public static final int   NUMERIC_STRING      = 0x12;
-    public static final int   OBJECT_IDENTIFIER   = 0x06;
-    public static final int   OCTET_STRING        = 0x04;
-    public static final int   PRINTABLE_STRING    = 0x13;
-    public static final int   PRIVATE             = 0xC0;
-    public static final int   REAL                = 0x09;
-    public static final int   RELATIVE_OID        = 0x0d;
-    public static final int   SEQUENCE            = 0x10;
-    public static final int   SET                 = 0x11;
-    public static final int   T61_STRING          = 0x14;
-    public static final int   UNIVERSAL           = 0x00;
-    public static final int   UNIVERSAL_STRING    = 0x1C;
-
-    public static final int   UTC_TIME            = 0x17;
-    public static final int   UTF8_STRING         = 0x0C;
-    public static final int   VIDEOTEX_STRING     = 0x15;
+    private static final int   UTF8_STRING         = 0x0C;
+    private static final int   VIDEOTEX_STRING     = 0x15;
 
     private final InputStream in;
 
-    public DerReader (final byte [] bytes) {
+    DerReader (final byte [] bytes) {
         this (new ByteArrayInputStream (bytes));
     }
 
-    public DerReader (final InputStream in) {
+    private DerReader (final InputStream in) {
         this.in = in;
     }
 
@@ -180,7 +147,7 @@ class DerReader {
         return new BigInteger (1, bytes).intValue ();
     }
 
-    public Asn1Object read () throws IOException {
+    Asn1Object read () throws IOException {
         final int tag = this.in.read ();
 
         if (tag == -1) {
@@ -195,8 +162,6 @@ class DerReader {
             throw new IOException ("Invalid DER: stream too short, missing value");
         }
 
-        final Asn1Object o = new Asn1Object (tag, length, value);
-
-        return o;
+        return new Asn1Object (tag, value);
     }
 }

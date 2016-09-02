@@ -13,10 +13,9 @@ import java.security.cert.CertificateFactory;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.KeySpec;
 import java.security.spec.PKCS8EncodedKeySpec;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Enumeration;
-import java.util.List;
+import java.util.*;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import org.toilelibre.libe.curl.Curl.CurlException;
 import org.toilelibre.libe.curl.DerReader.Asn1Object;
@@ -28,14 +27,14 @@ enum CertFormat {
         try {
             if (kind == Kind.CERTIFICATE) {
                 final CertificateFactory certificateFactory = CertificateFactory.getInstance ("X.509");
-                return Arrays.asList (certificateFactory.generateCertificate (new ByteArrayInputStream (content)));
+                return Collections.singletonList(certificateFactory.generateCertificate (new ByteArrayInputStream (content)));
             }
             if (kind == Kind.PRIVATE_KEY) {
                 final DerReader derReader = new DerReader (content);
                 final Asn1Object asn1 = derReader.read ();
                 final KeyFactory keyFactory = KeyFactory.getInstance ("RSA");
                 final KeySpec keySpec = asn1.getKeySpec ();
-                return Arrays.asList (keyFactory.generatePrivate (keySpec));
+                return Collections.singletonList (keyFactory.generatePrivate (keySpec));
             }
             return null;
         } catch (CertificateException | NoSuchAlgorithmException | InvalidKeySpecException | IOException e) {
@@ -93,11 +92,13 @@ enum CertFormat {
                 try {
                     pemReader.close ();
                 } catch (final IOException e) {
+                    logProblemWithPemReader (e);
                 }
             }
         }
     });
 
+    private static Logger LOGGER = Logger.getLogger(AfterResponse.class.getName());
     private KeystoreFromFileGenerator generator;
 
     CertFormat (final KeystoreFromFileGenerator generator1) {
@@ -109,8 +110,8 @@ enum CertFormat {
         return (List<T>) this.generator.generate (kind, content, passwordAsCharArray);
     }
 
-    public KeystoreFromFileGenerator getGenerator () {
-        return this.generator;
+    private static void logProblemWithPemReader(IOException e) {
+        LOGGER.log(Level.WARNING, "Problem with PEM reader", e);
     }
 
     @FunctionalInterface
@@ -119,7 +120,7 @@ enum CertFormat {
     }
 
     enum Kind {
-        CERTIFICATE, CERTIFICATE_WITH_CACERT, PRIVATE_KEY;
+        CERTIFICATE, PRIVATE_KEY;
         static Kind fromValue (final String value) {
             try {
                 return Kind.valueOf (value.toUpperCase ().replace (' ', '_'));
