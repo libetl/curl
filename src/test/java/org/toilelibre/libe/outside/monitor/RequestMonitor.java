@@ -3,6 +3,7 @@ package org.toilelibre.libe.outside.monitor;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.Enumeration;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
 
@@ -14,9 +15,11 @@ import javax.servlet.http.Part;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.Banner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.batch.JobExecutionExitCodeGenerator;
+import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpStatus;
@@ -185,16 +188,21 @@ public class RequestMonitor {
     }
 
     public static void start (final int port, final int managementPort, final boolean withSsl, final String [] args) {
-        System.setProperty ("server.port", String.valueOf (port));
-        System.setProperty ("managementPort.port", String.valueOf (managementPort));
+        Map<String, Object> properties = new HashMap<String, Object>();
+        properties.put ("server.port", port);
+        properties.put ("management.port", managementPort);
         if (withSsl) {
-            System.setProperty ("server.ssl.key-store", "classpath:server/libe/libe.jks");
-            System.setProperty ("server.ssl.key-store-password", "myserverpass");
-            System.setProperty ("server.ssl.key-password", "myserverpass");
-            System.setProperty ("server.ssl.client-auth", "need");
+            properties.put ("server.ssl.key-store", "classpath:server/libe/libe.jks");
+            properties.put ("server.ssl.key-store-password", "myserverpass");
+            properties.put ("server.ssl.key-password", "myserverpass");
+            properties.put ("server.ssl.client-auth", "need");
         }
-
-        RequestMonitor.context = SpringApplication.run (RequestMonitor.class, args);
+        RequestMonitor.context = new SpringApplicationBuilder()
+                .sources (RequestMonitor.class)
+                .bannerMode (Banner.Mode.OFF)
+                .addCommandLineProperties (true)
+                .properties (properties)
+                .run(args);
     }
 
     public static int [] start (final String [] args) {
