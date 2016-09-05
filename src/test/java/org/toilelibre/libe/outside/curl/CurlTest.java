@@ -49,6 +49,18 @@ public class CurlTest {
         return Curl.$ (String.format (requestCommand, RequestMonitor.port ()));
     }
 
+    private CompletableFuture<String> $Async (final String requestCommand) {
+        return Curl.$Async (String.format (requestCommand, RequestMonitor.port ()));
+    }
+
+    private HttpResponse curl (final String requestCommand) {
+        return Curl.curl (String.format (requestCommand, RequestMonitor.port ()));
+    }
+
+    private CompletableFuture<HttpResponse> curlAsync (final String requestCommand) {
+        return Curl.curlAsync (String.format (requestCommand, RequestMonitor.port ()));
+    }
+
     private void assertFound (final HttpResponse curlResponse) {
         Assertions.assertThat (curlResponse).isNotNull ();
         Assertions.assertThat (this.statusCodeOf (curlResponse)).isEqualTo (HttpStatus.SC_MOVED_TEMPORARILY);
@@ -66,14 +78,6 @@ public class CurlTest {
 
     private int statusCodeOf (final HttpResponse response) {
         return response.getStatusLine ().getStatusCode ();
-    }
-
-    private HttpResponse curl (final String requestCommand) {
-        return Curl.curl (String.format (requestCommand, RequestMonitor.port ()));
-    }
-
-    private CompletableFuture<HttpResponse> curlAsync (final String requestCommand) {
-        return Curl.curlAsync (String.format (requestCommand, RequestMonitor.port ()));
     }
 
     @Test
@@ -261,6 +265,11 @@ public class CurlTest {
         this.assertOk (Curl.curl ("-x http://localhost:" + proxyPort + " http://localhost:" + StupidHttpServer.port () + "/public/foo"));
     }
 
+    @Test
+    public void curlAsync () throws InterruptedException, ExecutionException {
+        this.$Async (this.$Async ("-k -E src/test/resources/clients/libe/libe.pem https://localhost:%d/public/pathAsync").get ());
+    }
+    
     @Test
     public void twoCurlsInParallel () {
         final CompletableFuture<HttpResponse> future1 = this.curlAsync ("-k -E src/test/resources/clients/libe/libe.pem https://localhost:%d/public/path1");
