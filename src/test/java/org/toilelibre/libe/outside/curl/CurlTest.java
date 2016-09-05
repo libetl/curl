@@ -2,6 +2,8 @@ package org.toilelibre.libe.outside.curl;
 
 import java.io.File;
 import java.util.Random;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -68,6 +70,10 @@ public class CurlTest {
 
     private HttpResponse curl (final String requestCommand) {
         return Curl.curl (String.format (requestCommand, RequestMonitor.port ()));
+    }
+
+    private CompletableFuture<HttpResponse> curlAsync (final String requestCommand) {
+        return Curl.curlAsync (String.format (requestCommand, RequestMonitor.port ()));
     }
 
     @Test
@@ -253,5 +259,19 @@ public class CurlTest {
     @Test
     public void curlWithProxy () {
         this.assertOk (Curl.curl ("-x http://localhost:" + proxyPort + " http://localhost:" + StupidHttpServer.port () + "/public/foo"));
+    }
+
+    @Test
+    public void twoCurlsInParallel () {
+        final CompletableFuture<HttpResponse> future1 = this.curlAsync ("-k -E src/test/resources/clients/libe/libe.pem https://localhost:%d/public/path1");
+        final CompletableFuture<HttpResponse> future2 = this.curlAsync ("-k -E src/test/resources/clients/libe/libe.pem https://localhost:%d/public/path2");
+        
+        try {
+            CompletableFuture.allOf (future1, future2).get ();
+            this.assertOk (future1.get ());
+            this.assertOk (future2.get ());
+        } catch (InterruptedException | ExecutionException e) {
+            Assert.fail();
+        }
     }
 }

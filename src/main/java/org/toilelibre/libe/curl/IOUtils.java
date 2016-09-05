@@ -11,6 +11,8 @@ import java.io.Serializable;
 import java.io.Writer;
 import java.nio.charset.Charset;
 
+import org.apache.http.HttpEntity;
+
 class IOUtils {
 
     private static class StringBuilderWriter extends Writer implements Serializable {
@@ -111,6 +113,14 @@ class IOUtils {
         dis.close ();
         fis.close ();
         return result;
+    }
+
+    static String quietToString (final HttpEntity entity) {
+        try {
+            return IOUtils.toString (entity.getContent (), Charset.defaultCharset ());
+        } catch (IOException e) {
+            throw new Curl.CurlException (e);
+        }
     }
 
     static String toString (final InputStream input) throws IOException {
