@@ -6,6 +6,7 @@ import java.io.UnsupportedEncodingException;
 import java.lang.reflect.InvocationTargetException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.nio.charset.Charset;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -23,6 +24,8 @@ import org.apache.http.entity.StringEntity;
 import org.apache.http.entity.mime.MultipartEntityBuilder;
 import org.apache.http.message.BasicHeader;
 import org.toilelibre.libe.curl.Curl.CurlException;
+
+import static java.net.URLEncoder.encode;
 
 class HttpRequestProvider {
 
@@ -76,13 +79,50 @@ class HttpRequestProvider {
 
     private static StringEntity getData (final CommandLine commandLine) {
         if (commandLine.hasOption (Arguments.DATA.getOpt ())) {
+            return simpleDataFrom(commandLine);
+        }
+        if (commandLine.hasOption (Arguments.DATA_URLENCODE.getOpt ())) {
             try {
-                return new StringEntity (commandLine.getOptionValue (Arguments.DATA.getOpt ()));
+                return new StringEntity(Arrays.stream(commandLine.getOptionValues(Arguments.DATA_URLENCODE.getOpt ()))
+                        .map(optionValue -> urlEncodedDataFrom(optionValue, commandLine))
+                        .collect(Collectors.joining("&")));
             } catch (final UnsupportedEncodingException e) {
                 throw new CurlException (e);
             }
         }
         return null;
+    }
+
+    private static String urlEncodedDataFrom(String value, CommandLine commandLine) {
+        if (value.startsWith("=")) {
+            value = value.substring(1);
+        }
+        if (value.indexOf('=') != -1) {
+            return value.substring(0, value.indexOf('=') + 1) + encodeOrFail(value.substring(value.indexOf('=') + 1), Charset.defaultCharset());
+        }
+        if (value.indexOf('@') == 0) {
+            return encodeOrFail(new String(dataBehind (value)), Charset.defaultCharset());
+        }
+        if (value.indexOf('@') != -1) {
+            return value.substring(0, value.indexOf('@')) + '=' + encodeOrFail(new String(dataBehind (value.substring(value.indexOf('@')))), Charset.defaultCharset());
+        }
+        return encodeOrFail(commandLine.getOptionValue(Arguments.DATA_URLENCODE.getOpt()), Charset.defaultCharset());
+    }
+
+    private static String encodeOrFail(String value, Charset encoding) {
+        try {
+            return encode(value, encoding.name());
+        } catch (UnsupportedEncodingException e) {
+            throw new CurlException(e);
+        }
+    }
+
+    private static StringEntity simpleDataFrom(CommandLine commandLine) {
+        try {
+            return new StringEntity (commandLine.getOptionValue (Arguments.DATA.getOpt ()));
+        } catch (final UnsupportedEncodingException e) {
+            throw new CurlException (e);
+        }
     }
 
     private static HttpEntity getForm (final CommandLine commandLine) {
@@ -118,6 +158,10 @@ class HttpRequestProvider {
 
         if (commandLine.hasOption (Arguments.USER_AGENT.getOpt ())) {
             request.addHeader ("User-Agent", commandLine.getOptionValue (Arguments.USER_AGENT.getOpt ()));
+        }
+
+        if (commandLine.hasOption (Arguments.DATA_URLENCODE.getOpt ())) {
+            request.addHeader ("Content-Type", "application/x-www-form-urlencoded");
         }
     }
 

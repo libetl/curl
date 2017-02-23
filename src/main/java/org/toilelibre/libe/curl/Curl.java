@@ -7,6 +7,8 @@ import java.util.concurrent.ExecutionException;
 import org.apache.commons.cli.CommandLine;
 import org.apache.http.HttpResponse;
 
+import static org.toilelibre.libe.curl.UglyVersionDisplay.stopAndDisplayVersionIfThe;
+
 public class Curl {
 
     private Curl () {
@@ -40,6 +42,7 @@ public class Curl {
         return CompletableFuture.<HttpResponse> supplyAsync ( () -> {
             final CommandLine commandLine = ReadArguments.getCommandLineFromRequest (requestCommand);
             try {
+                stopAndDisplayVersionIfThe(commandLine.hasOption(Arguments.VERSION.getOpt()));
                 final HttpResponse response = HttpClientProvider.prepareHttpClient (commandLine).execute (HttpRequestProvider.prepareRequest (commandLine));
                 AfterResponse.handle (commandLine, response);
                 return response;

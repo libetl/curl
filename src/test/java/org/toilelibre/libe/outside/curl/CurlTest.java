@@ -191,6 +191,11 @@ public class CurlTest {
     }
 
     @Test
+    public void withUrlEncodedData () {
+        this.assertOk (this.curl ("-k -E src/test/resources/clients/libe/libe.pem -X POST 'https://localhost:%d/public/data' --data-urlencode 'message=hello world' --data-urlencode 'othermessage=how are you'"));
+    }
+
+    @Test
     public void withFileForm () {
         this.assertOk (this.curl ("-k -E src/test/resources/clients/libe/libe.pem -F 'toto=titi' -F 'script=@src/test/resources/test.sh' -X POST -H 'Accept: */*' -H 'Host: localhost' 'https://localhost:%d/public/form'"));
     }
@@ -208,6 +213,11 @@ public class CurlTest {
         LOGGER.log(Level.FINE, "output file deleted : " + fileDeleted);
         this.assertOk (this.curl ("-k -E src/test/resources/clients/libe/libe.pem -X GET -A 'toto' -H 'Accept: */*' -H 'Host: localhost' 'https://localhost:%d/public' -o target/classes/downloadedCurl"));
         Assert.assertTrue (new File ("target/classes/downloadedCurl").exists ());
+    }
+
+    @Test (expected = CurlException.class)
+    public void justTheVersion () {
+        this.assertOk (this.curl ("-V"));
     }
 
     @Test (expected = CurlException.class)

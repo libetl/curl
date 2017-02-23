@@ -19,6 +19,8 @@ final class Arguments {
 
     final static Option  DATA             = Arguments.add (Option.builder ("d").longOpt ("data").desc ("Data").required (false).hasArg ().argName ("payload").build ());
 
+    final static Option  DATA_URLENCODE   = Arguments.add (Option.builder ("dataurlencode").longOpt ("data-urlencode").desc ("Data to URLEncode").required (false).hasArg ().argName ("payload").build ());
+
     final static Option  FOLLOW_REDIRECTS = Arguments.add (Option.builder ("L").longOpt ("location").desc ("follow redirects").required (false).hasArg (false).build ());
 
     final static Option  FORM             = Arguments.add (Option.builder ("F").longOpt ("form").desc ("http multipart post data").required (false).hasArg (true).build ());
@@ -52,6 +54,8 @@ final class Arguments {
     final static Option  TRUST_INSECURE   = Arguments.add (Option.builder ("k").longOpt ("insecure").desc ("trust insecure").required (false).hasArg (false).build ());
 
     final static Option  USER_AGENT       = Arguments.add (Option.builder ("A").longOpt ("user-agent").desc ("user agent").required (false).hasArg (true).build ());
+
+    final static Option  VERSION          = Arguments.add (Option.builder ("V").longOpt ("version").desc ("get the version of this library").required (false).hasArg (false).build ());
 
     private static Option add (final Option option) {
         Arguments.ALL_OPTIONS.addOption (option);
