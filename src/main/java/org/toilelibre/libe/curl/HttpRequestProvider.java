@@ -84,7 +84,7 @@ class HttpRequestProvider {
         if (commandLine.hasOption (Arguments.DATA_URLENCODE.getOpt ())) {
             try {
                 return new StringEntity(Arrays.stream(commandLine.getOptionValues(Arguments.DATA_URLENCODE.getOpt ()))
-                        .map(optionValue -> urlEncodedDataFrom(optionValue, commandLine))
+                        .map(HttpRequestProvider::urlEncodedDataFrom)
                         .collect(Collectors.joining("&")));
             } catch (final UnsupportedEncodingException e) {
                 throw new CurlException (e);
@@ -93,7 +93,7 @@ class HttpRequestProvider {
         return null;
     }
 
-    private static String urlEncodedDataFrom(String value, CommandLine commandLine) {
+    private static String urlEncodedDataFrom(String value) {
         if (value.startsWith("=")) {
             value = value.substring(1);
         }
@@ -106,7 +106,7 @@ class HttpRequestProvider {
         if (value.indexOf('@') != -1) {
             return value.substring(0, value.indexOf('@')) + '=' + encodeOrFail(new String(dataBehind (value.substring(value.indexOf('@')))), Charset.defaultCharset());
         }
-        return encodeOrFail(commandLine.getOptionValue(Arguments.DATA_URLENCODE.getOpt()), Charset.defaultCharset());
+        return encodeOrFail(value, Charset.defaultCharset());
     }
 
     private static String encodeOrFail(String value, Charset encoding) {

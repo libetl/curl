@@ -196,6 +196,17 @@ public class CurlTest {
     }
 
     @Test
+    public void withUrlEncodedData2 () {
+        this.assertOk (this.curl ("-k -E src/test/resources/clients/libe/libe.pem -X POST 'https://localhost:%d/public/data' --data-urlencode '=hello world'"));
+    }
+
+    @Test
+    public void withUrlEncodedData3 () {
+        this.assertOk (this.curl ("-k -E src/test/resources/clients/libe/libe.pem -X POST 'https://localhost:%d/public/data' --data-urlencode 'message@src/test/resources/test.sh'"));
+    }
+
+
+    @Test
     public void withFileForm () {
         this.assertOk (this.curl ("-k -E src/test/resources/clients/libe/libe.pem -F 'toto=titi' -F 'script=@src/test/resources/test.sh' -X POST -H 'Accept: */*' -H 'Host: localhost' 'https://localhost:%d/public/form'"));
     }
