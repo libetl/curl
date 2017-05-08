@@ -70,11 +70,20 @@ class HttpRequestProvider {
 
     private static HttpRequestBase getBuilder (final CommandLine cl) throws CurlException {
         try {
-            final String method = cl.getOptionValue (Arguments.HTTP_METHOD.getOpt ()) == null ? "GET" : cl.getOptionValue (Arguments.HTTP_METHOD.getOpt ());
+            final String method = cl.getOptionValue (Arguments.HTTP_METHOD.getOpt ()) == null ? determineVerbWithoutArgument(cl) : cl.getOptionValue (Arguments.HTTP_METHOD.getOpt ());
             return (HttpRequestBase) Class.forName (HttpRequestBase.class.getPackage ().getName () + ".Http" + StringUtils.capitalize (method.toLowerCase ().replaceAll ("[^a-z]", ""))).getConstructor (URI.class).newInstance (new URI (cl.getArgs () [0]));
         } catch (IllegalAccessException | IllegalArgumentException | SecurityException | IllegalStateException | InstantiationException | ClassNotFoundException | InvocationTargetException | NoSuchMethodException | URISyntaxException e) {
             throw new CurlException (e);
         }
+    }
+
+    private static String determineVerbWithoutArgument(CommandLine commandLine) {
+        if (commandLine.hasOption (Arguments.DATA.getOpt ()) ||
+                commandLine.hasOption (Arguments.DATA_URLENCODE.getOpt ()) ||
+                commandLine.hasOption(Arguments.FORM.getOpt())) {
+            return "POST";
+        }
+        return "GET";
     }
 
     private static StringEntity getData (final CommandLine commandLine) {
