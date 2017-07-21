@@ -3,11 +3,13 @@ package org.toilelibre.libe.curl;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 
+import java.util.regex.Pattern;
+
 final class Arguments {
 
     final static Options ALL_OPTIONS      = new Options ();
 
-    final static String  ARGS_SPLIT_REGEX = "([^'\"][^ ]*|(?:\"(?:[^\"]|\\\\\")+\")|(?:'(?:[^']|[^ ]+')+'))\\s+";
+    final static Pattern ARGS_SPLIT_REGEX = Pattern.compile("((?:(?:([^'\"\\s]+)(?=[\\s\"']))|(?:\"((?:[^\"]|(?<=\\\\)\")*)\"|(?:'((?:[^']|'(?! )[^']*')*)')|^[^\\s]+$|^[^\\s]+(?= )|(?<= )[^ ]+$)[^\\s\"']*))");
 
     final static Option  AUTH             = Arguments.add (Option.builder ("u").longOpt ("username").desc ("credentials").required (false).hasArg (true).desc ("user:password").build ());
 
