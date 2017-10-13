@@ -18,6 +18,9 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+import javax.net.ssl.HostnameVerifier;
+import javax.net.ssl.HttpsURLConnection;
+import javax.net.ssl.SSLSession;
 import javax.security.cert.CertificateException;
 
 import org.apache.commons.cli.CommandLine;
@@ -26,6 +29,7 @@ import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.NTCredentials;
 import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.client.HttpClient;
+import org.apache.http.conn.ssl.NoopHostnameVerifier;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.conn.ssl.TrustSelfSignedStrategy;
 import org.apache.http.impl.client.BasicCredentialsProvider;
@@ -34,6 +38,8 @@ import org.apache.http.impl.client.SystemDefaultCredentialsProvider;
 import org.apache.http.ssl.SSLContextBuilder;
 import org.toilelibre.libe.curl.CertFormat.Kind;
 import org.toilelibre.libe.curl.Curl.CurlException;
+
+import static org.apache.http.conn.ssl.SSLConnectionSocketFactory.getDefaultHostnameVerifier;
 
 final class HttpClientProvider {
 
@@ -129,8 +135,8 @@ final class HttpClientProvider {
         }
 
         try {
-            final SSLConnectionSocketFactory sslSocketFactory = new SSLConnectionSocketFactory (builder.build ());
-
+            final SSLConnectionSocketFactory sslSocketFactory = new SSLConnectionSocketFactory (builder.build (),
+                    commandLine.hasOption (Arguments.TRUST_INSECURE.getOpt ()) ? NoopHostnameVerifier.INSTANCE : getDefaultHostnameVerifier());
             executor.setSSLSocketFactory (sslSocketFactory);
         } catch (NoSuchAlgorithmException | KeyManagementException e) {
             throw new CurlException (e);
@@ -165,7 +171,6 @@ final class HttpClientProvider {
         } catch (NoSuchAlgorithmException | KeyStoreException e) {
             throw new CurlException (e);
         }
-
     }
 
     private static void setCaCertificateEntry (final KeyStore keyStore, final List<Certificate> certificates, final int i) {
