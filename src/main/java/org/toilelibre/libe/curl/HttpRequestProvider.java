@@ -1,5 +1,21 @@
 package org.toilelibre.libe.curl;
 
+import org.apache.commons.cli.CommandLine;
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpEntityEnclosingRequest;
+import org.apache.http.HttpHost;
+import org.apache.http.client.config.RequestConfig;
+import org.apache.http.client.config.RequestConfig.Builder;
+import org.apache.http.client.methods.HttpRequestBase;
+import org.apache.http.client.methods.HttpUriRequest;
+import org.apache.http.entity.AbstractHttpEntity;
+import org.apache.http.entity.InputStreamEntity;
+import org.apache.http.entity.StringEntity;
+import org.apache.http.entity.mime.MultipartEntityBuilder;
+import org.apache.http.message.BasicHeader;
+import org.toilelibre.libe.curl.Curl.CurlException;
+
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -11,19 +27,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
-
-import org.apache.commons.cli.CommandLine;
-import org.apache.http.HttpEntity;
-import org.apache.http.HttpEntityEnclosingRequest;
-import org.apache.http.HttpHost;
-import org.apache.http.client.config.RequestConfig;
-import org.apache.http.client.config.RequestConfig.Builder;
-import org.apache.http.client.methods.HttpRequestBase;
-import org.apache.http.client.methods.HttpUriRequest;
-import org.apache.http.entity.StringEntity;
-import org.apache.http.entity.mime.MultipartEntityBuilder;
-import org.apache.http.message.BasicHeader;
-import org.toilelibre.libe.curl.Curl.CurlException;
 
 import static java.net.URLEncoder.encode;
 
@@ -86,9 +89,12 @@ class HttpRequestProvider {
         return "GET";
     }
 
-    private static StringEntity getData (final CommandLine commandLine) {
+    private static AbstractHttpEntity getData (final CommandLine commandLine) {
         if (commandLine.hasOption (Arguments.DATA.getOpt ())) {
             return simpleDataFrom(commandLine);
+        }
+        if (commandLine.hasOption (Arguments.DATA_BINARY.getOpt ())) {
+            return binaryDataFrom(commandLine);
         }
         if (commandLine.hasOption (Arguments.DATA_URLENCODE.getOpt ())) {
             try {
@@ -124,6 +130,14 @@ class HttpRequestProvider {
         } catch (UnsupportedEncodingException e) {
             throw new CurlException(e);
         }
+    }
+
+    private static InputStreamEntity binaryDataFrom(CommandLine commandLine) {
+        final String value = commandLine.getOptionValue (Arguments.DATA_BINARY.getOpt ());
+        if (value.indexOf('@') == 0) {
+            return new InputStreamEntity(new ByteArrayInputStream(dataBehind(value)));
+        }
+        return new InputStreamEntity(new ByteArrayInputStream(value.getBytes()));
     }
 
     private static StringEntity simpleDataFrom(CommandLine commandLine) {

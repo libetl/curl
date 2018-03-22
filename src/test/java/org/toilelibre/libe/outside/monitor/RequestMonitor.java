@@ -12,6 +12,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.Part;
 
+import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -49,6 +50,13 @@ public class RequestMonitor {
     @Controller
     @RequestMapping ("/**")
     static class MonitorController {
+
+        @RequestMapping (value = "/public/data", produces = MediaType.APPLICATION_OCTET_STREAM_VALUE, method = RequestMethod.POST)
+        @ResponseStatus (code = HttpStatus.OK)
+        @ResponseBody
+        public byte[] data (final HttpServletRequest request) throws IOException {
+            return this.logRequest (request, IOUtils.toString(request.getInputStream())).getBytes();
+        }
 
         @RequestMapping (value = "/public/form", produces = MediaType.TEXT_PLAIN_VALUE, method = RequestMethod.POST)
         @ResponseStatus (code = HttpStatus.OK)

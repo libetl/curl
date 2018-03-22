@@ -21,6 +21,8 @@ final class Arguments {
 
     final static Option  DATA             = Arguments.add (Option.builder ("d").longOpt ("data").desc ("Data").required (false).hasArg ().argName ("payload").build ());
 
+    final static Option  DATA_BINARY      = Arguments.add (Option.builder ("databinary").longOpt ("data-binary").desc ("http post binary data").required (false).hasArg ().argName ("payload").build ());
+
     final static Option  DATA_URLENCODE   = Arguments.add (Option.builder ("dataurlencode").longOpt ("data-urlencode").desc ("Data to URLEncode").required (false).hasArg ().argName ("payload").build ());
 
     final static Option  FOLLOW_REDIRECTS = Arguments.add (Option.builder ("L").longOpt ("location").desc ("follow redirects").required (false).hasArg (false).build ());

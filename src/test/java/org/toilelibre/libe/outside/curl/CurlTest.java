@@ -1,12 +1,14 @@
 package org.toilelibre.libe.outside.curl;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.Random;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.assertj.core.api.Assertions;
@@ -205,6 +207,14 @@ public class CurlTest {
         this.assertOk (this.curl ("-k -E src/test/resources/clients/libe/libe.pem -X POST 'https://localhost:%d/public/data' --data-urlencode 'message@src/test/resources/test.sh'"));
     }
 
+    @Test
+    public void withBinaryData () throws IOException {
+        HttpResponse response = this.curl ("-k -E src/test/resources/clients/libe/libe.pem --data-binary \"@src/test/resources/clients/libe/libe.der\" -X POST -H 'Accept: */*' -H 'Host: localhost' 'https://localhost:%d/public/data'");
+        String expected = IOUtils.toString(Thread.currentThread().getContextClassLoader().getResourceAsStream("clients/libe/libe.der"));
+        String fullCurl = IOUtils.toString(response.getEntity().getContent());
+        String actual = fullCurl.substring(fullCurl.indexOf("-d '") + 4, fullCurl.indexOf("'  'https"));
+        Assertions.assertThat (actual).isEqualTo (expected);
+    }
 
     @Test
     public void withFileForm () {
