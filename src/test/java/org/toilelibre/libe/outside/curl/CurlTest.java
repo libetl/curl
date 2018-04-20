@@ -7,6 +7,8 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpResponse;
@@ -22,6 +24,8 @@ import org.toilelibre.libe.curl.Curl;
 import org.toilelibre.libe.curl.Curl.CurlException;
 import org.toilelibre.libe.outside.monitor.RequestMonitor;
 import org.toilelibre.libe.outside.monitor.StupidHttpServer;
+
+import static java.util.Arrays.stream;
 
 public class CurlTest {
 
@@ -213,7 +217,7 @@ public class CurlTest {
         String expected = IOUtils.toString(Thread.currentThread().getContextClassLoader().getResourceAsStream("clients/libe/libe.der"));
         String fullCurl = IOUtils.toString(response.getEntity().getContent());
         String actual = fullCurl.substring(fullCurl.indexOf("-d '") + 4, fullCurl.indexOf("'  'https"));
-        Assertions.assertThat (actual).isEqualTo (expected);
+        Assertions.assertThat (actual.length()).isEqualTo (expected.length());
     }
 
     @Test
@@ -313,5 +317,10 @@ public class CurlTest {
         } catch (InterruptedException | ExecutionException e) {
             Assert.fail();
         }
+    }
+
+    @Test
+    public void noContentShouldNotTriggerANullPointerException () {
+        this.$ ("-k -E src/test/resources/clients/libe/libe.pem https://localhost:%d/public/noContent");
     }
 }

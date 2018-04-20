@@ -51,6 +51,13 @@ public class RequestMonitor {
     @RequestMapping ("/**")
     static class MonitorController {
 
+        @RequestMapping (value = "/public/noContent", produces = MediaType.APPLICATION_OCTET_STREAM_VALUE, method = RequestMethod.GET)
+        @ResponseStatus (code = HttpStatus.NO_CONTENT)
+        @ResponseBody
+        public String emptyResponse () {
+            return null;
+        }
+
         @RequestMapping (value = "/public/data", produces = MediaType.APPLICATION_OCTET_STREAM_VALUE, method = RequestMethod.POST)
         @ResponseStatus (code = HttpStatus.OK)
         @ResponseBody

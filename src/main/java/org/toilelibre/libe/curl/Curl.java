@@ -16,8 +16,8 @@ public class Curl {
 
     public static String $ (final String requestCommand) throws CurlException {
         try {
-            return IOUtils.toString (Curl.curlAsync (requestCommand).get ().getEntity ().getContent ());
-        } catch (final IOException | UnsupportedOperationException | InterruptedException | ExecutionException e) {
+            return IOUtils.quietToString (Curl.curlAsync (requestCommand).get ().getEntity());
+        } catch (final UnsupportedOperationException | InterruptedException | ExecutionException e) {
             throw new CurlException (e);
         }
     }

@@ -1,5 +1,7 @@
 package org.toilelibre.libe.curl;
 
+import org.apache.http.HttpEntity;
+
 import java.io.DataInputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -10,8 +12,6 @@ import java.io.Reader;
 import java.io.Serializable;
 import java.io.Writer;
 import java.nio.charset.Charset;
-
-import org.apache.http.HttpEntity;
 
 class IOUtils {
 
@@ -117,14 +117,11 @@ class IOUtils {
 
     static String quietToString (final HttpEntity entity) {
         try {
+            if (entity == null || entity.getContent() == null) return null;
             return IOUtils.toString (entity.getContent (), Charset.defaultCharset ());
         } catch (IOException e) {
             throw new Curl.CurlException (e);
         }
-    }
-
-    static String toString (final InputStream input) throws IOException {
-        return IOUtils.toString (input, Charset.defaultCharset ());
     }
 
     private static String toString (final InputStream input, final Charset encoding) throws IOException {
