@@ -8,8 +8,8 @@
 	<url>https://github.com/libetl/curl</url>
 	<licenses>
 		<license>
-			<name>The Apache License, Version 2.0</name>
-			<url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+			<name>The Unlicence</name>
+			<url>https://raw.githubusercontent.com/libetl/curl/master/LICENSE</url>
 		</license>
 	</licenses>
 	<developers>
