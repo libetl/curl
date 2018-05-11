@@ -43,6 +43,8 @@ final class Arguments {
 
     final static Option  PROXY            = Arguments.add (Option.builder ("x").longOpt ("proxy").desc ("use the specified HTTP proxy").required (false).hasArg (true).argName ("<[protocol://][user:password@]proxyhost[:port]>").build ());
 
+    final static Option  PROXY_USER       = Arguments.add (Option.builder ("U").longOpt ("proxy-user").desc ("authentication for proxy").required (false).hasArg (true).argName ("user[:password]").build ());
+
     final static Option  TLS_V1           = Arguments.add (Option.builder ("1").longOpt ("tlsv1").desc ("use >= TLSv1 (SSL)").required (false).hasArg (false).build ());
 
     final static Option  TLS_V10          = Arguments.add (Option.builder ("tlsv10").longOpt ("tlsv1.0").desc ("use TLSv1.0 (SSL)").required (false).hasArg (false).build ());

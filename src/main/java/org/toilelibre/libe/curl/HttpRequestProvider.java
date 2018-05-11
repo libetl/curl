@@ -24,6 +24,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.charset.Charset;
 import java.util.Arrays;
+import java.util.Base64;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -186,13 +187,19 @@ class HttpRequestProvider {
         if (commandLine.hasOption (Arguments.DATA_URLENCODE.getOpt ())) {
             request.addHeader ("Content-Type", "application/x-www-form-urlencoded");
         }
+        if (commandLine.hasOption(Arguments.PROXY_USER.getOpt ())) {
+            request.addHeader ("Proxy-Authenticate", "Basic " + Base64.getEncoder ().encodeToString (
+                    commandLine.getOptionValue(Arguments.PROXY_USER.getOpt ()).getBytes ()));
+        }
     }
 
     private static RequestConfig getConfig (final CommandLine commandLine) {
         final Builder requestConfig = RequestConfig.custom ();
 
         if (commandLine.hasOption (Arguments.PROXY.getOpt ())) {
-            requestConfig.setProxy (HttpHost.create (commandLine.getOptionValue (Arguments.PROXY.getOpt ())));
+            String hostWithoutTrailingSlash = commandLine.getOptionValue (Arguments.PROXY.getOpt ())
+                    .replaceFirst ("\\s*/\\s*$", "");
+            requestConfig.setProxy (HttpHost.create (hostWithoutTrailingSlash));
         }
 
         return requestConfig.build ();

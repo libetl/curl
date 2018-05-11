@@ -25,14 +25,12 @@ import org.toilelibre.libe.curl.Curl.CurlException;
 import org.toilelibre.libe.outside.monitor.RequestMonitor;
 import org.toilelibre.libe.outside.monitor.StupidHttpServer;
 
-import static java.util.Arrays.stream;
-
 public class CurlTest {
 
     private static final Integer proxyPort = Math.abs (new Random ().nextInt()) % 20000 + 1024;
     private static Logger LOGGER = Logger.getLogger(CurlTest.class.getName());
     private static Proxy proxy;
-    
+
     @BeforeClass
     public static void startRequestMonitor () {
         if (System.getProperty ("skipServer") == null) {
@@ -240,6 +238,16 @@ public class CurlTest {
         Assert.assertTrue (new File ("target/classes/downloadedCurl").exists ());
     }
 
+    @Test
+    public void outputFileWithSpaces () {
+        File file = new File("target/classes/downloaded Curl With Spaces");
+
+        boolean fileDeleted = file.delete();
+        LOGGER.log(Level.FINE, "output file deleted : " + fileDeleted);
+        this.assertOk (this.curl ("-k -E src/test/resources/clients/libe/libe.pem -X GET -A 'toto' -H 'Accept: */*' -H 'Host: localhost' 'https://localhost:%d/public' -o 'target/classes/downloaded Curl With Spaces'"));
+        Assert.assertTrue (new File ("target/classes/downloaded Curl With Spaces").exists ());
+    }
+
     @Test (expected = CurlException.class)
     public void justTheVersion () {
         this.assertOk (this.curl ("-V"));
@@ -304,12 +312,12 @@ public class CurlTest {
     public void curlAsync () throws InterruptedException, ExecutionException {
         this.$Async (this.$Async ("-k -E src/test/resources/clients/libe/libe.pem https://localhost:%d/public/pathAsync").get ());
     }
-    
+
     @Test
     public void twoCurlsInParallel () {
         final CompletableFuture<HttpResponse> future1 = this.curlAsync ("-k -E src/test/resources/clients/libe/libe.pem https://localhost:%d/public/path1");
         final CompletableFuture<HttpResponse> future2 = this.curlAsync ("-k -E src/test/resources/clients/libe/libe.pem https://localhost:%d/public/path2");
-        
+
         try {
             CompletableFuture.allOf (future1, future2).get ();
             this.assertOk (future1.get ());
