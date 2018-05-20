@@ -54,7 +54,7 @@ How to get Google Homepage with this lib :
     }
 ```
 
-Arguments supported (so far) :
+Supported arguments (so far) :
 
 | Short Name    | Long Name      | Argument Required | Description                     |
 | ------------- | -------------- | ----------------- | ------------------------------- |

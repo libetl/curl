@@ -102,9 +102,9 @@ public class ArgumentsBuilderGeneratorTest {
         final String readmeContent = IOUtils.toString(new FileInputStream(readme));
 
         final String newReadmeContent = Pattern.compile(
-                "Arguments supported \\(so far\\) :")
+                "Supported arguments \\(so far\\) :")
                 .splitAsStream(readmeContent).findFirst()
-                .orElse("") + "Arguments supported (so far) :\n\n" + tableBuilder.toString();
+                .orElse("") + "Supported arguments (so far) :\n\n" + tableBuilder.toString();
 
         FileWriter writer = new FileWriter(readme);
         writer.write(newReadmeContent);
