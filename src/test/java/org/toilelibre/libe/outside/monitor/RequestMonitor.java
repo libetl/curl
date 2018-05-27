@@ -126,7 +126,7 @@ public class RequestMonitor {
             return curlLog.toString ();
         }
 
-        @RequestMapping (produces = MediaType.TEXT_PLAIN_VALUE)
+        @RequestMapping (produces = "text/plain;charset=utf-8")
         @ResponseStatus (code = HttpStatus.OK)
         @ResponseBody
         public String receiveRequest (final HttpServletRequest request, @RequestBody (required = false) final String body) {

@@ -100,6 +100,24 @@ public class CurlTest {
     }
 
     @Test
+    public void theSkyIsBlueInIvritWithTheWrongEncoding() throws IOException {
+        HttpResponse response = this.curl("-k -E src/test/resources/clients/libe/libe.pem https://localhost:%d/public/  -H 'Content-Type: text/plain; charset=ISO-8859-1' -d \"השמים כחולים\"");
+        Assertions.assertThat(IOUtils.toString(response.getEntity().getContent(), "utf-8")).contains("'????? ??????'");
+    }
+
+    @Test
+    public void theSkyIsBlueInIvritWithoutEncoding() throws IOException {
+        HttpResponse response = this.curl("-k -E src/test/resources/clients/libe/libe.pem https://localhost:%d/public/  -d \"השמים כחולים\"");
+        Assertions.assertThat(IOUtils.toString(response.getEntity().getContent(), "utf-8")).contains("'השמים כחולים'");
+    }
+
+    @Test
+    public void theSkyIsBlueInIvritWithUTF8Encoding() throws IOException {
+        HttpResponse response = this.curl("-k -E src/test/resources/clients/libe/libe.pem https://localhost:%d/public/  -H 'Content-Type: text/plain; charset=UTF-8'  -d \"השמים כחולים\"");
+        Assertions.assertThat(IOUtils.toString(response.getEntity().getContent(), "utf-8")).contains("'השמים כחולים'");
+    }
+
+    @Test
     public void curlDER () {
         this.assertOk (this.curl ("-k --cert-type DER --cert src/test/resources/clients/libe/libe.der:mylibepass --key src/test/resources/clients/libe/libe.key.der --key-type DER https://localhost:%d/public/"));
     }

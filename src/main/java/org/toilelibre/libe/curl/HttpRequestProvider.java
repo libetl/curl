@@ -23,13 +23,15 @@ import java.lang.reflect.InvocationTargetException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.charset.Charset;
-import java.util.Arrays;
 import java.util.Base64;
 import java.util.List;
 import java.util.Optional;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import static java.net.URLEncoder.encode;
+import static java.util.Arrays.stream;
 
 class HttpRequestProvider {
 
@@ -99,7 +101,7 @@ class HttpRequestProvider {
         }
         if (commandLine.hasOption (Arguments.DATA_URLENCODE.getOpt ())) {
             try {
-                return new StringEntity(Arrays.stream(commandLine.getOptionValues(Arguments.DATA_URLENCODE.getOpt ()))
+                return new StringEntity(stream(commandLine.getOptionValues(Arguments.DATA_URLENCODE.getOpt ()))
                         .map(HttpRequestProvider::urlEncodedDataFrom)
                         .collect(Collectors.joining("&")));
             } catch (final UnsupportedEncodingException e) {
@@ -143,10 +145,23 @@ class HttpRequestProvider {
 
     private static StringEntity simpleDataFrom(CommandLine commandLine) {
         try {
-            return new StringEntity (commandLine.getOptionValue (Arguments.DATA.getOpt ()));
-        } catch (final UnsupportedEncodingException e) {
+            Charset encoding = charsetReadFromThe(commandLine).orElse(Charset.forName("UTF-8"));
+            return new StringEntity (commandLine.getOptionValue (Arguments.DATA.getOpt ()), encoding);
+        } catch (final IllegalArgumentException e) {
             throw new CurlException (e);
         }
+    }
+
+    private static final Pattern CONTENT_TYPE_ENCODING =
+            Pattern.compile("\\s*content-type\\s*:[^;]+;\\s*charset\\s*=\\s*(.*)", Pattern.CASE_INSENSITIVE);
+    private static Optional<Charset> charsetReadFromThe(CommandLine commandLine) {
+
+        return stream (Optional.ofNullable (commandLine.getOptionValues (Arguments.HEADER.getOpt ())).orElse (new String[0]))
+                .filter (header -> header != null && CONTENT_TYPE_ENCODING.asPredicate ().test (header))
+                .findFirst ().map (correctHeader -> {
+                    final Matcher matcher = CONTENT_TYPE_ENCODING.matcher (correctHeader);
+                    if (!matcher.find ()) return null;
+                    return Charset.forName (matcher.group (1));});
     }
 
     private static HttpEntity getForm (final CommandLine commandLine) {
@@ -158,14 +173,14 @@ class HttpRequestProvider {
 
         final MultipartEntityBuilder multiPartBuilder = MultipartEntityBuilder.create ();
 
-        Arrays.stream (forms).forEach (arg -> {
+        stream (forms).forEach (arg -> {
             if (arg.indexOf ('=') == -1) {
                 throw new IllegalArgumentException ("option -F: is badly used here");
             }
         });
 
-        final List<String> binaryForms = Arrays.stream (forms).filter (arg -> HttpRequestProvider.isBinary (arg.substring (arg.indexOf ('=') + 1))).collect (Collectors.toList ());
-        final List<String> textForms = Arrays.stream (forms).filter (form -> !binaryForms.contains (form)).collect (Collectors.toList ());
+        final List<String> binaryForms = stream (forms).filter (arg -> HttpRequestProvider.isBinary (arg.substring (arg.indexOf ('=') + 1))).collect (Collectors.toList ());
+        final List<String> textForms = stream (forms).filter (form -> !binaryForms.contains (form)).collect (Collectors.toList ());
 
         binaryForms.forEach (arg -> multiPartBuilder.addBinaryBody (arg.substring (0, arg.indexOf ('=')), HttpRequestProvider.dataBehind (arg.substring (arg.indexOf ('=') + 1))));
         textForms.forEach (arg -> multiPartBuilder.addTextBody (arg.substring (0, arg.indexOf ('=')), arg.substring (arg.indexOf ('=') + 1)));
@@ -177,7 +192,7 @@ class HttpRequestProvider {
     private static void setHeaders (final CommandLine commandLine, final HttpRequestBase request) {
         final String [] headers = Optional.ofNullable (commandLine.getOptionValues (Arguments.HEADER.getOpt ())).orElse (new String [0]);
 
-        Arrays.stream (headers).filter (optionAsString -> optionAsString.indexOf (':') != -1).map (optionAsString -> optionAsString.split (":"))
+        stream (headers).filter (optionAsString -> optionAsString.indexOf (':') != -1).map (optionAsString -> optionAsString.split (":"))
                 .map (optionAsArray -> new BasicHeader (optionAsArray [0].trim ().replaceAll ("^\"", "").replaceAll ("\\\"$", "").replaceAll ("^\\'", "").replaceAll ("\\'$", ""), optionAsArray [1].trim ())).forEach (request::addHeader);
 
         if (commandLine.hasOption (Arguments.USER_AGENT.getOpt ())) {
