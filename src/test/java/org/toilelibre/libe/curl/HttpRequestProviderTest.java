@@ -55,7 +55,7 @@ public class HttpRequestProviderTest {
         HttpUriRequest request = HttpRequestProvider.prepareRequest (commandLine);
 
         //then
-        assertEquals (request.getFirstHeader ("Proxy-Authenticate").getValue (),
+        assertEquals (request.getFirstHeader ("Proxy-Authorization").getValue (),
                 "Basic dXNlcjpwYXNzd29yZA==");
     }
 }

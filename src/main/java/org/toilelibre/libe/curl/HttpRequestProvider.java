@@ -203,7 +203,7 @@ class HttpRequestProvider {
             request.addHeader ("Content-Type", "application/x-www-form-urlencoded");
         }
         if (commandLine.hasOption(Arguments.PROXY_USER.getOpt ())) {
-            request.addHeader ("Proxy-Authenticate", "Basic " + Base64.getEncoder ().encodeToString (
+            request.addHeader ("Proxy-Authorization", "Basic " + Base64.getEncoder ().encodeToString (
                     commandLine.getOptionValue(Arguments.PROXY_USER.getOpt ()).getBytes ()));
         }
     }

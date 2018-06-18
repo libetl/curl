@@ -22,6 +22,6 @@ public class CurlWebTest {
         String body = IOUtils.toString (response.getEntity ().getContent ());
         Assert.assertTrue (body.contains ("Host\":\"httpbin.org\""));
         Assert.assertTrue (Pattern.compile ("\"origin\":\"[0-9.]+, [0-9.]+\"").matcher (body).find ());
-        Assert.assertFalse (body.contains ("Proxy-Authenticate"));
+        Assert.assertFalse (body.contains ("Proxy-Authorization"));
     }
 }
