@@ -2,7 +2,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>org.toile-libre.libe</groupId>
 	<artifactId>curl</artifactId>
-	<version>0.0.19-SNAPSHOT</version>
+	<version>0.0.19</version>
 	<name>curl</name>
 	<description>Curl</description>
 	<url>https://github.com/libetl/curl</url>
@@ -24,7 +24,7 @@
 		<connection>scm:git:git@github.com:libetl/curl.git</connection>
 		<developerConnection>scm:git:git@github.com:libetl/curl.git</developerConnection>
 		<url>git@github.com:libetl/curl.git</url>
-		<tag>${project.version}</tag>
+		<tag>curl-0.0.19</tag>
 	</scm>
 	<distributionManagement>
 		<snapshotRepository>
