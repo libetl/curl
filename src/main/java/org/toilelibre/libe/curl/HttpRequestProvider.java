@@ -205,6 +205,11 @@ class HttpRequestProvider {
         if (commandLine.hasOption(Arguments.PROXY_USER.getOpt ())) {
             request.addHeader ("Proxy-Authorization", "Basic " + Base64.getEncoder ().encodeToString (
                     commandLine.getOptionValue(Arguments.PROXY_USER.getOpt ()).getBytes ()));
+        }else if (commandLine.hasOption(Arguments.PROXY.getOpt ()) &&
+                commandLine.getOptionValue(Arguments.PROXY.getOpt ()).contains("@")){
+            request.addHeader ("Proxy-Authorization", "Basic " + Base64.getEncoder ().encodeToString (
+                    commandLine.getOptionValue(Arguments.PROXY.getOpt ())
+                            .replaceFirst("^[^/]+/+", "").split("@")[0].getBytes ()));
         }
     }
 
@@ -213,7 +218,8 @@ class HttpRequestProvider {
 
         if (commandLine.hasOption (Arguments.PROXY.getOpt ())) {
             String hostWithoutTrailingSlash = commandLine.getOptionValue (Arguments.PROXY.getOpt ())
-                    .replaceFirst ("\\s*/\\s*$", "");
+                    .replaceFirst ("\\s*/\\s*$", "")
+                    .replaceFirst("^[^@]+@", "");
             requestConfig.setProxy (HttpHost.create (hostWithoutTrailingSlash));
         }
 

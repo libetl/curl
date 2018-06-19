@@ -8,6 +8,7 @@ import org.junit.Test;
 import java.io.IOException;
 import java.util.regex.Pattern;
 
+import static org.toilelibre.libe.curl.Curl.$;
 import static org.toilelibre.libe.curl.Curl.curl;
 
 public class CurlWebTest {

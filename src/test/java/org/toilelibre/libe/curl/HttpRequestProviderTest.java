@@ -1,20 +1,13 @@
 package org.toilelibre.libe.curl;
 
 import org.apache.commons.cli.CommandLine;
-import org.apache.commons.io.IOUtils;
-import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpUriRequest;
-import org.junit.Assert;
 import org.junit.Test;
-
-import java.io.IOException;
-import java.util.regex.Pattern;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
-import static org.toilelibre.libe.curl.Curl.curl;
 
 public class HttpRequestProviderTest {
 
@@ -57,5 +50,35 @@ public class HttpRequestProviderTest {
         //then
         assertEquals (request.getFirstHeader ("Proxy-Authorization").getValue (),
                 "Basic dXNlcjpwYXNzd29yZA==");
+    }
+
+    @Test
+    public void proxyWithAuthentication2 () {
+        //given
+        CommandLine commandLine = ReadArguments.getCommandLineFromRequest (
+                "-x http://localhost:80/ -U jack:insecure http://www.google.com/");
+
+        //when
+        HttpUriRequest request = HttpRequestProvider.prepareRequest (commandLine);
+
+        //then
+        assertEquals (request.getFirstHeader ("Proxy-Authorization").getValue (),
+                "Basic amFjazppbnNlY3VyZQ==");
+        assertEquals(((HttpGet)request).getConfig().getProxy().toString(), "http://localhost:80");
+    }
+
+    @Test
+    public void proxyWithAuthentication3 () {
+        //given
+        CommandLine commandLine = ReadArguments.getCommandLineFromRequest (
+                "-x http://jack:insecure@localhost:80/ http://www.google.com/");
+
+        //when
+        HttpUriRequest request = HttpRequestProvider.prepareRequest (commandLine);
+
+        //then
+        assertEquals (request.getFirstHeader ("Proxy-Authorization").getValue (),
+                "Basic amFjazppbnNlY3VyZQ==");
+        assertEquals(((HttpGet)request).getConfig().getProxy().toString(), "http://localhost:80");
     }
 }
