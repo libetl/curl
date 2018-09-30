@@ -110,7 +110,7 @@ final class HttpClientProvider {
                 executor = executor.setDefaultCredentialsProvider (systemDefaultCredentialsProvider);
             } else {
                 final BasicCredentialsProvider basicCredentialsProvider = new BasicCredentialsProvider ();
-                basicCredentialsProvider.setCredentials (new AuthScope (HttpHost.create (URI.create (commandLine.getArgs () [0]).getHost ())), new UsernamePasswordCredentials (authValue [0], authValue [1]));
+                basicCredentialsProvider.setCredentials (new AuthScope (HttpHost.create (URI.create (commandLine.getArgs () [0]).getHost ())), new UsernamePasswordCredentials (authValue [0], authValue.length > 1 ? authValue [1] : null));
                 executor = executor.setDefaultCredentialsProvider (basicCredentialsProvider);
             }
         }

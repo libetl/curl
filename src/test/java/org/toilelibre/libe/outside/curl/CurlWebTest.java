@@ -19,10 +19,10 @@ public class CurlWebTest {
 
     @Test
     public void proxyWithAuthentication() throws IOException {
-        HttpResponse response = curl ("http://httpbin.org/get -x http://static.199.91.251.148.clients.your-server.de:3128/ -U user:password");
+        HttpResponse response = curl ("http://httpbin.org/get -x http://159.203.174.2:3128 -U user:password");
         String body = IOUtils.toString (response.getEntity ().getContent ());
-        Assert.assertTrue (body.contains ("Host\":\"httpbin.org\""));
-        Assert.assertTrue (Pattern.compile ("\"origin\":\"[0-9.]+, [0-9.]+\"").matcher (body).find ());
+        Assert.assertTrue (body.contains ("Host\": \"httpbin.org\""));
+        Assert.assertTrue (Pattern.compile ("\"origin\": \"[0-9.]+, [0-9.]+\"").matcher (body).find ());
         Assert.assertFalse (body.contains ("Proxy-Authorization"));
     }
 }
