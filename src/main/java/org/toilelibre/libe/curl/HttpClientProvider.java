@@ -129,7 +129,9 @@ final class HttpClientProvider {
 
         if (commandLine.hasOption (Arguments.CERT.getOpt ())) {
             final String entireOption = commandLine.getOptionValue (Arguments.CERT.getOpt ());
-            final int separatorIndex = entireOption.lastIndexOf(':');
+            final int separatorIndex = //oops, sometimes you can get C:\ here
+                    entireOption.matches("^[A-Za-z]:\\\\") && entireOption.lastIndexOf(':') == 1 ? -1 :
+                    entireOption.lastIndexOf(':');
             final String cert = separatorIndex == -1 ? entireOption : entireOption.substring(0, separatorIndex);
             final String certPassphrase = separatorIndex == -1 ? "" : entireOption.substring(separatorIndex + 1);
             final String cacert = commandLine.getOptionValue (Arguments.CA_CERT.getOpt ()) == null ? null : commandLine.getOptionValue (Arguments.CA_CERT.getOpt ());
