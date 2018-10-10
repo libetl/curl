@@ -87,7 +87,7 @@ public class RequestMonitor {
         @RequestMapping (value = "/public/tooLong", produces = MediaType.TEXT_PLAIN_VALUE)
         @ResponseStatus (code = HttpStatus.OK)
         @ResponseBody
-        public String tooLong (final HttpServletRequest request, @RequestBody (required = true) final String body) throws JsonParseException, JsonMappingException, IOException, InterruptedException {
+        public String tooLong () throws InterruptedException {
             Thread.sleep(1000);
             RequestMonitor.LOGGER.info ("Finally !");
             return "...Finally.";
