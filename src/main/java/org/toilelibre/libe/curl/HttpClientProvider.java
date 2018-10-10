@@ -128,10 +128,13 @@ final class HttpClientProvider {
         final CertFormat keyFormat = commandLine.hasOption (Arguments.KEY.getOpt ()) ? commandLine.hasOption (Arguments.KEY_TYPE.getOpt ()) ? CertFormat.valueOf (commandLine.getOptionValue (Arguments.KEY_TYPE.getOpt ()).toUpperCase ()) : CertFormat.PEM : certFormat;
 
         if (commandLine.hasOption (Arguments.CERT.getOpt ())) {
-            final String [] credentials = commandLine.getOptionValue (Arguments.CERT.getOpt ()).split (":");
+            final String entireOption = commandLine.getOptionValue (Arguments.CERT.getOpt ());
+            final int separatorIndex = entireOption.lastIndexOf(':');
+            final String cert = separatorIndex == -1 ? entireOption : entireOption.substring(0, separatorIndex);
+            final String certPassphrase = separatorIndex == -1 ? "" : entireOption.substring(separatorIndex + 1);
             final String cacert = commandLine.getOptionValue (Arguments.CA_CERT.getOpt ()) == null ? null : commandLine.getOptionValue (Arguments.CA_CERT.getOpt ());
-            final String key = commandLine.getOptionValue (Arguments.KEY.getOpt ()) == null ? credentials [0] : commandLine.getOptionValue (Arguments.KEY.getOpt ());
-            HttpClientProvider.addClientCredentials (builder, certFormat, cacert, credentials [0], keyFormat, key, credentials.length > 1 ? credentials [1] : "");
+            final String key = commandLine.getOptionValue (Arguments.KEY.getOpt ()) == null ? cert : commandLine.getOptionValue (Arguments.KEY.getOpt ());
+            HttpClientProvider.addClientCredentials (builder, certFormat, cacert, cert, keyFormat, key, certPassphrase);
         }
 
         try {
