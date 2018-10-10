@@ -2,6 +2,7 @@ package org.toilelibre.libe.outside.curl;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.SocketTimeoutException;
 import java.util.Random;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
@@ -13,6 +14,7 @@ import java.util.stream.IntStream;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
+import org.apache.http.conn.ConnectTimeoutException;
 import org.assertj.core.api.Assertions;
 import org.junit.AfterClass;
 import org.junit.Assert;
@@ -194,6 +196,28 @@ public class CurlTest {
     @Test
     public void readCurlPublicRoot () {
         this.assertOk (this.curl (this.$ ("-k -E src/test/resources/clients/libe/libe.pem https://localhost:%d/public/")));
+    }
+
+    @Test
+    public void curlWithTooLowRequestTimeout () {
+        try {
+            this.curl(this.$("-k -E src/test/resources/clients/libe/libe.pem --connect-timeout 0.001 https://localhost:%d/public/"));
+            Assert.fail("This curl is not supposed to work and should fail with a ConnectTimeoutException");
+        }catch (CurlException curlException){
+            Assert.assertEquals(curlException.getCause().getCause().getCause().getClass().getName(),
+                    ConnectTimeoutException.class.getName());
+        }
+    }
+
+    @Test
+    public void curlWithMaxTime () {
+        try {
+            this.curl(this.$("-k -E src/test/resources/clients/libe/libe.pem --max-time 0.001 https://localhost:%d/public/tooLong"));
+            Assert.fail("This curl is not supposed to work and should fail with a SocketTimeoutException");
+        }catch (CurlException curlException){
+            Assert.assertEquals(curlException.getCause().getCause().getCause().getClass().getName(),
+                    SocketTimeoutException.class.getName());
+        }
     }
 
     @Test

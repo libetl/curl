@@ -56,31 +56,33 @@ How to get Google Homepage with this lib :
 
 Supported arguments (so far) :
 
-| Short Name    | Long Name      | Argument Required | Description                     |
-| ------------- | -------------- | ----------------- | ------------------------------- |
-| u             | username       | true              | user:password                   |
-| cacert        | cacert         | true              | CA_CERT                         |
-| E             | cert           | true              | CERT[:password]                 |
-| ct            | cert-type      | true              | PEM,P12,JKS,DER,ENG             |
-| d             | data           | true              | Data                            |
-| databinary    | data-binary    | true              | http post binary data           |
-| dataurlencode | data-urlencode | true              | Data to URLEncode               |
-| L             | location       | false             | follow redirects                |
-| F             | form           | true              | http multipart post data        |
-| H             | header         | true              | Header                          |
-| X             | request        | true              | Http Method                     |
-| key           | key            | true              | KEY                             |
-| kt            | key-type       | true              | PEM,P12,JKS,DER,ENG             |
-| ntlm          | ntlm           | false             | NTLM auth                       |
-| o             | output         | true              | write to file                   |
-| x             | proxy          | true              | use the specified HTTP proxy    |
-| U             | proxy-user     | true              | authentication for proxy        |
-| 1             | tlsv1          | false             | use >= TLSv1 (SSL)              |
-| tlsv10        | tlsv1.0        | false             | use TLSv1.0 (SSL)               |
-| tlsv11        | tlsv1.1        | false             | use TLSv1.1 (SSL)               |
-| tlsv12        | tlsv1.2        | false             | use TLSv1.2 (SSL)               |
-| 2             | sslv2          | false             | use SSLv2 (SSL)                 |
-| 3             | sslv3          | false             | use SSLv3 (SSL)                 |
-| k             | insecure       | false             | trust insecure                  |
-| A             | user-agent     | true              | user agent                      |
-| V             | version        | false             | get the version of this library |
+| Short Name    | Long Name       | Argument Required | Description                           |
+| ------------- | --------------- | ----------------- | ------------------------------------- |
+| u             | username        | true              | user:password                         |
+| cacert        | cacert          | true              | CA_CERT                               |
+| E             | cert            | true              | CERT[:password]                       |
+| ct            | cert-type       | true              | PEM,P12,JKS,DER,ENG                   |
+| cti           | connect-timeout | true              | Maximum time allowed for connection   |
+| d             | data            | true              | Data                                  |
+| databinary    | data-binary     | true              | http post binary data                 |
+| dataurlencode | data-urlencode  | true              | Data to URLEncode                     |
+| L             | location        | false             | follow redirects                      |
+| F             | form            | true              | http multipart post data              |
+| H             | header          | true              | Header                                |
+| X             | request         | true              | Http Method                           |
+| key           | key             | true              | KEY                                   |
+| kt            | key-type        | true              | PEM,P12,JKS,DER,ENG                   |
+| m             | max-time        | true              | Maximum time allowed for the transfer |
+| ntlm          | ntlm            | false             | NTLM auth                             |
+| o             | output          | true              | write to file                         |
+| x             | proxy           | true              | use the specified HTTP proxy          |
+| U             | proxy-user      | true              | authentication for proxy              |
+| 1             | tlsv1           | false             | use >= TLSv1 (SSL)                    |
+| tlsv10        | tlsv1.0         | false             | use TLSv1.0 (SSL)                     |
+| tlsv11        | tlsv1.1         | false             | use TLSv1.1 (SSL)                     |
+| tlsv12        | tlsv1.2         | false             | use TLSv1.2 (SSL)                     |
+| 2             | sslv2           | false             | use SSLv2 (SSL)                       |
+| 3             | sslv3           | false             | use SSLv3 (SSL)                       |
+| k             | insecure        | false             | trust insecure                        |
+| A             | user-agent      | true              | user agent                            |
+| V             | version         | false             | get the version of this library       |

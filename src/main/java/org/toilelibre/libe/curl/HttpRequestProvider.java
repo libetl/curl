@@ -223,6 +223,16 @@ class HttpRequestProvider {
             requestConfig.setProxy (HttpHost.create (hostWithoutTrailingSlash));
         }
 
+        if (commandLine.hasOption (Arguments.CONNECT_TIMEOUT.getOpt ())) {
+            requestConfig.setConnectTimeout ((int)((Float.parseFloat(
+                commandLine.getOptionValue (Arguments.CONNECT_TIMEOUT.getOpt ()))) * 1000));
+        }
+
+        if (commandLine.hasOption (Arguments.MAX_TIME.getOpt ())) {
+            requestConfig.setSocketTimeout((int)((Float.parseFloat(
+                    commandLine.getOptionValue (Arguments.MAX_TIME.getOpt ()))) * 1000));
+        }
+
         return requestConfig.build ();
     }
 }

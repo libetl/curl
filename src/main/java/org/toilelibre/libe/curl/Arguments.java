@@ -19,6 +19,8 @@ final class Arguments {
 
     final static Option  CERT_TYPE        = Arguments.add (Option.builder ("ct").longOpt ("cert-type").desc ("certificate type").required (false).hasArg (true).desc ("PEM|P12|JKS|DER|ENG").build ());
 
+    final static Option  CONNECT_TIMEOUT  = Arguments.add (Option.builder ("cti").longOpt ("connect-timeout").desc ("Maximum time allowed for connection").required (false).hasArg (true).argName("seconds").build ());
+
     final static Option  DATA             = Arguments.add (Option.builder ("d").longOpt ("data").desc ("Data").required (false).hasArg ().argName ("payload").build ());
 
     final static Option  DATA_BINARY      = Arguments.add (Option.builder ("databinary").longOpt ("data-binary").desc ("http post binary data").required (false).hasArg ().argName ("payload").build ());
@@ -36,6 +38,8 @@ final class Arguments {
     final static Option  KEY              = Arguments.add (Option.builder ("key").longOpt ("key").desc ("key").required (false).hasArg (true).desc ("KEY").build ());
 
     final static Option  KEY_TYPE         = Arguments.add (Option.builder ("kt").longOpt ("key-type").desc ("key type").required (false).hasArg (true).desc ("PEM|P12|JKS|DER|ENG").build ());
+
+    final static Option  MAX_TIME         = Arguments.add (Option.builder ("m").longOpt ("max-time").desc ("Maximum time allowed for the transfer").required (false).hasArg (true).argName("seconds").build ());
 
     final static Option  NTLM             = Arguments.add (Option.builder ("ntlm").longOpt ("ntlm").desc ("NTLM auth").required (false).hasArg (false).build ());
 
