@@ -31,6 +31,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import static java.net.URLEncoder.encode;
+import static java.util.Arrays.asList;
 import static java.util.Arrays.stream;
 
 class HttpRequestProvider {
@@ -193,7 +194,8 @@ class HttpRequestProvider {
         final String [] headers = Optional.ofNullable (commandLine.getOptionValues (Arguments.HEADER.getOpt ())).orElse (new String [0]);
 
         stream (headers).filter (optionAsString -> optionAsString.indexOf (':') != -1).map (optionAsString -> optionAsString.split (":"))
-                .map (optionAsArray -> new BasicHeader (optionAsArray [0].trim ().replaceAll ("^\"", "").replaceAll ("\\\"$", "").replaceAll ("^\\'", "").replaceAll ("\\'$", ""), optionAsArray [1].trim ())).forEach (request::addHeader);
+                .map (optionAsArray -> new BasicHeader (optionAsArray [0].trim ().replaceAll ("^\"", "").replaceAll ("\\\"$", "").replaceAll ("^\\'", "").replaceAll ("\\'$", ""),
+                        String.join(":", asList(optionAsArray).subList(1, optionAsArray.length)).trim ())).forEach (request::addHeader);
 
         if (commandLine.hasOption (Arguments.USER_AGENT.getOpt ())) {
             request.addHeader ("User-Agent", commandLine.getOptionValue (Arguments.USER_AGENT.getOpt ()));

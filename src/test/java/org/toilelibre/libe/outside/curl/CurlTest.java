@@ -168,6 +168,12 @@ public class CurlTest {
     public void curlWithHeaders () {
         this.assertOk (this.curl ("-k -E src/test/resources/clients/libe/libe.pem -H'Host: localhost' -H'Authorization: 45e03eb2-8954-40a3-8068-c926f0461182' https://localhost:%d/public/v1/coverage/sncf/journeys?from=admin:7444extern"));
     }
+
+    @Test
+    public void curlWithHeadersContainingColon () {
+        this.assertOk (this.curl ("-k -E src/test/resources/clients/libe/libe.pem -H'Host: localhost' -H'SOAPAction: action1:action2:action3' https://localhost:%d/public/test"));
+    }
+
     @Test
     public void curlWithOnlyALogin () {
         this.assertOk (this.curl ("-k -E src/test/resources/clients/libe/libe.pem -u user https://localhost:%d/public/"));
