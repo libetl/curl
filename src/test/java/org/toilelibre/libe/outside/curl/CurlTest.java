@@ -3,6 +3,7 @@ package org.toilelibre.libe.outside.curl;
 import java.io.File;
 import java.io.IOException;
 import java.net.SocketTimeoutException;
+import java.util.List;
 import java.util.Random;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
@@ -26,6 +27,9 @@ import org.toilelibre.libe.curl.Curl;
 import org.toilelibre.libe.curl.Curl.CurlException;
 import org.toilelibre.libe.outside.monitor.RequestMonitor;
 import org.toilelibre.libe.outside.monitor.StupidHttpServer;
+
+import static java.util.Arrays.asList;
+import static java.util.Collections.emptyList;
 
 public class CurlTest {
 
@@ -60,7 +64,11 @@ public class CurlTest {
     }
 
     private HttpResponse curl (final String requestCommand) {
-        return Curl.curl (String.format (requestCommand, RequestMonitor.port ()));
+        return curl(requestCommand, emptyList());
+    }
+
+    private HttpResponse curl (final String requestCommand, List<String> placeholderValues) {
+        return Curl.curl (String.format (requestCommand, RequestMonitor.port ()), placeholderValues);
     }
 
     private CompletableFuture<HttpResponse> curlAsync (final String requestCommand) {
@@ -129,6 +137,12 @@ public class CurlTest {
         this.assertOk (this.curl ("-k --cert-type P12 --cert src/test/resources/clients/libe/libe.p12:mylibepass --key-type PEM --key src/test/resources/clients/libe/libe.pem https://localhost:%d/public/"));
     }
 
+    @Test
+    public void curlWithPlaceholders () {
+        this.assertOk (this.curl ("-k --cert-type $curl_placeholder_0 --cert $curl_placeholder_1 --key-type $curl_placeholder_2 --key $curl_placeholder_3 https://localhost:%d/public/",
+                asList("P12", "src/test/resources/clients/libe/libe.p12:mylibepass", "PEM", "src/test/resources/clients/libe/libe.pem")));
+    }
+    
     @Test
     public void curlJKS () {
         this.assertOk (this.curl ("-k --cert-type JKS --cert src/test/resources/clients/libe/libe.jks:mylibepass https://localhost:%d/public/"));

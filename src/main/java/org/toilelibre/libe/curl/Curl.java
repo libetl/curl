@@ -1,12 +1,14 @@
 package org.toilelibre.libe.curl;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.http.HttpResponse;
 
+import static java.util.Collections.emptyList;
 import static org.toilelibre.libe.curl.UglyVersionDisplay.stopAndDisplayVersionIfThe;
 
 public class Curl {
@@ -15,15 +17,21 @@ public class Curl {
     }
 
     public static String $ (final String requestCommand) throws CurlException {
+        return $(requestCommand, emptyList ());
+    }
+    public static String $ (final String requestCommand, List<String> placeholderValues) throws CurlException {
         try {
-            return IOUtils.quietToString (Curl.curlAsync (requestCommand).get ().getEntity());
+            return IOUtils.quietToString (Curl.curlAsync (requestCommand, placeholderValues).get ().getEntity ());
         } catch (final UnsupportedOperationException | InterruptedException | ExecutionException e) {
             throw new CurlException (e);
         }
     }
 
     public static CompletableFuture<String> $Async (final String requestCommand) throws CurlException {
-        return Curl.curlAsync (requestCommand).thenApply ( (httpResponse) -> IOUtils.quietToString (httpResponse.getEntity ()));
+        return $Async (requestCommand, emptyList ());
+    }
+    public static CompletableFuture<String> $Async (final String requestCommand, List<String> placeholderValues) throws CurlException {
+        return Curl.curlAsync (requestCommand, placeholderValues).thenApply ( (httpResponse) -> IOUtils.quietToString (httpResponse.getEntity ()));
     }
 
     public static CurlArgumentsBuilder curl () {
@@ -31,18 +39,25 @@ public class Curl {
     }
 
     public static HttpResponse curl (final String requestCommand) throws CurlException {
+        return curl (requestCommand, emptyList ());
+    }
+    public static HttpResponse curl (final String requestCommand, List<String> placeholderValues) throws CurlException {
         try {
-            return Curl.curlAsync (requestCommand).get ();
+            return Curl.curlAsync (requestCommand, placeholderValues).get ();
         } catch (InterruptedException | ExecutionException e) {
             throw new CurlException (e);
         }
     }
 
     public static CompletableFuture<HttpResponse> curlAsync (final String requestCommand) throws CurlException {
+        return curlAsync (requestCommand, emptyList ());
+    }
+
+    public static CompletableFuture<HttpResponse> curlAsync (final String requestCommand, List<String> placeholderValues) throws CurlException {
         return CompletableFuture.<HttpResponse> supplyAsync ( () -> {
-            final CommandLine commandLine = ReadArguments.getCommandLineFromRequest (requestCommand);
+            final CommandLine commandLine = ReadArguments.getCommandLineFromRequest (requestCommand, placeholderValues);
             try {
-                stopAndDisplayVersionIfThe(commandLine.hasOption(Arguments.VERSION.getOpt()));
+                stopAndDisplayVersionIfThe (commandLine.hasOption (Arguments.VERSION.getOpt ()));
                 final HttpResponse response = HttpClientProvider.prepareHttpClient (commandLine).execute (HttpRequestProvider.prepareRequest (commandLine));
                 AfterResponse.handle (commandLine, response);
                 return response;

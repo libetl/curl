@@ -11,15 +11,18 @@ import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.ParseException;
 import org.toilelibre.libe.curl.Curl.CurlException;
 
-final class ReadArguments {
+import static java.lang.Integer.parseInt;
 
-    static CommandLine getCommandLineFromRequest (final String requestCommand) {
+final class ReadArguments {
+    private static final Pattern PLACEHOLDER_REGEX = Pattern.compile("^\\$curl_placeholder_[0-9]+$"); 
+
+    static CommandLine getCommandLineFromRequest (final String requestCommand, final List<String> placeholderValues) {
 
         // configure a parser
         final DefaultParser parser = new DefaultParser ();
 
         final String requestCommandWithoutBasename = requestCommand.replaceAll ("^[ ]*curl[ ]*", " ") + " ";
-        final String [] args = ReadArguments.getArgsFromCommand (requestCommandWithoutBasename);
+        final String [] args = ReadArguments.getArgsFromCommand (requestCommandWithoutBasename, placeholderValues);
         final CommandLine commandLine;
         try {
             commandLine = parser.parse (Arguments.ALL_OPTIONS, args);
@@ -30,14 +33,17 @@ final class ReadArguments {
         return commandLine;
     }
 
-    private static String [] getArgsFromCommand (final String requestCommandWithoutBasename) {
+    private static String [] getArgsFromCommand (final String requestCommandWithoutBasename, final List<String> placeholderValues) {
         final String requestCommandInput = requestCommandWithoutBasename.replaceAll ("\\s+-([a-zA-Z0-9])", " -$1 ");
         final Matcher matcher = Arguments.ARGS_SPLIT_REGEX.matcher (requestCommandInput);
         final List<String> args = new ArrayList<> ();
         while (matcher.find ()) {
-            args.add (ReadArguments.removeSlashes (matcher.group (1).trim ()));
+            String argument = ReadArguments.removeSlashes (matcher.group (1).trim ());
+            if (PLACEHOLDER_REGEX.matcher(argument).matches())
+                 args.add(placeholderValues.get(parseInt(argument.substring("$curl_placeholder_".length()))));
+            else args.add(argument);
         }
-        return args.toArray (new String [args.size ()]);
+        return args.toArray (new String[0]);
     }
 
     private static String removeSlashes (final String arg) {

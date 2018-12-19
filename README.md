@@ -42,9 +42,18 @@ Examples :
 ```
 
 It also works with a builder
+
 ```java
     HttpResponse response = curl().k().xUpperCase("POST").d("{\"var1\":\"val1\",\"var2\":\"val2\"}").run("https://localhost:8443/public/json");
-````
+```
+
+For longs arguments (in case of StackOverflowErrors)
+
+```java
+    curl ("-k --cert-type $curl_placeholder_0 --cert $curl_placeholder_1 --key-type $curl_placeholder_2 --key $curl_placeholder_3 https://localhost:%d/public/",
+          Arrays.asList("P12", "src/test/resources/clients/libe/libe.p12:mylibepass", "PEM", "src/test/resources/clients/libe/libe.pem"));
+```
+
 
 How to get Google Homepage with this lib :
 ```java
