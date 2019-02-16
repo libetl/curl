@@ -8,4 +8,4 @@ bin/
 *.versionsBackup
 *.releaseBackup
 release.properties
-
+classes/

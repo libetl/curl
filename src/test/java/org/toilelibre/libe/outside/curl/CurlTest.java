@@ -424,4 +424,19 @@ public class CurlTest {
     public void withAnInterceptor(){
         this.curl ("-k -E src/test/resources/clients/libe/libe.pem https://localhost:%d/public/  --interceptor org.toilelibre.libe.outside.curl.CurlTest$MyInterceptor::intercept  --interceptor org.toilelibre.libe.outside.curl.CurlTest::mySecondInterceptor");
     }
+
+    @Test
+    public void nonExistingInterceptor1(){
+        this.curl ("-k -E src/test/resources/clients/libe/libe.pem https://localhost:%d/public/  --interceptor org.toilelibre.libe.outside.curl.CurlTest$ThatSoCalledInterceptor::intercept");
+    }
+
+    @Test
+    public void nonExistingInterceptor2(){
+        this.curl ("-k -E src/test/resources/clients/libe/libe.pem https://localhost:%d/public/  --interceptor org.toilelibre.libe.outside.curl.CurlTest.A_SO_CALLED_FIELDNAME");
+    }
+
+    @Test
+    public void nonInterceptorField(){
+        this.curl ("-k -E src/test/resources/clients/libe/libe.pem https://localhost:%d/public/  --interceptor org.toilelibre.libe.outside.curl.CurlTest.LOGGER");
+    }
 }
