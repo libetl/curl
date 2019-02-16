@@ -67,7 +67,7 @@ final class Arguments {
 
     final static Option  VERSION          = Arguments.add (Option.builder ("V").longOpt ("version").desc ("get the version of this library").required (false).hasArg (false).build ());
 
-    final static Option  INTERCEPTOR      = Arguments.add (Option.builder ("interceptor").longOpt ("interceptor").desc ("interceptor field or method (syntax is classname::fieldname). Must be a BiFunction<HttpRequest, Supplier<HttpResponse>, HttpResponse> or will be discarded").required (false).hasArg (true).build ());
+    final static Option  INTERCEPTOR      = Arguments.add (Option.builder ("interceptor").longOpt ("interceptor").desc ("interceptor field or method (syntax is classname::fieldname). Must be a BiFunction<HttpRequest, Supplier< HttpResponse>, HttpResponse> or will be discarded").required (false).hasArg (true).build ());
 
     private static Option add (final Option option) {
         Arguments.ALL_OPTIONS.addOption (option);
