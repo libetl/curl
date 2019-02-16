@@ -47,20 +47,32 @@ It also works with a builder
     HttpResponse response = curl().k().xUpperCase("POST").d("{\"var1\":\"val1\",\"var2\":\"val2\"}").run("https://localhost:8443/public/json");
 ```
 
-For longs arguments (in case of StackOverflowErrors)
-
-```java
-    curl ("-k --cert-type $curl_placeholder_0 --cert $curl_placeholder_1 --key-type $curl_placeholder_2 --key $curl_placeholder_3 https://localhost:%d/public/",
-          Arrays.asList("P12", "src/test/resources/clients/libe/libe.p12:mylibepass", "PEM", "src/test/resources/clients/libe/libe.pem"));
-```
-
-
 How to get Google Homepage with this lib :
 ```java
     public String getGoogleHomepage (){
         //-L is passed to follow the redirects
         return curl ().lUpperCase ().$ ("https://www.google.com/");
     }
+```
+
+You can also specify two additional curl options using jvm code :
+* javaOptions.interceptor can be used to surround the call with a custom
+  handling
+* javaOptions.placeHolders allow to define substitution variables
+  (useful mostly for long payloads to avoid StackOverflowErrors)
+
+```java
+curl()
+   .javaOptions(with().interceptor(((request, responseSupplier) -> {
+       LOGGER.info("I log something before the call");
+       HttpResponse response = responseSupplier.get();
+       LOGGER.info("I log something after the call, status code is {}",
+       response.getStatusLine().getStatusCode());
+       return response;}))
+                      .placeHolders(asList("fr-FR", "text/html")).build())
+   .hUpperCase("'Accept-Language: $curl_placeholder_0'")
+   .hUpperCase("'Accept: $curl_placeholder_1'")
+   .run("http://www.google.com");
 ```
 
 Supported arguments (so far) :

@@ -30,7 +30,7 @@ public class HttpRequestProviderTest {
     public void curlWithAPlaceholder () {
         //given
         CommandLine commandLine = ReadArguments.getCommandLineFromRequest (
-                "curl -H $curl_placeholder_0 http://localhost/user/byId/1", 
+                "curl -H $curl_placeholder_0 http://localhost/user/byId/1",
                 Collections.singletonList("Accept: application/json"));
 
         //when
@@ -45,7 +45,7 @@ public class HttpRequestProviderTest {
     public void curlWithoutVerbAndWithDataShouldBeTransformedAsPostRequest () {
         //given
         CommandLine commandLine = ReadArguments.getCommandLineFromRequest (
-                "curl -H'Accept: application/json' -d'{\"id\":1,\"name\":\"John Doe\"}' http://localhost/user/", 
+                "curl -H'Accept: application/json' -d'{\"id\":1,\"name\":\"John Doe\"}' http://localhost/user/",
                 Collections.emptyList());
 
         //when

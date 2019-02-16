@@ -2,6 +2,8 @@ package org.toilelibre.libe.curl;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.http.HttpHost;
+import org.apache.http.HttpRequest;
+import org.apache.http.HttpResponse;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.NTCredentials;
 import org.apache.http.auth.UsernamePasswordCredentials;
@@ -26,6 +28,8 @@ import java.security.cert.Certificate;
 import java.security.cert.X509Certificate;
 import java.util.Collections;
 import java.util.List;
+import java.util.function.BiFunction;
+import java.util.function.Supplier;
 import java.util.stream.IntStream;
 
 import static java.util.stream.Collectors.toList;
@@ -33,7 +37,8 @@ import static org.apache.http.conn.ssl.SSLConnectionSocketFactory.getDefaultHost
 
 final class HttpClientProvider {
 
-    static HttpClient prepareHttpClient (final CommandLine commandLine) throws CurlException {
+    static HttpClient prepareHttpClient(final CommandLine commandLine,
+                                        List<BiFunction<HttpRequest, Supplier<HttpResponse>, HttpResponse>> additionalInterceptors) throws CurlException {
         HttpClientBuilder executor = HttpClientBuilder.create ();
 
         final String hostname;
@@ -50,7 +55,7 @@ final class HttpClientProvider {
         }
 
         HttpClientProvider.handleSSLParams (commandLine, executor);
-        InterceptorsBinder.handleInterceptors (commandLine, executor);
+        InterceptorsBinder.handleInterceptors (commandLine, executor, additionalInterceptors);
         return executor.build ();
     }
 

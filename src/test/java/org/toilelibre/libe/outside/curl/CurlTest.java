@@ -20,7 +20,6 @@ import org.toilelibre.libe.outside.monitor.StupidHttpServer;
 import java.io.File;
 import java.io.IOException;
 import java.net.SocketTimeoutException;
-import java.util.List;
 import java.util.Random;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
@@ -30,7 +29,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import static java.util.Arrays.asList;
-import static java.util.Collections.emptyList;
+import static org.toilelibre.libe.curl.Curl.CurlArgumentsBuilder.CurlJavaOptions.with;
 
 public class CurlTest {
 
@@ -65,11 +64,11 @@ public class CurlTest {
     }
 
     private HttpResponse curl (final String requestCommand) {
-        return curl(requestCommand, emptyList());
+        return curl(requestCommand, with().build());
     }
 
-    private HttpResponse curl (final String requestCommand, List<String> placeholderValues) {
-        return Curl.curl (String.format (requestCommand, RequestMonitor.port ()), placeholderValues);
+    private HttpResponse curl (final String requestCommand, Curl.CurlArgumentsBuilder.CurlJavaOptions curlJavaOptions) {
+        return Curl.curl (String.format (requestCommand, RequestMonitor.port ()), curlJavaOptions);
     }
 
     private CompletableFuture<HttpResponse> curlAsync (final String requestCommand) {
@@ -141,7 +140,7 @@ public class CurlTest {
     @Test
     public void curlWithPlaceholders () {
         this.assertOk (this.curl ("-k --cert-type $curl_placeholder_0 --cert $curl_placeholder_1 --key-type $curl_placeholder_2 --key $curl_placeholder_3 https://localhost:%d/public/",
-                asList("P12", "src/test/resources/clients/libe/libe.p12:mylibepass", "PEM", "src/test/resources/clients/libe/libe.pem")));
+                with().placeHolders(asList("P12", "src/test/resources/clients/libe/libe.p12:mylibepass", "PEM", "src/test/resources/clients/libe/libe.pem")).build()));
     }
 
     @Test
@@ -423,6 +422,19 @@ public class CurlTest {
     @Test
     public void withAnInterceptor(){
         this.curl ("-k -E src/test/resources/clients/libe/libe.pem https://localhost:%d/public/  --interceptor org.toilelibre.libe.outside.curl.CurlTest$MyInterceptor::intercept  --interceptor org.toilelibre.libe.outside.curl.CurlTest::mySecondInterceptor");
+    }
+
+    @Test
+    public void withAnInlinedInterceptor(){
+        Curl.curl()
+                .javaOptions(with().interceptor(((request, responseSupplier) -> {
+                    LOGGER.info("I log something before the call");
+                    HttpResponse response = responseSupplier.get();
+                    LOGGER.info("I log something after the call... Bingo, the status of the response is " +
+                            response.getStatusLine().getStatusCode());
+                    return response;
+                })).build())
+        .run("http://www.google.com");
     }
 
     @Test

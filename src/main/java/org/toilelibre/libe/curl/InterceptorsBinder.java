@@ -21,6 +21,7 @@ import java.util.function.Supplier;
 import static java.util.Arrays.stream;
 import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.toList;
+import static java.util.stream.Stream.concat;
 
 class InterceptorsBinder {
 
@@ -38,9 +39,9 @@ class InterceptorsBinder {
     }
 
     @SuppressWarnings("unchecked")
-    static void handleInterceptors(CommandLine commandLine, HttpClientBuilder executor) {
+    static void handleInterceptors(CommandLine commandLine, HttpClientBuilder executor, List<BiFunction<HttpRequest, Supplier<HttpResponse>, HttpResponse>> additionalInterceptors) {
         final List<BiFunction<HttpRequest, Supplier<HttpResponse>, HttpResponse>> interceptors =
-                stream(ofNullable(commandLine.getOptionValues(Arguments.INTERCEPTOR.getOpt())).orElse(new String[0]))
+                concat(stream(ofNullable(commandLine.getOptionValues(Arguments.INTERCEPTOR.getOpt())).orElse(new String[0]))
                         .map(methodName -> {
                             final Class<?> targetClass;
                             try {
@@ -87,7 +88,7 @@ class InterceptorsBinder {
                                 return null;
                             }
                         })
-                        .filter(Objects::nonNull)
+                        .filter(Objects::nonNull), additionalInterceptors.stream())
                         .collect(toList());
         executor.setRequestExecutor(new HttpRequestExecutor() {
             @Override
