@@ -1,28 +1,5 @@
 package org.toilelibre.libe.curl;
 
-import java.io.File;
-import java.io.IOException;
-import java.net.InetAddress;
-import java.net.URI;
-import java.net.UnknownHostException;
-import java.security.GeneralSecurityException;
-import java.security.KeyManagementException;
-import java.security.KeyStore;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.PrivateKey;
-import java.security.cert.Certificate;
-import java.security.cert.X509Certificate;
-import java.util.Collections;
-import java.util.List;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
-
-import javax.net.ssl.HostnameVerifier;
-import javax.net.ssl.HttpsURLConnection;
-import javax.net.ssl.SSLSession;
-import javax.security.cert.CertificateException;
-
 import org.apache.commons.cli.CommandLine;
 import org.apache.http.HttpHost;
 import org.apache.http.auth.AuthScope;
@@ -39,6 +16,19 @@ import org.apache.http.ssl.SSLContextBuilder;
 import org.toilelibre.libe.curl.CertFormat.Kind;
 import org.toilelibre.libe.curl.Curl.CurlException;
 
+import java.io.File;
+import java.io.IOException;
+import java.net.InetAddress;
+import java.net.URI;
+import java.net.UnknownHostException;
+import java.security.*;
+import java.security.cert.Certificate;
+import java.security.cert.X509Certificate;
+import java.util.Collections;
+import java.util.List;
+import java.util.stream.IntStream;
+
+import static java.util.stream.Collectors.toList;
 import static org.apache.http.conn.ssl.SSLConnectionSocketFactory.getDefaultHostnameVerifier;
 
 final class HttpClientProvider {
@@ -60,6 +50,7 @@ final class HttpClientProvider {
         }
 
         HttpClientProvider.handleSSLParams (commandLine, executor);
+        InterceptorsBinder.handleInterceptors (commandLine, executor);
         return executor.build ();
     }
 
@@ -70,21 +61,21 @@ final class HttpClientProvider {
             final File keyFileObject = HttpClientProvider.getFile (keyFilePath);
             final KeyStore keyStore = HttpClientProvider.generateKeyStore (certFormat, caCertFileObject, certFileObject, keyFormat, keyFileObject, password == null ? null : password.toCharArray ());
             builder.loadKeyMaterial (keyStore, password == null ? null : password.toCharArray ());
-        } catch (GeneralSecurityException | IOException | CertificateException e) {
+        } catch (GeneralSecurityException | IOException e) {
             throw new CurlException (e);
         }
     }
 
     private static KeyStore generateKeyStore (final CertFormat certFormat, final File caCertFileObject, final File certFileObject, final CertFormat keyFormat, final File keyFileObject, final char [] passwordAsCharArray)
-            throws KeyStoreException, NoSuchAlgorithmException, java.security.cert.CertificateException, IOException, CurlException, CertificateException {
+            throws KeyStoreException, NoSuchAlgorithmException, java.security.cert.CertificateException, IOException, CurlException {
         final List<Certificate> caCertificatesNotFiltered = caCertFileObject == null ? Collections.emptyList () : certFormat.generateCredentialsFromFileAndPassword (Kind.CERTIFICATE, IOUtils.toByteArray (caCertFileObject), passwordAsCharArray);
-        final List<Certificate> caCertificatesFiltered = caCertificatesNotFiltered.stream ().filter ( (certificate) -> (certificate instanceof X509Certificate) && (((X509Certificate) certificate).getBasicConstraints () != -1)).collect (Collectors.toList ());
+        final List<Certificate> caCertificatesFiltered = caCertificatesNotFiltered.stream ().filter ( (certificate) -> (certificate instanceof X509Certificate) && (((X509Certificate) certificate).getBasicConstraints () != -1)).collect (toList ());
         final List<Certificate> certificates = certFormat.generateCredentialsFromFileAndPassword (Kind.CERTIFICATE, IOUtils.toByteArray (certFileObject), passwordAsCharArray);
         final List<PrivateKey> privateKeys = keyFormat.generateCredentialsFromFileAndPassword (Kind.PRIVATE_KEY, IOUtils.toByteArray (keyFileObject), passwordAsCharArray);
 
         final KeyStore keyStore = KeyStore.getInstance ("JKS");
         keyStore.load (null);
-        final Certificate [] certificatesAsArray = certificates.toArray (new Certificate [certificates.size ()]);
+        final Certificate [] certificatesAsArray = certificates.toArray (new Certificate [0]);
         IntStream.range (0, certificates.size ()).forEach (i -> HttpClientProvider.setCertificateEntry (keyStore, certificates, i));
         IntStream.range (0, caCertificatesFiltered.size ()).forEach (i -> HttpClientProvider.setCaCertificateEntry (keyStore, certificates, i));
         IntStream.range (0, privateKeys.size ()).forEach (i -> HttpClientProvider.setPrivateKeyEntry (keyStore, privateKeys, passwordAsCharArray, certificatesAsArray, i));
@@ -107,12 +98,11 @@ final class HttpClientProvider {
                 final String [] userName = authValue [0].split ("\\\\");
                 final SystemDefaultCredentialsProvider systemDefaultCredentialsProvider = new SystemDefaultCredentialsProvider ();
                 systemDefaultCredentialsProvider.setCredentials (AuthScope.ANY, new NTCredentials (userName [1], authValue [1], hostname, userName [0]));
-                executor = executor.setDefaultCredentialsProvider (systemDefaultCredentialsProvider);
-            } else {
-                final BasicCredentialsProvider basicCredentialsProvider = new BasicCredentialsProvider ();
-                basicCredentialsProvider.setCredentials (new AuthScope (HttpHost.create (URI.create (commandLine.getArgs () [0]).getHost ())), new UsernamePasswordCredentials (authValue [0], authValue.length > 1 ? authValue [1] : null));
-                executor = executor.setDefaultCredentialsProvider (basicCredentialsProvider);
+                return executor.setDefaultCredentialsProvider (systemDefaultCredentialsProvider);
             }
+            final BasicCredentialsProvider basicCredentialsProvider = new BasicCredentialsProvider ();
+            basicCredentialsProvider.setCredentials (new AuthScope (HttpHost.create (URI.create (commandLine.getArgs () [0]).getHost ())), new UsernamePasswordCredentials (authValue [0], authValue.length > 1 ? authValue [1] : null));
+            return  executor.setDefaultCredentialsProvider (basicCredentialsProvider);
         }
         return executor;
     }
@@ -134,7 +124,7 @@ final class HttpClientProvider {
                     entireOption.lastIndexOf(':');
             final String cert = separatorIndex == -1 ? entireOption : entireOption.substring(0, separatorIndex);
             final String certPassphrase = separatorIndex == -1 ? "" : entireOption.substring(separatorIndex + 1);
-            final String cacert = commandLine.getOptionValue (Arguments.CA_CERT.getOpt ()) == null ? null : commandLine.getOptionValue (Arguments.CA_CERT.getOpt ());
+            final String cacert = commandLine.getOptionValue(Arguments.CA_CERT.getOpt());
             final String key = commandLine.getOptionValue (Arguments.KEY.getOpt ()) == null ? cert : commandLine.getOptionValue (Arguments.KEY.getOpt ());
             HttpClientProvider.addClientCredentials (builder, certFormat, cacert, cert, keyFormat, key, certPassphrase);
         }

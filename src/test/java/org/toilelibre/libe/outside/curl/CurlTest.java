@@ -1,18 +1,7 @@
 package org.toilelibre.libe.outside.curl;
 
-import java.io.File;
-import java.io.IOException;
-import java.net.SocketTimeoutException;
-import java.util.List;
-import java.util.Random;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
-
 import org.apache.commons.io.IOUtils;
+import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.conn.ConnectTimeoutException;
@@ -27,6 +16,18 @@ import org.toilelibre.libe.curl.Curl;
 import org.toilelibre.libe.curl.Curl.CurlException;
 import org.toilelibre.libe.outside.monitor.RequestMonitor;
 import org.toilelibre.libe.outside.monitor.StupidHttpServer;
+
+import java.io.File;
+import java.io.IOException;
+import java.net.SocketTimeoutException;
+import java.util.List;
+import java.util.Random;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.function.BiFunction;
+import java.util.function.Supplier;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
@@ -142,7 +143,7 @@ public class CurlTest {
         this.assertOk (this.curl ("-k --cert-type $curl_placeholder_0 --cert $curl_placeholder_1 --key-type $curl_placeholder_2 --key $curl_placeholder_3 https://localhost:%d/public/",
                 asList("P12", "src/test/resources/clients/libe/libe.p12:mylibepass", "PEM", "src/test/resources/clients/libe/libe.pem")));
     }
-    
+
     @Test
     public void curlJKS () {
         this.assertOk (this.curl ("-k --cert-type JKS --cert src/test/resources/clients/libe/libe.jks:mylibepass https://localhost:%d/public/"));
@@ -396,5 +397,31 @@ public class CurlTest {
     @Test
     public void noContentShouldNotTriggerANullPointerException () {
         this.$ ("-k -E src/test/resources/clients/libe/libe.pem https://localhost:%d/public/noContent");
+    }
+
+    @SuppressWarnings("unused")
+    public static class MyInterceptor {
+        public HttpResponse intercept(HttpRequest request, Supplier<HttpResponse> responseSupplier){
+            LOGGER.info("I log something before the call");
+            HttpResponse response = responseSupplier.get();
+            LOGGER.info("I log something after the call... Bingo, the status of the response is " +
+                    response.getStatusLine().getStatusCode());
+            return response;
+        }
+    }
+
+    @SuppressWarnings("unused")
+    private BiFunction<HttpRequest, Supplier<HttpResponse>, HttpResponse> mySecondInterceptor =
+            (request, responseSupplier) -> {
+        LOGGER.info("I log something before the call (from a lambda)");
+        HttpResponse response = responseSupplier.get();
+        LOGGER.info("I log something after the call (from a lambda)... Bingo, the status of the response is " +
+                response.getStatusLine().getStatusCode());
+        return response;
+    };
+
+    @Test
+    public void withAnInterceptor(){
+        this.curl ("-k -E src/test/resources/clients/libe/libe.pem https://localhost:%d/public/  --interceptor org.toilelibre.libe.outside.curl.CurlTest$MyInterceptor::intercept  --interceptor org.toilelibre.libe.outside.curl.CurlTest::mySecondInterceptor");
     }
 }
