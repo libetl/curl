@@ -19,6 +19,8 @@ final class Arguments {
 
     final static Option  CERT_TYPE        = Arguments.add (Option.builder ("ct").longOpt ("cert-type").desc ("certificate type").required (false).hasArg (true).desc ("PEM|P12|JKS|DER|ENG").build ());
 
+    final static Option  COMPRESSED       = Arguments.add (Option.builder (null).longOpt ("compressed").desc ("Request compressed response (using deflate or gzip)").required (false).hasArg (false).build ());
+
     final static Option  CONNECT_TIMEOUT  = Arguments.add (Option.builder ("cti").longOpt ("connect-timeout").desc ("Maximum time allowed for connection").required (false).hasArg (true).argName("seconds").build ());
 
     final static Option  DATA             = Arguments.add (Option.builder ("d").longOpt ("data").desc ("Data").required (false).hasArg ().argName ("payload").build ());
