@@ -8,12 +8,14 @@ import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.NTCredentials;
 import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.client.HttpClient;
+import org.apache.http.conn.*;
 import org.apache.http.conn.ssl.NoopHostnameVerifier;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.conn.ssl.TrustSelfSignedStrategy;
 import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.SystemDefaultCredentialsProvider;
+import org.apache.http.impl.conn.*;
 import org.apache.http.ssl.SSLContextBuilder;
 import org.toilelibre.libe.curl.CertFormat.Kind;
 import org.toilelibre.libe.curl.Curl.CurlException;
@@ -38,8 +40,13 @@ import static org.apache.http.conn.ssl.SSLConnectionSocketFactory.getDefaultHost
 final class HttpClientProvider {
 
     static HttpClient prepareHttpClient(final CommandLine commandLine,
-                                        List<BiFunction<HttpRequest, Supplier<HttpResponse>, HttpResponse>> additionalInterceptors) throws CurlException {
+                                        List<BiFunction<HttpRequest, Supplier<HttpResponse>, HttpResponse>> additionalInterceptors,
+                                        HttpClientConnectionManager connectionManager) throws CurlException {
         HttpClientBuilder executor = HttpClientBuilder.create ();
+
+        if (connectionManager != null) {
+            executor.setConnectionManager (connectionManager);
+        }
 
         final String hostname;
         try {
@@ -54,7 +61,7 @@ final class HttpClientProvider {
             executor.disableRedirectHandling ();
         }
 
-        HttpClientProvider.handleSSLParams (commandLine, executor);
+        HttpClientProvider.handleSSLParams (commandLine, connectionManager, executor);
         InterceptorsBinder.handleInterceptors (commandLine, executor, additionalInterceptors);
         return executor.build ();
     }
@@ -112,7 +119,7 @@ final class HttpClientProvider {
         return executor;
     }
 
-    private static void handleSSLParams (final CommandLine commandLine, final HttpClientBuilder executor) throws CurlException {
+    private static void handleSSLParams (final CommandLine commandLine, final HttpClientConnectionManager connectionManager, final HttpClientBuilder executor) throws CurlException {
         final SSLContextBuilder builder = new SSLContextBuilder ();
         builder.useProtocol (HttpClientProvider.protocolFromCommandLine (commandLine));
 

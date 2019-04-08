@@ -1,20 +1,16 @@
 package org.toilelibre.libe.curl;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
-import java.util.function.BiFunction;
-import java.util.function.Supplier;
+import org.apache.commons.cli.*;
+import org.apache.http.*;
+import org.apache.http.conn.*;
 
-import org.apache.commons.cli.CommandLine;
-import org.apache.http.HttpRequest;
-import org.apache.http.HttpResponse;
+import java.io.*;
+import java.util.*;
+import java.util.concurrent.*;
+import java.util.function.*;
 
-import static java.util.Collections.emptyList;
-import static org.toilelibre.libe.curl.Curl.CurlArgumentsBuilder.CurlJavaOptions.with;
-import static org.toilelibre.libe.curl.UglyVersionDisplay.stopAndDisplayVersionIfThe;
+import static org.toilelibre.libe.curl.Curl.CurlArgumentsBuilder.CurlJavaOptions.*;
+import static org.toilelibre.libe.curl.UglyVersionDisplay.*;
 
 public class Curl {
 
@@ -22,8 +18,9 @@ public class Curl {
     }
 
     public static String $ (final String requestCommand) throws CurlException {
-        return $(requestCommand, with().build());
+        return $ (requestCommand, with ().build ());
     }
+
     public static String $ (final String requestCommand, CurlArgumentsBuilder.CurlJavaOptions curlJavaOptions) throws CurlException {
         try {
             return IOUtils.quietToString (Curl.curlAsync (requestCommand, curlJavaOptions).get ().getEntity ());
@@ -33,10 +30,12 @@ public class Curl {
     }
 
     public static CompletableFuture<String> $Async (final String requestCommand) throws CurlException {
-        return $Async (requestCommand, with().build());
+        return $Async (requestCommand, with ().build ());
     }
-    public static CompletableFuture<String> $Async (final String requestCommand, CurlArgumentsBuilder.CurlJavaOptions curlJavaOptions) throws CurlException {
-        return Curl.curlAsync (requestCommand, curlJavaOptions).thenApply ( (httpResponse) -> IOUtils.quietToString (httpResponse.getEntity ()));
+
+    public static CompletableFuture<String> $Async (final String requestCommand,
+                                                    CurlArgumentsBuilder.CurlJavaOptions curlJavaOptions) throws CurlException {
+        return Curl.curlAsync (requestCommand, curlJavaOptions).thenApply ((httpResponse) -> IOUtils.quietToString (httpResponse.getEntity ()));
     }
 
     public static CurlArgumentsBuilder curl () {
@@ -44,9 +43,11 @@ public class Curl {
     }
 
     public static HttpResponse curl (final String requestCommand) throws CurlException {
-        return curl (requestCommand, with().build());
+        return curl (requestCommand, with ().build ());
     }
-    public static HttpResponse curl (final String requestCommand, CurlArgumentsBuilder.CurlJavaOptions curlJavaOptions) throws CurlException {
+
+    public static HttpResponse curl (final String requestCommand,
+                                     CurlArgumentsBuilder.CurlJavaOptions curlJavaOptions) throws CurlException {
         try {
             return Curl.curlAsync (requestCommand, curlJavaOptions).get ();
         } catch (InterruptedException | ExecutionException e) {
@@ -55,17 +56,20 @@ public class Curl {
     }
 
     public static CompletableFuture<HttpResponse> curlAsync (final String requestCommand) throws CurlException {
-        return curlAsync (requestCommand, with().build());
+        return curlAsync (requestCommand, with ().build ());
     }
 
-    public static CompletableFuture<HttpResponse> curlAsync (final String requestCommand, CurlArgumentsBuilder.CurlJavaOptions curlJavaOptions) throws CurlException {
-        return CompletableFuture.<HttpResponse> supplyAsync ( () -> {
-            final CommandLine commandLine = ReadArguments.getCommandLineFromRequest (requestCommand, curlJavaOptions.getPlaceHolders());
+    public static CompletableFuture<HttpResponse> curlAsync (final String requestCommand,
+                                                             CurlArgumentsBuilder.CurlJavaOptions curlJavaOptions) throws CurlException {
+        return CompletableFuture.<HttpResponse>supplyAsync (() -> {
+            final CommandLine commandLine = ReadArguments.getCommandLineFromRequest (requestCommand,
+                    curlJavaOptions.getPlaceHolders ());
             try {
                 stopAndDisplayVersionIfThe (commandLine.hasOption (Arguments.VERSION.getOpt ()));
                 final HttpResponse response =
-                        HttpClientProvider.prepareHttpClient (commandLine, curlJavaOptions.getInterceptors()).execute (
-                        HttpRequestProvider.prepareRequest (commandLine));
+                        HttpClientProvider.prepareHttpClient (commandLine, curlJavaOptions.getInterceptors (),
+                                curlJavaOptions.connectionManager).execute (
+                                HttpRequestProvider.prepareRequest (commandLine));
                 AfterResponse.handle (commandLine, response);
                 return response;
             } catch (final IOException | IllegalArgumentException e) {
@@ -77,49 +81,57 @@ public class Curl {
     public static class CurlArgumentsBuilder {
 
         private final StringBuilder curlCommand = new StringBuilder ("curl ");
-        private CurlJavaOptions curlJavaOptions = with().build();
+        private CurlJavaOptions curlJavaOptions = with ().build ();
 
         public static class CurlJavaOptions {
             private final List<BiFunction<HttpRequest, Supplier<HttpResponse>, HttpResponse>> interceptors;
             private final List<String> placeHolders;
+            private final HttpClientConnectionManager connectionManager;
 
-            private CurlJavaOptions(Builder builder) {
+            private CurlJavaOptions (Builder builder) {
                 interceptors = builder.interceptors;
                 placeHolders = builder.placeHolders;
+                connectionManager = builder.connectionManager;
             }
 
-            public static Builder with() {
-                return new Builder();
+            public static Builder with () {
+                return new Builder ();
             }
 
-            public List<BiFunction<HttpRequest, Supplier<HttpResponse>, HttpResponse>> getInterceptors() {
+            public List<BiFunction<HttpRequest, Supplier<HttpResponse>, HttpResponse>> getInterceptors () {
                 return interceptors;
             }
 
-            public List<String> getPlaceHolders() {
+            public List<String> getPlaceHolders () {
                 return placeHolders;
             }
 
             public static final class Builder {
                 private List<BiFunction<HttpRequest, Supplier<HttpResponse>, HttpResponse>> interceptors
-                        = new ArrayList<>();
-                private List<String>                                                        placeHolders;
+                        = new ArrayList<> ();
+                private List<String> placeHolders;
+                private HttpClientConnectionManager connectionManager;
 
-                private Builder() {
+                private Builder () {
                 }
 
-                public Builder interceptor(BiFunction<HttpRequest, Supplier<HttpResponse>, HttpResponse> val) {
-                    interceptors.add(val);
+                public Builder interceptor (BiFunction<HttpRequest, Supplier<HttpResponse>, HttpResponse> val) {
+                    interceptors.add (val);
                     return this;
                 }
 
-                public Builder placeHolders(List<String> val) {
+                public Builder placeHolders (List<String> val) {
                     placeHolders = val;
                     return this;
                 }
 
-                public CurlJavaOptions build() {
-                    return new CurlJavaOptions(this);
+                public Builder connectionManager (HttpClientConnectionManager val) {
+                    connectionManager = val;
+                    return this;
+                }
+
+                public CurlJavaOptions build () {
+                    return new CurlJavaOptions (this);
                 }
             }
         }
@@ -127,7 +139,7 @@ public class Curl {
         CurlArgumentsBuilder () {
         }
 
-        public CurlArgumentsBuilder javaOptions(CurlJavaOptions curlJavaOptions) {
+        public CurlArgumentsBuilder javaOptions (CurlJavaOptions curlJavaOptions) {
             this.curlJavaOptions = curlJavaOptions;
             return this;
         }

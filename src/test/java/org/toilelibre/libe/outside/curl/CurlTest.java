@@ -4,7 +4,12 @@ import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
+import org.apache.http.config.*;
 import org.apache.http.conn.ConnectTimeoutException;
+import org.apache.http.conn.socket.*;
+import org.apache.http.conn.ssl.*;
+import org.apache.http.impl.conn.*;
+import org.apache.http.ssl.SSLContextBuilder;
 import org.assertj.core.api.Assertions;
 import org.junit.AfterClass;
 import org.junit.Assert;
@@ -17,9 +22,12 @@ import org.toilelibre.libe.curl.Curl.CurlException;
 import org.toilelibre.libe.outside.monitor.RequestMonitor;
 import org.toilelibre.libe.outside.monitor.StupidHttpServer;
 
+import javax.net.ssl.*;
 import java.io.File;
 import java.io.IOException;
 import java.net.SocketTimeoutException;
+import java.security.*;
+import java.security.cert.*;
 import java.util.Random;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
@@ -141,6 +149,18 @@ public class CurlTest {
     public void curlWithPlaceholders () {
         this.assertOk (this.curl ("-k --cert-type $curl_placeholder_0 --cert $curl_placeholder_1 --key-type $curl_placeholder_2 --key $curl_placeholder_3 https://localhost:%d/public/",
                 with().placeHolders(asList("P12", "src/test/resources/clients/libe/libe.p12:mylibepass", "PEM", "src/test/resources/clients/libe/libe.pem")).build()));
+    }
+    @Test
+    public void curlWithConnectionManager () throws NoSuchAlgorithmException, KeyStoreException, KeyManagementException, UnrecoverableKeyException, IOException, CertificateException {
+        KeyStore keystore = KeyStore.getInstance ("JKS");
+        keystore.load (Thread.currentThread ().getContextClassLoader ().getResourceAsStream ("clients/libe/libe.jks"), "mylibepass".toCharArray ());
+        this.assertOk (this.curl ("https://localhost:%d/public/",
+                with().connectionManager(new PoolingHttpClientConnectionManager (RegistryBuilder.<ConnectionSocketFactory>create()
+                        .register("https", new SSLConnectionSocketFactory(SSLContextBuilder.create ()
+                                .loadTrustMaterial (null, new TrustSelfSignedStrategy ())
+                                .loadKeyMaterial (keystore, "mylibepass".toCharArray ())
+                                .build (), NoopHostnameVerifier.INSTANCE))
+                        .build())).build()));
     }
 
     @Test
