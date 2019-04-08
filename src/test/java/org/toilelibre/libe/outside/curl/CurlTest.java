@@ -244,7 +244,7 @@ public class CurlTest {
             this.curl(this.$("-k -E src/test/resources/clients/libe/libe.pem --connect-timeout 0.001 --max-time 10 https://localhost:%d/public/"));
             Assert.fail("This curl is not supposed to work and should fail with a ConnectTimeoutException");
         }catch (CurlException curlException){
-            Assert.assertEquals(curlException.getCause().getCause().getClass().getName(),
+            Assert.assertEquals(curlException.getCause().getClass().getName(),
                     ConnectTimeoutException.class.getName());
         }
     }
@@ -255,7 +255,7 @@ public class CurlTest {
             this.curl(this.$("-k -E src/test/resources/clients/libe/libe.pem --connect-timeout 10 --max-time 0.001 https://localhost:%d/public/tooLong"));
             Assert.fail("This curl is not supposed to work and should fail with a SocketTimeoutException");
         }catch (CurlException curlException){
-            Assert.assertEquals(curlException.getCause().getCause().getClass().getName(),
+            Assert.assertEquals(curlException.getClass().getName(),
                     SocketTimeoutException.class.getName());
         }
     }
