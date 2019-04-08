@@ -42,6 +42,21 @@ public class Curl {
         return new CurlArgumentsBuilder ();
     }
 
+    public static CompletableFuture<HttpResponse> curlAsync (final String requestCommand) throws CurlException {
+        return curlAsync (requestCommand, with ().build ());
+    }
+
+    public static CompletableFuture<HttpResponse> curlAsync (final String requestCommand,
+                                                             CurlArgumentsBuilder.CurlJavaOptions curlJavaOptions) throws CurlException {
+        return CompletableFuture.supplyAsync (() -> {
+            try {
+                return Curl.curl (requestCommand, curlJavaOptions);
+            } catch (IllegalArgumentException e) {
+                throw new CurlException (e);
+            }
+        }).toCompletableFuture ();
+    }
+
     public static HttpResponse curl (final String requestCommand) throws CurlException {
         return curl (requestCommand, with ().build ());
     }
@@ -49,33 +64,18 @@ public class Curl {
     public static HttpResponse curl (final String requestCommand,
                                      CurlArgumentsBuilder.CurlJavaOptions curlJavaOptions) throws CurlException {
         try {
-            return Curl.curlAsync (requestCommand, curlJavaOptions).get ();
-        } catch (InterruptedException | ExecutionException e) {
-            throw new CurlException (e);
-        }
-    }
-
-    public static CompletableFuture<HttpResponse> curlAsync (final String requestCommand) throws CurlException {
-        return curlAsync (requestCommand, with ().build ());
-    }
-
-    public static CompletableFuture<HttpResponse> curlAsync (final String requestCommand,
-                                                             CurlArgumentsBuilder.CurlJavaOptions curlJavaOptions) throws CurlException {
-        return CompletableFuture.<HttpResponse>supplyAsync (() -> {
             final CommandLine commandLine = ReadArguments.getCommandLineFromRequest (requestCommand,
                     curlJavaOptions.getPlaceHolders ());
-            try {
-                stopAndDisplayVersionIfThe (commandLine.hasOption (Arguments.VERSION.getOpt ()));
-                final HttpResponse response =
-                        HttpClientProvider.prepareHttpClient (commandLine, curlJavaOptions.getInterceptors (),
-                                curlJavaOptions.connectionManager).execute (
-                                HttpRequestProvider.prepareRequest (commandLine));
-                AfterResponse.handle (commandLine, response);
-                return response;
-            } catch (final IOException | IllegalArgumentException e) {
-                throw new CurlException (e);
-            }
-        }).toCompletableFuture ();
+            stopAndDisplayVersionIfThe (commandLine.hasOption (Arguments.VERSION.getOpt ()));
+            final HttpResponse response =
+                    HttpClientProvider.prepareHttpClient (commandLine, curlJavaOptions.getInterceptors (),
+                            curlJavaOptions.connectionManager).execute (
+                            HttpRequestProvider.prepareRequest (commandLine));
+            AfterResponse.handle (commandLine, response);
+            return response;
+        } catch (final IOException | IllegalArgumentException e) {
+            throw new CurlException (e);
+        }
     }
 
     public static class CurlArgumentsBuilder {
