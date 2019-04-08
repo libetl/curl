@@ -23,8 +23,8 @@ public class Curl {
 
     public static String $ (final String requestCommand, CurlArgumentsBuilder.CurlJavaOptions curlJavaOptions) throws CurlException {
         try {
-            return IOUtils.quietToString (Curl.curlAsync (requestCommand, curlJavaOptions).get ().getEntity ());
-        } catch (final UnsupportedOperationException | InterruptedException | ExecutionException e) {
+            return IOUtils.quietToString (Curl.curl (requestCommand, curlJavaOptions).getEntity ());
+        } catch (final UnsupportedOperationException e) {
             throw new CurlException (e);
         }
     }
@@ -69,7 +69,7 @@ public class Curl {
             stopAndDisplayVersionIfThe (commandLine.hasOption (Arguments.VERSION.getOpt ()));
             final HttpResponse response =
                     HttpClientProvider.prepareHttpClient (commandLine, curlJavaOptions.getInterceptors (),
-                            curlJavaOptions.connectionManager).execute (
+                            curlJavaOptions.getConnectionManager()).execute (
                             HttpRequestProvider.prepareRequest (commandLine));
             AfterResponse.handle (commandLine, response);
             return response;
@@ -104,6 +104,10 @@ public class Curl {
 
             public List<String> getPlaceHolders () {
                 return placeHolders;
+            }
+
+            public HttpClientConnectionManager getConnectionManager () {
+                return connectionManager;
             }
 
             public static final class Builder {
