@@ -27,7 +27,12 @@ class AfterResponse {
 
     private static void writeTheResponseEntityInsideStream(FileOutputStream outputStream, HttpEntity httpEntity) {
         try {
-            outputStream.write (IOUtils.toByteArray (httpEntity.getContent (), (int) httpEntity.getContentLength ()));
+            if (httpEntity.getContentLength () >= 0) {
+                outputStream.write (IOUtils.toByteArray (httpEntity.getContent (), (int) httpEntity.getContentLength ()));
+            }
+            else {
+                outputStream.write(IOUtils.toByteArray(httpEntity.getContent()));
+            }
         } catch (final IOException e) {
             throw new CurlException (e);
         } finally {

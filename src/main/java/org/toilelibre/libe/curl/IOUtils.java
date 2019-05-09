@@ -2,15 +2,7 @@ package org.toilelibre.libe.curl;
 
 import org.apache.http.HttpEntity;
 
-import java.io.DataInputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.Reader;
-import java.io.Serializable;
-import java.io.Writer;
+import java.io.*;
 import java.nio.charset.Charset;
 
 class IOUtils {
@@ -113,6 +105,16 @@ class IOUtils {
         dis.close ();
         fis.close ();
         return result;
+    }
+
+    static byte [] toByteArray (final InputStream fis) throws IOException {
+        byte[] chunk = new byte[4096];
+        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+        int read;
+        while ((read = fis.read(chunk)) != -1) {
+            byteArrayOutputStream.write(chunk, 0, read);
+        }
+        return byteArrayOutputStream.toByteArray();
     }
 
     static String quietToString (final HttpEntity entity) {
