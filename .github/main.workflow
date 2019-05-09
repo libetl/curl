@@ -5,5 +5,5 @@ workflow "build" {
 
 action "GitHub Action for Maven & JDK 11" {
   uses = "xlui/action-maven-cli/jdk11@master"
-  args = "clean package"
+  args = "test"
 }
