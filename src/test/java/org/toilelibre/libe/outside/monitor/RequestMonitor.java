@@ -174,13 +174,13 @@ public class RequestMonitor {
         }
 
         @Override
-        public void configure (final WebSecurity http) throws Exception {
+        public void configure (final WebSecurity http) {
             http.ignoring ().antMatchers ("/public/**");
         }
 
         @Autowired
         public void configureGlobal (final AuthenticationManagerBuilder auth) throws Exception {
-            auth.inMemoryAuthentication ().withUser ("user").password ("password").roles ("USER");
+            auth.inMemoryAuthentication ().withUser ("user").password ("{noop}password").roles ("USER");
         }
     }
 
@@ -218,8 +218,10 @@ public class RequestMonitor {
         if (withSsl) {
             properties.put ("server.ssl.key-store", "classpath:server/libe/libe.jks");
             properties.put ("server.ssl.key-store-password", "myserverpass");
-            properties.put ("server.ssl.key-password", "myserverpass");
+            properties.put ("server.ssl.trust-store", "classpath:server/libe/libe.jks");
+            properties.put ("server.ssl.trust-store-password", "myserverpass");
             properties.put ("server.ssl.client-auth", "need");
+            properties.put ("server.ssl.enabled-protocols","SSLv2,SSLv3,TLSv1.0,TLSv1.1,TLSv1.2");
         }
         RequestMonitor.context = new SpringApplicationBuilder()
                 .sources (RequestMonitor.class)

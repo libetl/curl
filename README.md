@@ -55,11 +55,14 @@ How to get Google Homepage with this lib :
     }
 ```
 
-You can also specify two additional curl options using jvm code :
+You can also specify three additional curl options using jvm code :
 * javaOptions.interceptor can be used to surround the call with a custom
   handling
-* javaOptions.placeHolders allow to define substitution variables
+* javaOptions.placeHolders allows to define substitution variables
   (useful mostly for long payloads to avoid StackOverflowErrors)
+* javaOptions.connectionManager allows to specify your own connection
+  manager for pooling purposes or optimization purposes
+  (warning, this will break the trust insecure behavior)
 
 ```java
 curl()
@@ -69,6 +72,7 @@ curl()
        LOGGER.info("I log something after the call, status code is {}",
        response.getStatusLine().getStatusCode());
        return response;}))
+                      .connectionManager(new PoolingHttpClientConnectionManager ())
                       .placeHolders(asList("fr-FR", "text/html")).build())
    .hUpperCase("'Accept-Language: $curl_placeholder_0'")
    .hUpperCase("'Accept: $curl_placeholder_1'")
