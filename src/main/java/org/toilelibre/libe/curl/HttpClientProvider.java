@@ -121,7 +121,7 @@ final class HttpClientProvider {
 
     private static void handleSSLParams (final CommandLine commandLine, final HttpClientConnectionManager connectionManager, final HttpClientBuilder executor) throws CurlException {
         final SSLContextBuilder builder = new SSLContextBuilder ();
-        builder.useProtocol (HttpClientProvider.protocolFromCommandLine (commandLine));
+        builder.setProtocol (HttpClientProvider.protocolFromCommandLine (commandLine));
 
         if (commandLine.hasOption (Arguments.TRUST_INSECURE.getOpt ())) {
             HttpClientProvider.sayTrustInsecure (builder);

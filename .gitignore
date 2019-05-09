@@ -9,3 +9,5 @@ bin/
 *.releaseBackup
 release.properties
 classes/
+.vscode
+
