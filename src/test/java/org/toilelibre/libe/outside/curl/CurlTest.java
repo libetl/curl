@@ -14,6 +14,7 @@ import org.assertj.core.api.Assertions;
 import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.mockserver.proxy.Proxy;
 import org.mockserver.proxy.ProxyBuilder;
@@ -238,10 +239,11 @@ public class CurlTest {
         this.assertOk (this.curl (this.$ ("-k -E src/test/resources/clients/libe/libe.pem https://localhost:%d/public/")));
     }
 
+    @Ignore
     @Test
     public void curlWithTooLowRequestTimeout () {
         try {
-            this.curl(this.$("-k -E src/test/resources/clients/libe/libe.pem --connect-timeout 0.001 --max-time 10 https://localhost:%d/public/"));
+            this.curl(this.$("-k -E src/test/resources/clients/libe/libe.pem --connect-timeout 0.001 --max-time 10 https://localhost:%d/public/tooLong"));
             Assert.fail("This curl is not supposed to work and should fail with a ConnectTimeoutException");
         }catch (CurlException curlException){
             Assert.assertEquals(curlException.getCause().getClass().getName(),
@@ -364,7 +366,7 @@ public class CurlTest {
         this.$ ("curl https://localhost:%d/public/");
     }
 
-    @Test (expected = CurlException.class)
+    @Test
     public void curlTlsV11 () {
         this.assertOk (this.curl ("-k -E src/test/resources/clients/libe/libe.pem https://localhost:%d/public/ --tlsv1.1"));
     }
