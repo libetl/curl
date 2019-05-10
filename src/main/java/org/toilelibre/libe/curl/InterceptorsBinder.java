@@ -23,7 +23,7 @@ import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Stream.concat;
 
-class InterceptorsBinder {
+final class InterceptorsBinder {
 
     private static final BiFunction<HttpRequest, Supplier<HttpResponse>, HttpResponse> EXAMPLE
             = ((request, responseSupplier) -> responseSupplier.get());

@@ -106,7 +106,7 @@ enum CertFormat {
     }
 
     @SuppressWarnings ("unchecked")
-    public <T> List<T> generateCredentialsFromFileAndPassword (final Kind kind, final byte [] content, final char [] passwordAsCharArray) {
+    <T> List<T> generateCredentialsFromFileAndPassword (final Kind kind, final byte [] content, final char [] passwordAsCharArray) {
         return (List<T>) this.generator.generate (kind, content, passwordAsCharArray);
     }
 

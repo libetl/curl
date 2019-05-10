@@ -12,7 +12,7 @@ import java.util.function.*;
 import static org.toilelibre.libe.curl.Curl.CurlArgumentsBuilder.CurlJavaOptions.*;
 import static org.toilelibre.libe.curl.UglyVersionDisplay.*;
 
-public class Curl {
+public final class Curl {
 
     private Curl () {
     }

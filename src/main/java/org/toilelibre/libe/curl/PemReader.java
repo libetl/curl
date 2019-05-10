@@ -8,7 +8,7 @@ import java.util.Base64;
 /**
  * A generic PEM reader, based on the format outlined in RFC 1421
  */
-class PemReader extends BufferedReader {
+final class PemReader extends BufferedReader {
 
     static class PemObject {
 

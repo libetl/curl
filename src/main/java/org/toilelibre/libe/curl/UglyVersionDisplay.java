@@ -3,7 +3,7 @@ package org.toilelibre.libe.curl;
 import static org.toilelibre.libe.curl.Version.BUILD_TIME;
 import static org.toilelibre.libe.curl.Version.VERSION;
 
-class UglyVersionDisplay {
+final class UglyVersionDisplay {
 
 
     static void stopAndDisplayVersionIfThe (boolean isTrue) {

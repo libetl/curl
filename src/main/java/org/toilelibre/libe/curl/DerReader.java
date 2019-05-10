@@ -7,7 +7,7 @@ import java.math.BigInteger;
 import java.security.spec.KeySpec;
 import java.security.spec.RSAPrivateCrtKeySpec;
 
-class DerReader {
+final class DerReader {
     static class Asn1Object {
         private static final byte LOWER_5_BITS = (byte) 0x1F;
         private final int         tag;
@@ -54,7 +54,7 @@ class DerReader {
             return new DerReader (this.value);
         }
 
-        public String getString () throws IOException {
+        String getString () throws IOException {
 
             String encoding;
 

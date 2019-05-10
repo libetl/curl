@@ -12,7 +12,7 @@ import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.toilelibre.libe.curl.Curl.CurlException;
 
-class AfterResponse {
+final class AfterResponse {
 
     private static Logger LOGGER = Logger.getLogger(AfterResponse.class.getName());
 

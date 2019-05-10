@@ -33,8 +33,10 @@ import java.util.stream.Collectors;
 import static java.net.URLEncoder.encode;
 import static java.util.Arrays.asList;
 import static java.util.Arrays.stream;
+import static org.toilelibre.libe.curl.IOUtils.dataBehind;
+import static org.toilelibre.libe.curl.PayloadReader.getData;
 
-class HttpRequestProvider {
+final class HttpRequestProvider {
 
     static HttpUriRequest prepareRequest (final CommandLine commandLine) throws CurlException {
 
@@ -42,7 +44,7 @@ class HttpRequestProvider {
 
         if (request instanceof HttpEntityEnclosingRequest) {
             final HttpEntityEnclosingRequest requestWithPayload = (HttpEntityEnclosingRequest) request;
-            requestWithPayload.setEntity (HttpRequestProvider.getData (commandLine));
+            requestWithPayload.setEntity (getData (commandLine));
 
             if (requestWithPayload.getEntity () == null) {
                 requestWithPayload.setEntity (HttpRequestProvider.getForm (commandLine));
@@ -57,6 +59,15 @@ class HttpRequestProvider {
 
     }
 
+    private static HttpRequestBase getBuilder (final CommandLine cl) throws CurlException {
+        try {
+            final String method = cl.getOptionValue (Arguments.HTTP_METHOD.getOpt ()) == null ? determineVerbWithoutArgument(cl) : cl.getOptionValue (Arguments.HTTP_METHOD.getOpt ());
+            return (HttpRequestBase) Class.forName (HttpRequestBase.class.getPackage ().getName () + ".Http" + StringUtils.capitalize (method.toLowerCase ().replaceAll ("[^a-z]", ""))).getConstructor (URI.class).newInstance (new URI (cl.getArgs () [0]));
+        } catch (IllegalAccessException | IllegalArgumentException | SecurityException | IllegalStateException | InstantiationException | ClassNotFoundException | InvocationTargetException | NoSuchMethodException | URISyntaxException e) {
+            throw new CurlException (e);
+        }
+    }
+
     private static boolean isBinary (final String ref) {
         final String fileName = (Optional.ofNullable (ref).orElse ("").trim () + " ");
         if (fileName.charAt (0) != '@') {
@@ -65,23 +76,6 @@ class HttpRequestProvider {
 
         final File file = new File (fileName.substring (1).trim ());
         return file.exists () && file.isFile ();
-    }
-
-    private static byte [] dataBehind (final String ref) {
-        try {
-            return IOUtils.toByteArray (new File (ref.substring (1).trim ()));
-        } catch (final IOException e) {
-            throw new CurlException (e);
-        }
-    }
-
-    private static HttpRequestBase getBuilder (final CommandLine cl) throws CurlException {
-        try {
-            final String method = cl.getOptionValue (Arguments.HTTP_METHOD.getOpt ()) == null ? determineVerbWithoutArgument(cl) : cl.getOptionValue (Arguments.HTTP_METHOD.getOpt ());
-            return (HttpRequestBase) Class.forName (HttpRequestBase.class.getPackage ().getName () + ".Http" + StringUtils.capitalize (method.toLowerCase ().replaceAll ("[^a-z]", ""))).getConstructor (URI.class).newInstance (new URI (cl.getArgs () [0]));
-        } catch (IllegalAccessException | IllegalArgumentException | SecurityException | IllegalStateException | InstantiationException | ClassNotFoundException | InvocationTargetException | NoSuchMethodException | URISyntaxException e) {
-            throw new CurlException (e);
-        }
     }
 
     private static String determineVerbWithoutArgument(CommandLine commandLine) {
@@ -93,77 +87,6 @@ class HttpRequestProvider {
         return "GET";
     }
 
-    private static AbstractHttpEntity getData (final CommandLine commandLine) {
-        if (commandLine.hasOption (Arguments.DATA.getOpt ())) {
-            return simpleDataFrom(commandLine);
-        }
-        if (commandLine.hasOption (Arguments.DATA_BINARY.getOpt ())) {
-            return binaryDataFrom(commandLine);
-        }
-        if (commandLine.hasOption (Arguments.DATA_URLENCODE.getOpt ())) {
-            try {
-                return new StringEntity(stream(commandLine.getOptionValues(Arguments.DATA_URLENCODE.getOpt ()))
-                        .map(HttpRequestProvider::urlEncodedDataFrom)
-                        .collect(Collectors.joining("&")));
-            } catch (final UnsupportedEncodingException e) {
-                throw new CurlException (e);
-            }
-        }
-        return null;
-    }
-
-    private static String urlEncodedDataFrom(String value) {
-        if (value.startsWith("=")) {
-            value = value.substring(1);
-        }
-        if (value.indexOf('=') != -1) {
-            return value.substring(0, value.indexOf('=') + 1) + encodeOrFail(value.substring(value.indexOf('=') + 1), Charset.defaultCharset());
-        }
-        if (value.indexOf('@') == 0) {
-            return encodeOrFail(new String(dataBehind (value)), Charset.defaultCharset());
-        }
-        if (value.indexOf('@') != -1) {
-            return value.substring(0, value.indexOf('@')) + '=' + encodeOrFail(new String(dataBehind (value.substring(value.indexOf('@')))), Charset.defaultCharset());
-        }
-        return encodeOrFail(value, Charset.defaultCharset());
-    }
-
-    private static String encodeOrFail(String value, Charset encoding) {
-        try {
-            return encode(value, encoding.name());
-        } catch (UnsupportedEncodingException e) {
-            throw new CurlException(e);
-        }
-    }
-
-    private static InputStreamEntity binaryDataFrom(CommandLine commandLine) {
-        final String value = commandLine.getOptionValue (Arguments.DATA_BINARY.getOpt ());
-        if (value.indexOf('@') == 0) {
-            return new InputStreamEntity(new ByteArrayInputStream(dataBehind(value)));
-        }
-        return new InputStreamEntity(new ByteArrayInputStream(value.getBytes()));
-    }
-
-    private static StringEntity simpleDataFrom(CommandLine commandLine) {
-        try {
-            Charset encoding = charsetReadFromThe(commandLine).orElse(Charset.forName("UTF-8"));
-            return new StringEntity (commandLine.getOptionValue (Arguments.DATA.getOpt ()), encoding);
-        } catch (final IllegalArgumentException e) {
-            throw new CurlException (e);
-        }
-    }
-
-    private static final Pattern CONTENT_TYPE_ENCODING =
-            Pattern.compile("\\s*content-type\\s*:[^;]+;\\s*charset\\s*=\\s*(.*)", Pattern.CASE_INSENSITIVE);
-    private static Optional<Charset> charsetReadFromThe(CommandLine commandLine) {
-
-        return stream (Optional.ofNullable (commandLine.getOptionValues (Arguments.HEADER.getOpt ())).orElse (new String[0]))
-                .filter (header -> header != null && CONTENT_TYPE_ENCODING.asPredicate ().test (header))
-                .findFirst ().map (correctHeader -> {
-                    final Matcher matcher = CONTENT_TYPE_ENCODING.matcher (correctHeader);
-                    if (!matcher.find ()) return null;
-                    return Charset.forName (matcher.group (1));});
-    }
 
     private static HttpEntity getForm (final CommandLine commandLine) {
         final String [] forms = Optional.ofNullable (commandLine.getOptionValues (Arguments.FORM.getOpt ())).orElse (new String [0]);
@@ -183,7 +106,7 @@ class HttpRequestProvider {
         final List<String> binaryForms = stream (forms).filter (arg -> HttpRequestProvider.isBinary (arg.substring (arg.indexOf ('=') + 1))).collect (Collectors.toList ());
         final List<String> textForms = stream (forms).filter (form -> !binaryForms.contains (form)).collect (Collectors.toList ());
 
-        binaryForms.forEach (arg -> multiPartBuilder.addBinaryBody (arg.substring (0, arg.indexOf ('=')), HttpRequestProvider.dataBehind (arg.substring (arg.indexOf ('=') + 1))));
+        binaryForms.forEach (arg -> multiPartBuilder.addBinaryBody (arg.substring (0, arg.indexOf ('=')), dataBehind (arg.substring (arg.indexOf ('=') + 1))));
         textForms.forEach (arg -> multiPartBuilder.addTextBody (arg.substring (0, arg.indexOf ('=')), arg.substring (arg.indexOf ('=') + 1)));
 
         return multiPartBuilder.build ();

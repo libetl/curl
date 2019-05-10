@@ -205,6 +205,22 @@ public class CurlTest {
     }
 
     @Test
+    public void curlWithFullSslChain () {
+        this.assertOk (this.curl ("-k --cacert src/test/resources/ca/fakeCa.crt --cert-type PEM --cert src/test/resources/clients/libe/libe.pem:mylibepass --key-type P12 --key src/test/resources/clients/libe/libe.p12:mylibepass https://localhost:%d/public/"));
+
+        try {
+            // correct cert password and wrong key password
+            this.curl ("-k --cacert src/test/resources/ca/fakeCa.crt --cert-type PEM --cert src/test/resources/clients/libe/libe.pem:mylibepass --key-type P12 --key src/test/resources/clients/libe/libe.p12:mylibepass2 https://localhost:%d/public/");
+            Assert.fail("This curl is not supposed to work and should fail with a IOException");
+        }catch (CurlException curlException){
+            Assert.assertEquals(curlException.getCause().getClass().getName(),
+                    IOException.class.getName());
+            Assert.assertEquals(curlException.getCause().getMessage (),
+                    "keystore password was incorrect");
+        }
+    }
+
+    @Test
     public void curlWithHeaders () {
         this.assertOk (this.curl ("-k -E src/test/resources/clients/libe/libe.pem -H'Host: localhost' -H'Authorization: 45e03eb2-8954-40a3-8068-c926f0461182' https://localhost:%d/public/v1/coverage/sncf/journeys?from=admin:7444extern"));
     }

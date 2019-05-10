@@ -1,6 +1,6 @@
 package org.toilelibre.libe.curl;
 
-class StringUtils {
+final class StringUtils {
 
     static String capitalize (final String str) {
         if ((str == null) || (str.length () == 0)) {

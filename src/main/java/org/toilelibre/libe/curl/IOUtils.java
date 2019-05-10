@@ -5,7 +5,7 @@ import org.apache.http.HttpEntity;
 import java.io.*;
 import java.nio.charset.Charset;
 
-class IOUtils {
+final class IOUtils {
 
     private static class StringBuilderWriter extends Writer implements Serializable {
 
@@ -122,6 +122,22 @@ class IOUtils {
             if (entity == null || entity.getContent() == null) return null;
             return IOUtils.toString (entity.getContent (), Charset.defaultCharset ());
         } catch (IOException e) {
+            throw new Curl.CurlException (e);
+        }
+    }
+
+    static File getFile (final String filePath) {
+        final File file = new File (filePath);
+        if (file.exists ()) {
+            return file;
+        }
+        return new File (System.getProperty ("user.dir") + File.separator + filePath);
+    }
+
+    static byte [] dataBehind (final String ref) {
+        try {
+            return IOUtils.toByteArray (new File (ref.substring (1).trim ()));
+        } catch (final IOException e) {
             throw new Curl.CurlException (e);
         }
     }
