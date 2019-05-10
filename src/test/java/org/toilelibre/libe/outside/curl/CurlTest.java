@@ -103,6 +103,11 @@ public class CurlTest {
         return response.getStatusLine ().getStatusCode ();
     }
 
+    @Test(expected = CurlException.class)
+    public void displayVersion () {
+        this.assertOk (this.curl ("-V"));
+    }
+
     @Test
     public void curlRoot () {
         this.assertOk (this.curl ("-k -E src/test/resources/clients/libe/libe.pem https://localhost:%d/public/"));
