@@ -87,6 +87,7 @@ Supported arguments (so far) :
 | cacert        | cacert          | true              | CA_CERT                                                                                                                                                     |
 | E             | cert            | true              | CERT[:password]                                                                                                                                             |
 | ct            | cert-type       | true              | PEM,P12,JKS,DER,ENG                                                                                                                                         |
+| compressed    | compressed      | false             | Request compressed response                                                                                                                                 |
 | cti           | connect-timeout | true              | Maximum time allowed for connection                                                                                                                         |
 | d             | data            | true              | Data                                                                                                                                                        |
 | databinary    | data-binary     | true              | http post binary data                                                                                                                                       |
@@ -98,6 +99,7 @@ Supported arguments (so far) :
 | key           | key             | true              | KEY                                                                                                                                                         |
 | kt            | key-type        | true              | PEM,P12,JKS,DER,ENG                                                                                                                                         |
 | m             | max-time        | true              | Maximum time allowed for the transfer                                                                                                                       |
+| nokeepalive   | no-keepalive    | false             | Disable TCP keepalive on the connection                                                                                                                     |
 | ntlm          | ntlm            | false             | NTLM auth                                                                                                                                                   |
 | o             | output          | true              | write to file                                                                                                                                               |
 | x             | proxy           | true              | use the specified HTTP proxy                                                                                                                                |

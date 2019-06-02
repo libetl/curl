@@ -114,6 +114,16 @@ public class CurlTest {
     }
 
     @Test
+    public void curlCompressed () {
+        this.assertOk (this.curl ("-k --compressed -E src/test/resources/clients/libe/libe.pem https://localhost:%d/public/"));
+    }
+
+    @Test
+    public void curlNoKeepAlive () {
+        this.assertOk (this.curl ("-k --no-keepalive -E src/test/resources/clients/libe/libe.pem https://localhost:%d/public/"));
+    }
+
+    @Test
     public void curlTlsV12 () {
         this.assertOk (this.curl ("-k -E src/test/resources/clients/libe/libe.pem https://localhost:%d/public/ --tlsv1.2"));
     }

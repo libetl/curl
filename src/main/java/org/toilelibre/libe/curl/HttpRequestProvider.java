@@ -11,6 +11,8 @@ import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.entity.mime.MultipartEntityBuilder;
 import org.apache.http.entity.mime.content.FileBody;
 import org.apache.http.message.BasicHeader;
+import org.apache.http.protocol.HTTP;
+import org.apache.http.util.VersionInfo;
 import org.toilelibre.libe.curl.Curl.CurlException;
 
 import java.io.File;
@@ -107,9 +109,21 @@ final class HttpRequestProvider {
             request.addHeader ("User-Agent", commandLine.getOptionValue (Arguments.USER_AGENT.getOpt ()));
         }
 
+        if (request.getFirstHeader(Arguments.USER_AGENT.getOpt ()) == null) {
+            request.addHeader ("User-Agent",
+                    Curl.class.getPackage ().getName () + "/" + Version.VERSION +
+                            VersionInfo.getUserAgent (", Apache-HttpClient",
+                                    "org.apache.http.client", HttpRequestProvider.class));
+        }
+
         if (commandLine.hasOption (Arguments.DATA_URLENCODE.getOpt ())) {
             request.addHeader ("Content-Type", "application/x-www-form-urlencoded");
         }
+
+        if (commandLine.hasOption(Arguments.NO_KEEPALIVE.getOpt ())){
+            request.addHeader (HTTP.CONN_DIRECTIVE, HTTP.CONN_CLOSE);
+        }
+
         if (commandLine.hasOption(Arguments.PROXY_USER.getOpt ())) {
             request.addHeader ("Proxy-Authorization", "Basic " + Base64.getEncoder ().encodeToString (
                     commandLine.getOptionValue(Arguments.PROXY_USER.getOpt ()).getBytes ()));

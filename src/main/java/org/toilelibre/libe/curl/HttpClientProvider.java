@@ -21,6 +21,10 @@ final class HttpClientProvider {
                                          HttpClientConnectionManager connectionManager) throws CurlException {
         HttpClientBuilder executor = HttpClientBuilder.create ();
 
+        if (!commandLine.hasOption (Arguments.COMPRESSED.getOpt())){
+            executor.disableContentCompression();
+        }
+
         if (connectionManager != null) {
             executor.setConnectionManager (connectionManager);
         }
