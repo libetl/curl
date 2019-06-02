@@ -146,7 +146,7 @@ final class SSLMaterialCreator {
 
     private static void sayTrustInsecure (final SSLContextBuilder builder) throws Curl.CurlException {
         try {
-            builder.loadTrustMaterial (null, new TrustSelfSignedStrategy ());
+            builder.loadTrustMaterial (null, (chain, authType) -> true);
         } catch (NoSuchAlgorithmException | KeyStoreException e) {
             throw new Curl.CurlException (e);
         }

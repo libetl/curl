@@ -27,4 +27,9 @@ public class CurlWebTest {
         Assert.assertTrue (Pattern.compile ("\"origin\": \"[a-zA-Z0-9.]+, [0-9.]+\"").matcher (body).find ());
         Assert.assertFalse (body.contains ("Proxy-Authorization"));
     }
+
+    @Test
+    public void sslTest(){
+        curl ("curl -k https://lenovo.prod.ondemandconnectivity.com");
+    }
 }
