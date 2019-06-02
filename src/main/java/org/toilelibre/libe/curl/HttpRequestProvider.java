@@ -8,32 +8,24 @@ import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.config.RequestConfig.Builder;
 import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.client.methods.HttpUriRequest;
-import org.apache.http.entity.AbstractHttpEntity;
-import org.apache.http.entity.InputStreamEntity;
-import org.apache.http.entity.StringEntity;
 import org.apache.http.entity.mime.MultipartEntityBuilder;
+import org.apache.http.entity.mime.content.FileBody;
 import org.apache.http.message.BasicHeader;
 import org.toilelibre.libe.curl.Curl.CurlException;
 
-import java.io.ByteArrayInputStream;
 import java.io.File;
-import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.lang.reflect.InvocationTargetException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.nio.charset.Charset;
 import java.util.Base64;
 import java.util.List;
 import java.util.Optional;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import static java.net.URLEncoder.encode;
 import static java.util.Arrays.asList;
 import static java.util.Arrays.stream;
-import static org.toilelibre.libe.curl.IOUtils.dataBehind;
+import static org.toilelibre.libe.curl.IOUtils.isFile;
 import static org.toilelibre.libe.curl.PayloadReader.getData;
 
 final class HttpRequestProvider {
@@ -68,16 +60,6 @@ final class HttpRequestProvider {
         }
     }
 
-    private static boolean isBinary (final String ref) {
-        final String fileName = (Optional.ofNullable (ref).orElse ("").trim () + " ");
-        if (fileName.charAt (0) != '@') {
-            return false;
-        }
-
-        final File file = new File (fileName.substring (1).trim ());
-        return file.exists () && file.isFile ();
-    }
-
     private static String determineVerbWithoutArgument(CommandLine commandLine) {
         if (commandLine.hasOption (Arguments.DATA.getOpt ()) ||
                 commandLine.hasOption (Arguments.DATA_URLENCODE.getOpt ()) ||
@@ -103,10 +85,11 @@ final class HttpRequestProvider {
             }
         });
 
-        final List<String> binaryForms = stream (forms).filter (arg -> HttpRequestProvider.isBinary (arg.substring (arg.indexOf ('=') + 1))).collect (Collectors.toList ());
-        final List<String> textForms = stream (forms).filter (form -> !binaryForms.contains (form)).collect (Collectors.toList ());
+        final List<String> fileForms = stream (forms).filter (arg -> isFile(arg.substring (arg.indexOf ('=') + 1))).collect (Collectors.toList ());
+        final List<String> textForms = stream (forms).filter (form -> !fileForms.contains (form)).collect (Collectors.toList ());
 
-        binaryForms.forEach (arg -> multiPartBuilder.addBinaryBody (arg.substring (0, arg.indexOf ('=')), dataBehind (arg.substring (arg.indexOf ('=') + 1))));
+        fileForms.forEach (arg -> multiPartBuilder.addPart(arg.substring (0, arg.indexOf ('=')),
+                new FileBody(IOUtils.getFile( (arg.substring (arg.indexOf ("=@") + 2))))));
         textForms.forEach (arg -> multiPartBuilder.addTextBody (arg.substring (0, arg.indexOf ('=')), arg.substring (arg.indexOf ('=') + 1)));
 
         return multiPartBuilder.build ();

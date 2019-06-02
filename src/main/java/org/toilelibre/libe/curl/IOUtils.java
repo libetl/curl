@@ -4,6 +4,7 @@ import org.apache.http.HttpEntity;
 
 import java.io.*;
 import java.nio.charset.Charset;
+import java.util.Optional;
 
 final class IOUtils {
 
@@ -140,6 +141,16 @@ final class IOUtils {
         } catch (final IOException e) {
             throw new Curl.CurlException (e);
         }
+    }
+
+    static boolean isFile(final String ref) {
+        final String fileName = (Optional.ofNullable (ref).orElse ("").trim () + " ");
+        if (fileName.charAt (0) != '@') {
+            return false;
+        }
+
+        final File file = new File (fileName.substring (1).trim ());
+        return file.exists () && file.isFile ();
     }
 
     private static String toString (final InputStream input, final Charset encoding) throws IOException {
