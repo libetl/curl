@@ -2,12 +2,10 @@ package org.toilelibre.libe.curl;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.http.HttpEntity;
-import org.apache.http.HttpEntityEnclosingRequest;
 import org.apache.http.HttpHost;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.config.RequestConfig.Builder;
-import org.apache.http.client.methods.HttpRequestBase;
-import org.apache.http.client.methods.HttpUriRequest;
+import org.apache.http.client.methods.*;
 import org.apache.http.entity.mime.MultipartEntityBuilder;
 import org.apache.http.entity.mime.content.FileBody;
 import org.apache.http.message.BasicHeader;
@@ -15,16 +13,12 @@ import org.apache.http.protocol.HTTP;
 import org.apache.http.util.VersionInfo;
 import org.toilelibre.libe.curl.Curl.CurlException;
 
-import java.io.File;
-import java.lang.reflect.InvocationTargetException;
-import java.net.URI;
-import java.net.URISyntaxException;
+import java.net.*;
 import java.util.Base64;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import static java.net.URLEncoder.encode;
 import static java.util.Arrays.asList;
 import static java.util.Arrays.stream;
 import static org.toilelibre.libe.curl.IOUtils.isFile;
@@ -34,14 +28,14 @@ final class HttpRequestProvider {
 
     static HttpUriRequest prepareRequest (final CommandLine commandLine) throws CurlException {
 
-        final HttpRequestBase request = HttpRequestProvider.getBuilder (commandLine);
+        final String method = getMethod (commandLine);
+        final RequestBuilder request = wrapInRequestBuilder(method, commandLine.getArgs ()[0]);
 
-        if (request instanceof HttpEntityEnclosingRequest) {
-            final HttpEntityEnclosingRequest requestWithPayload = (HttpEntityEnclosingRequest) request;
-            requestWithPayload.setEntity (getData (commandLine));
+        if (asList("DELETE", "PATCH", "POST", "PUT").contains (method.toUpperCase ())) {
+            request.setEntity (getData (commandLine));
 
-            if (requestWithPayload.getEntity () == null) {
-                requestWithPayload.setEntity (HttpRequestProvider.getForm (commandLine));
+            if (request.getEntity () == null) {
+                request.setEntity (HttpRequestProvider.getForm (commandLine));
             }
         }
 
@@ -49,15 +43,18 @@ final class HttpRequestProvider {
 
         request.setConfig (HttpRequestProvider.getConfig (commandLine));
 
-        return request;
+        return request.build ();
 
     }
 
-    private static HttpRequestBase getBuilder (final CommandLine cl) throws CurlException {
+    private static String getMethod (final CommandLine cl) throws CurlException {
+        return cl.getOptionValue (Arguments.HTTP_METHOD.getOpt ()) == null ? determineVerbWithoutArgument(cl) : cl.getOptionValue (Arguments.HTTP_METHOD.getOpt ());
+    }
+
+    private static RequestBuilder wrapInRequestBuilder (String method, String uriAsString) {
         try {
-            final String method = cl.getOptionValue (Arguments.HTTP_METHOD.getOpt ()) == null ? determineVerbWithoutArgument(cl) : cl.getOptionValue (Arguments.HTTP_METHOD.getOpt ());
-            return (HttpRequestBase) Class.forName (HttpRequestBase.class.getPackage ().getName () + ".Http" + StringUtils.capitalize (method.toLowerCase ().replaceAll ("[^a-z]", ""))).getConstructor (URI.class).newInstance (new URI (cl.getArgs () [0]));
-        } catch (IllegalAccessException | IllegalArgumentException | SecurityException | IllegalStateException | InstantiationException | ClassNotFoundException | InvocationTargetException | NoSuchMethodException | URISyntaxException e) {
+            return RequestBuilder.create (method).setUri (new URI (uriAsString));
+        } catch (URISyntaxException e) {
             throw new CurlException (e);
         }
     }
@@ -98,7 +95,7 @@ final class HttpRequestProvider {
 
     }
 
-    private static void setHeaders (final CommandLine commandLine, final HttpRequestBase request) {
+    private static void setHeaders (final CommandLine commandLine, final RequestBuilder request) {
         final String [] headers = Optional.ofNullable (commandLine.getOptionValues (Arguments.HEADER.getOpt ())).orElse (new String [0]);
 
         stream (headers).filter (optionAsString -> optionAsString.indexOf (':') != -1).map (optionAsString -> optionAsString.split (":"))

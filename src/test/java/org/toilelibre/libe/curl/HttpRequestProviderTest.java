@@ -1,9 +1,7 @@
 package org.toilelibre.libe.curl;
 
 import org.apache.commons.cli.CommandLine;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.client.methods.HttpUriRequest;
+import org.apache.http.client.methods.*;
 import org.junit.Test;
 
 import java.util.Collections;
@@ -23,7 +21,7 @@ public class HttpRequestProviderTest {
         HttpUriRequest request = HttpRequestProvider.prepareRequest(commandLine);
 
         //then
-        assertTrue(request instanceof HttpGet);
+        assertEquals("GET", request.getMethod ());
     }
 
     @Test
@@ -37,7 +35,7 @@ public class HttpRequestProviderTest {
         HttpUriRequest request = HttpRequestProvider.prepareRequest(commandLine);
 
         //then
-        assertTrue(request instanceof HttpGet);
+        assertEquals("GET", request.getMethod ());
     }
 
 
@@ -52,7 +50,7 @@ public class HttpRequestProviderTest {
         HttpUriRequest request = HttpRequestProvider.prepareRequest(commandLine);
 
         //then
-        assertTrue(request instanceof HttpPost);
+        assertEquals("POST", request.getMethod ());
     }
 
     @Test
@@ -83,7 +81,7 @@ public class HttpRequestProviderTest {
         //then
         assertEquals (request.getFirstHeader ("Proxy-Authorization").getValue (),
                 "Basic amFjazppbnNlY3VyZQ==");
-        assertEquals(((HttpGet)request).getConfig().getProxy().toString(), "http://localhost:80");
+        assertEquals(((HttpRequestBase)request).getConfig().getProxy().toString(), "http://localhost:80");
     }
 
     @Test
@@ -99,6 +97,6 @@ public class HttpRequestProviderTest {
         //then
         assertEquals (request.getFirstHeader ("Proxy-Authorization").getValue (),
                 "Basic amFjazppbnNlY3VyZQ==");
-        assertEquals(((HttpGet)request).getConfig().getProxy().toString(), "http://localhost:80");
+        assertEquals(((HttpRequestBase)request).getConfig().getProxy().toString(), "http://localhost:80");
     }
 }
