@@ -12,34 +12,49 @@ import java.security.cert.*;
 import java.util.*;
 import java.util.stream.*;
 
+import static java.util.Arrays.asList;
+import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.*;
 import static org.apache.http.conn.ssl.SSLConnectionSocketFactory.*;
+import static org.toilelibre.libe.curl.Arguments.*;
 import static org.toilelibre.libe.curl.IOUtils.*;
 
 final class SSLMaterialCreator {
 
+    private final static Map<Map<String, List<String>>, SSLConnectionSocketFactory> cachedSSLFactoriesForPerformance =
+            new HashMap<> ();
+
     static void handleSSLParams (final CommandLine commandLine, final HttpClientBuilder executor) throws Curl.CurlException {
+
+        Map<String, List<String>> input = inputExtractedFrom (commandLine);
+        final SSLConnectionSocketFactory foundInCache = cachedSSLFactoriesForPerformance.get (input);
+
+        if (foundInCache != null) {
+            executor.setSSLSocketFactory (foundInCache);
+            return;
+        }
+
         final SSLContextBuilder builder = new SSLContextBuilder ();
         builder.setProtocol (protocolFromCommandLine (commandLine));
 
-        if (commandLine.hasOption (Arguments.TRUST_INSECURE.getOpt ())) {
+        if (commandLine.hasOption (TRUST_INSECURE.getOpt ())) {
             sayTrustInsecure (builder);
         }
 
-        final CertFormat certFormat = commandLine.hasOption (Arguments.CERT_TYPE.getOpt ()) ?
-                CertFormat.valueOf (commandLine.getOptionValue (Arguments.CERT_TYPE.getOpt ()).toUpperCase ()) :
+        final CertFormat certFormat = commandLine.hasOption (CERT_TYPE.getOpt ()) ?
+                CertFormat.valueOf (commandLine.getOptionValue (CERT_TYPE.getOpt ()).toUpperCase ()) :
                 CertFormat.PEM;
         final SSLMaterialCreator.CertPlusKeyInfo.Builder certAndKeysBuilder =
                 SSLMaterialCreator.CertPlusKeyInfo.newBuilder ()
-                        .cacert (commandLine.getOptionValue (Arguments.CA_CERT.getOpt ()))
+                        .cacert (commandLine.getOptionValue (CA_CERT.getOpt ()))
                         .certFormat (certFormat)
-                        .keyFormat (commandLine.hasOption (Arguments.KEY.getOpt ()) ?
-                                commandLine.hasOption (Arguments.KEY_TYPE.getOpt ()) ?
-                                        CertFormat.valueOf (commandLine.getOptionValue (Arguments.KEY_TYPE.getOpt ()).toUpperCase ()) : CertFormat.PEM : certFormat);
+                        .keyFormat (commandLine.hasOption (KEY.getOpt ()) ?
+                                commandLine.hasOption (KEY_TYPE.getOpt ()) ?
+                                        CertFormat.valueOf (commandLine.getOptionValue (KEY_TYPE.getOpt ()).toUpperCase ()) : CertFormat.PEM : certFormat);
 
 
-        if (commandLine.hasOption (Arguments.CERT.getOpt ())) {
-            final String entireOption = commandLine.getOptionValue (Arguments.CERT.getOpt ());
+        if (commandLine.hasOption (CERT.getOpt ())) {
+            final String entireOption = commandLine.getOptionValue (CERT.getOpt ());
             final int certSeparatorIndex = getSslSeparatorIndex (entireOption);
             final String cert = certSeparatorIndex == - 1 ? entireOption : entireOption.substring (0, certSeparatorIndex);
             certAndKeysBuilder.cert (cert)
@@ -47,25 +62,38 @@ final class SSLMaterialCreator {
                     .key (cert);
         }
 
-        if (commandLine.hasOption (Arguments.KEY.getOpt ())) {
-            final String entireOption = commandLine.getOptionValue (Arguments.KEY.getOpt ());
+        if (commandLine.hasOption (KEY.getOpt ())) {
+            final String entireOption = commandLine.getOptionValue (KEY.getOpt ());
             final int keySeparatorIndex = getSslSeparatorIndex (entireOption);
             final String key = keySeparatorIndex == - 1 ? entireOption : entireOption.substring (0, keySeparatorIndex);
             certAndKeysBuilder.key (key)
                     .keyPassphrase (keySeparatorIndex == - 1 ? "" : entireOption.substring (keySeparatorIndex + 1));
         }
-        if (commandLine.hasOption (Arguments.CERT.getOpt ()) || commandLine.hasOption (Arguments.KEY.getOpt ())) {
+        if (commandLine.hasOption (CERT.getOpt ()) || commandLine.hasOption (KEY.getOpt ())) {
             addClientCredentials (builder, certAndKeysBuilder.build ());
         }
 
         try {
             final SSLConnectionSocketFactory sslSocketFactory = new SSLConnectionSocketFactory (builder.build (),
-                    commandLine.hasOption (Arguments.TRUST_INSECURE.getOpt ()) ? NoopHostnameVerifier.INSTANCE :
+                    commandLine.hasOption (TRUST_INSECURE.getOpt ()) ? NoopHostnameVerifier.INSTANCE :
                             getDefaultHostnameVerifier ());
+            cachedSSLFactoriesForPerformance.put (input, sslSocketFactory);
             executor.setSSLSocketFactory (sslSocketFactory);
         } catch (NoSuchAlgorithmException | KeyManagementException e) {
             throw new Curl.CurlException (e);
         }
+    }
+
+    private static Map<String, List<String>> inputExtractedFrom (CommandLine commandLine) {
+        return Stream.of (TRUST_INSECURE, CERT_TYPE, CA_CERT, KEY, KEY_TYPE,
+                CERT, TLS_V1, TLS_V10, TLS_V11, TLS_V12, SSL_V2, SSL_V3)
+                .filter (option ->
+                            commandLine.getOptionValues (option.getOpt ()) != null ||
+                                    commandLine.hasOption (option.getOpt ())
+                )
+                .collect (toMap (Option::getOpt, option ->
+                        asList(ofNullable(commandLine.getOptionValues (option.getOpt ()))
+                        .orElse (new String[] {"true"}))));
     }
 
     private static void addClientCredentials (final SSLContextBuilder builder,
@@ -123,22 +151,22 @@ final class SSLMaterialCreator {
     }
 
     private static String protocolFromCommandLine (final CommandLine commandLine) {
-        if (commandLine.hasOption (Arguments.TLS_V1.getOpt ())) {
+        if (commandLine.hasOption (TLS_V1.getOpt ())) {
             return "TLSv1";
         }
-        if (commandLine.hasOption (Arguments.TLS_V10.getOpt ())) {
+        if (commandLine.hasOption (TLS_V10.getOpt ())) {
             return "TLSv1.0";
         }
-        if (commandLine.hasOption (Arguments.TLS_V11.getOpt ())) {
+        if (commandLine.hasOption (TLS_V11.getOpt ())) {
             return "TLSv1.1";
         }
-        if (commandLine.hasOption (Arguments.TLS_V12.getOpt ())) {
+        if (commandLine.hasOption (TLS_V12.getOpt ())) {
             return "TLSv1.2";
         }
-        if (commandLine.hasOption (Arguments.SSL_V2.getOpt ())) {
+        if (commandLine.hasOption (SSL_V2.getOpt ())) {
             return "SSLv2";
         }
-        if (commandLine.hasOption (Arguments.SSL_V3.getOpt ())) {
+        if (commandLine.hasOption (SSL_V3.getOpt ())) {
             return "SSLv3";
         }
         return "TLS";
