@@ -16,11 +16,13 @@ import org.toilelibre.libe.curl.Curl.CurlException;
 import java.net.*;
 import java.util.Base64;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static java.util.Arrays.asList;
 import static java.util.Arrays.stream;
+import static java.util.stream.Collectors.toList;
 import static org.toilelibre.libe.curl.IOUtils.isFile;
 import static org.toilelibre.libe.curl.PayloadReader.getData;
 
@@ -84,8 +86,8 @@ final class HttpRequestProvider {
             }
         });
 
-        final List<String> fileForms = stream (forms).filter (arg -> isFile(arg.substring (arg.indexOf ('=') + 1))).collect (Collectors.toList ());
-        final List<String> textForms = stream (forms).filter (form -> !fileForms.contains (form)).collect (Collectors.toList ());
+        final List<String> fileForms = stream (forms).filter (arg -> isFile(arg.substring (arg.indexOf ('=') + 1))).collect (toList ());
+        final List<String> textForms = stream (forms).filter (form -> !fileForms.contains (form)).collect (toList ());
 
         fileForms.forEach (arg -> multiPartBuilder.addPart(arg.substring (0, arg.indexOf ('=')),
                 new FileBody(IOUtils.getFile( (arg.substring (arg.indexOf ("=@") + 2))))));
@@ -98,15 +100,20 @@ final class HttpRequestProvider {
     private static void setHeaders (final CommandLine commandLine, final RequestBuilder request) {
         final String [] headers = Optional.ofNullable (commandLine.getOptionValues (Arguments.HEADER.getOpt ())).orElse (new String [0]);
 
-        stream (headers).filter (optionAsString -> optionAsString.indexOf (':') != -1).map (optionAsString -> optionAsString.split (":"))
+        List<BasicHeader> basicHeaders =
+                stream (headers).filter (optionAsString -> optionAsString.indexOf (':') != -1).map (optionAsString -> optionAsString.split (":"))
                 .map (optionAsArray -> new BasicHeader (optionAsArray [0].trim ().replaceAll ("^\"", "").replaceAll ("\\\"$", "").replaceAll ("^\\'", "").replaceAll ("\\'$", ""),
-                        String.join(":", asList(optionAsArray).subList(1, optionAsArray.length)).trim ())).forEach (request::addHeader);
+                        String.join(":", asList(optionAsArray).subList(1, optionAsArray.length)).trim ())).collect (Collectors.toList ());
 
-        if (commandLine.hasOption (Arguments.USER_AGENT.getOpt ())) {
+        basicHeaders.forEach (request::addHeader);
+
+        if (basicHeaders.stream ().noneMatch (h -> Objects.equals(h.getName(), "User-Agent")) &&
+                commandLine.hasOption (Arguments.USER_AGENT.getOpt ())) {
             request.addHeader ("User-Agent", commandLine.getOptionValue (Arguments.USER_AGENT.getOpt ()));
         }
 
-        if (request.getFirstHeader(Arguments.USER_AGENT.getOpt ()) == null) {
+        if (basicHeaders.stream ().noneMatch (h -> Objects.equals(h.getName(), "User-Agent")) &&
+                !commandLine.hasOption (Arguments.USER_AGENT.getOpt ())) {
             request.addHeader ("User-Agent",
                     Curl.class.getPackage ().getName () + "/" + Version.VERSION +
                             VersionInfo.getUserAgent (", Apache-HttpClient",

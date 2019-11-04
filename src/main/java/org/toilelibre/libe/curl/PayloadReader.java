@@ -38,7 +38,7 @@ final class PayloadReader {
 
     private static StringEntity simpleDataFrom(CommandLine commandLine) {
         try {
-            Charset encoding = charsetReadFromThe(commandLine).orElse(Charset.forName("UTF-8"));
+            Charset encoding = charsetReadFromThe(commandLine).orElse(StandardCharsets.UTF_8);
             return new StringEntity (commandLine.getOptionValue (Arguments.DATA.getOpt ()), encoding);
         } catch (final IllegalArgumentException e) {
             throw new Curl.CurlException (e);

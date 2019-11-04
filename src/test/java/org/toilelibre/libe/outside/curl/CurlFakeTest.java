@@ -8,8 +8,10 @@ import org.apache.http.config.RegistryBuilder;
 import org.apache.http.conn.socket.ConnectionSocketFactory;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.protocol.HttpContext;
+import org.apache.http.util.VersionInfo;
 import org.junit.Test;
 import org.toilelibre.libe.curl.Curl;
+import org.toilelibre.libe.curl.Version;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -51,6 +53,48 @@ public class CurlFakeTest {
                                 ((HttpRequestWrapper)
                                         context.getAttribute("http.request"))
                                         .getLastHeader("Titi").getValue ()));
+    }
+
+    @Test
+    public void curlVerifyUserAgent () {
+        this.curl ("-H 'User-Agent: toto' https://put.anything.in.this.url:1337",
+                context ->
+                        assertEquals("toto",
+                                ((HttpRequestWrapper)
+                                        context.getAttribute("http.request"))
+                                        .getLastHeader("User-Agent").getValue ()));
+    }
+
+    @Test
+    public void curlVerifyUserAgentAndAOptionTogether () {
+        this.curl ("-H 'User-Agent: toto' -A titi https://put.anything.in.this.url:1337",
+                context ->
+                        assertEquals("toto",
+                                ((HttpRequestWrapper)
+                                        context.getAttribute("http.request"))
+                                        .getLastHeader("User-Agent").getValue ()));
+    }
+
+    @Test
+    public void curlVerifyAOptionAlone () {
+        this.curl ("-A titi https://put.anything.in.this.url:1337",
+                context ->
+                        assertEquals("titi",
+                                ((HttpRequestWrapper)
+                                        context.getAttribute("http.request"))
+                                        .getLastHeader("User-Agent").getValue ()));
+    }
+
+    @Test
+    public void curlWithDefaultUserAgent () {
+        this.curl ("https://put.anything.in.this.url:1337",
+                context ->
+                        assertEquals(Curl.class.getPackage ().getName () + "/" + Version.VERSION +
+                                        VersionInfo.getUserAgent (", Apache-HttpClient",
+                                                "org.apache.http.client", CurlFakeTest.class),
+                                ((HttpRequestWrapper)
+                                        context.getAttribute("http.request"))
+                                        .getLastHeader("User-Agent").getValue ()));
     }
 
     private HttpResponse curl (final String requestCommand, Consumer<HttpContext> assertions) {
