@@ -107,12 +107,12 @@ final class HttpRequestProvider {
 
         basicHeaders.forEach (request::addHeader);
 
-        if (basicHeaders.stream ().noneMatch (h -> Objects.equals(h.getName(), "User-Agent")) &&
+        if (basicHeaders.stream ().noneMatch (h -> Objects.equals(h.getName().toLowerCase(), "user-agent")) &&
                 commandLine.hasOption (Arguments.USER_AGENT.getOpt ())) {
             request.addHeader ("User-Agent", commandLine.getOptionValue (Arguments.USER_AGENT.getOpt ()));
         }
 
-        if (basicHeaders.stream ().noneMatch (h -> Objects.equals(h.getName(), "User-Agent")) &&
+        if (basicHeaders.stream ().noneMatch (h -> Objects.equals(h.getName().toLowerCase(), "user-agent")) &&
                 !commandLine.hasOption (Arguments.USER_AGENT.getOpt ())) {
             request.addHeader ("User-Agent",
                     Curl.class.getPackage ().getName () + "/" + Version.VERSION +
