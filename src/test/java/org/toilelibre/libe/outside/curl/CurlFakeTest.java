@@ -11,7 +11,6 @@ import org.apache.http.protocol.HttpContext;
 import org.apache.http.util.VersionInfo;
 import org.junit.Test;
 import org.toilelibre.libe.curl.Curl;
-import org.toilelibre.libe.curl.Version;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -39,9 +38,9 @@ public class CurlFakeTest {
     public void curlVerifyHost () {
         this.curl ("https://put.anything.in.this.url:1337",
                 context ->
-                    assertEquals(URI.create("https://put.anything.in.this.url:1337"),
+                    assertEquals (URI.create ("https://put.anything.in.this.url:1337"),
                             ((HttpRequestBase)((HttpRequestWrapper)
-                                    context.getAttribute("http.request")).getOriginal()).getURI())
+                                    context.getAttribute ("http.request")).getOriginal ()).getURI())
                 );
     }
 
@@ -49,61 +48,61 @@ public class CurlFakeTest {
     public void curlVerifyHeader () {
         this.curl ("-H 'Titi: toto' https://put.anything.in.this.url:1337",
                 context ->
-                        assertEquals("toto",
+                        assertEquals ("toto",
                                 ((HttpRequestWrapper)
-                                        context.getAttribute("http.request"))
-                                        .getLastHeader("Titi").getValue ()));
+                                        context.getAttribute ("http.request"))
+                                        .getLastHeader ("Titi").getValue ()));
     }
 
     @Test
     public void curlVerifyUserAgent () {
         this.curl ("-H 'User-Agent: toto' https://put.anything.in.this.url:1337",
                 context ->
-                        assertEquals("toto",
+                        assertEquals ("toto",
                                 ((HttpRequestWrapper)
-                                        context.getAttribute("http.request"))
-                                        .getLastHeader("User-Agent").getValue ()));
+                                        context.getAttribute ("http.request"))
+                                        .getLastHeader ("User-Agent").getValue ()));
     }
 
     @Test
     public void curlVerifyUserAgentAndAOptionTogether () {
         this.curl ("-H 'User-Agent: toto' -A titi https://put.anything.in.this.url:1337",
                 context ->
-                        assertEquals("toto",
+                        assertEquals ("toto",
                                 ((HttpRequestWrapper)
-                                        context.getAttribute("http.request"))
-                                        .getLastHeader("User-Agent").getValue ()));
+                                        context.getAttribute ("http.request"))
+                                        .getLastHeader ("User-Agent").getValue ()));
     }
 
     @Test
     public void curlVerifyAOptionAlone () {
         this.curl ("-A titi https://put.anything.in.this.url:1337",
                 context ->
-                        assertEquals("titi",
+                        assertEquals ("titi",
                                 ((HttpRequestWrapper)
-                                        context.getAttribute("http.request"))
-                                        .getLastHeader("User-Agent").getValue ()));
+                                        context.getAttribute ("http.request"))
+                                        .getLastHeader ("User-Agent").getValue ()));
     }
 
     @Test
     public void curlWithDefaultUserAgent () {
         this.curl ("https://put.anything.in.this.url:1337",
                 context ->
-                        assertEquals(Curl.class.getPackage ().getName () + "/" + Version.VERSION +
+                        assertEquals (Curl.class.getPackage ().getName () + "/" + Curl.getVersion () +
                                         VersionInfo.getUserAgent (", Apache-HttpClient",
                                                 "org.apache.http.client", CurlFakeTest.class),
                                 ((HttpRequestWrapper)
-                                        context.getAttribute("http.request"))
-                                        .getLastHeader("User-Agent").getValue ()));
+                                        context.getAttribute ("http.request"))
+                                        .getLastHeader ("User-Agent").getValue ()));
     }
 
     private HttpResponse curl (final String requestCommand, Consumer<HttpContext> assertions) {
         return org.toilelibre.libe.curl.Curl.curl (requestCommand,
-                Curl.CurlArgumentsBuilder.CurlJavaOptions.with().connectionManager(
-                        new PoolingHttpClientConnectionManager(RegistryBuilder.<ConnectionSocketFactory>create ()
+                Curl.CurlArgumentsBuilder.CurlJavaOptions.with ().connectionManager (
+                        new PoolingHttpClientConnectionManager (RegistryBuilder.<ConnectionSocketFactory>create ()
                                 .register ("https", new FakeConnectionSocketFactory (assertions))
                                 .register ("http", new FakeConnectionSocketFactory (assertions))
-                                .build(),
+                                .build (),
                                 host -> new InetAddress[] {InetAddress.getLoopbackAddress ()})).build ());
     }
 
@@ -127,36 +126,36 @@ public class CurlFakeTest {
                         "<body>\n" +
                         "<h1>OK Computer</h1>\n" +
                         "</body>\n" +
-                        "</html>\n").getBytes();
+                        "</html>\n").getBytes ();
 
         private final Consumer<HttpContext> assertions;
 
-        public FakeConnectionSocketFactory(Consumer<HttpContext> assertions) {
+        public FakeConnectionSocketFactory (Consumer<HttpContext> assertions) {
             this.assertions = assertions;
         }
 
         @Override
-        public Socket createSocket(HttpContext context) {
+        public Socket createSocket (HttpContext context) {
 
-            return new Socket(){
+            return new Socket (){
                 @Override
-                public InputStream getInputStream() {
-                    return new ByteArrayInputStream(OK_COMPUTER);
+                public InputStream getInputStream () {
+                    return new ByteArrayInputStream (OK_COMPUTER);
                 }
                 @Override
-                public OutputStream getOutputStream() {
-                    return new ByteArrayOutputStream();
+                public OutputStream getOutputStream () {
+                    return new ByteArrayOutputStream ();
                 }
             };
         }
 
         @Override
-        public Socket connectSocket(int connectTimeout, Socket sock,
+        public Socket connectSocket (int connectTimeout, Socket sock,
                                     HttpHost host,
                                     InetSocketAddress remoteAddress,
                                     InetSocketAddress localAddress,
                                     HttpContext context) {
-            assertions.accept(context);
+            assertions.accept (context);
             return sock;
         }
     }

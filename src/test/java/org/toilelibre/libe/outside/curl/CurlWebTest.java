@@ -15,12 +15,12 @@ import static org.toilelibre.libe.curl.Curl.curl;
 public class CurlWebTest {
     @Test
     public void wrongHost () {
-        curl("-k https://wrong.host.badssl.com/");
+        curl ("-k https://wrong.host.badssl.com/");
     }
 
     @Ignore // keeps failing
     @Test
-    public void proxyWithAuthentication() throws IOException {
+    public void proxyWithAuthentication () throws IOException {
         HttpResponse response = curl ("http://httpbin.org/get -x http://204.133.187.66:3128 -U user:password");
         String body = IOUtils.toString (response.getEntity ().getContent ());
         Assert.assertTrue (body.contains ("Host\": \"httpbin.org\""));
@@ -29,7 +29,7 @@ public class CurlWebTest {
     }
 
     @Test
-    public void sslTest(){
+    public void sslTest (){
         curl ("curl -k https://lenovo.prod.ondemandconnectivity.com");
     }
 }

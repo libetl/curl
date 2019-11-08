@@ -58,57 +58,57 @@ public class ArgumentsBuilderGeneratorTest {
 
     @Test
     public void addOptionsToReadmeMarkdown () throws IOException {
-        final int shortNamesMaxLength = Arguments.ALL_OPTIONS.getOptions().stream().map(Option::getOpt)
-                .map(String::length).max(Integer::compareTo).orElse(0);
-        final int longNamesMaxLength = Arguments.ALL_OPTIONS.getOptions().stream().map(Option::getLongOpt)
-                .map(String::length).max(Integer::compareTo).orElse(0);
-        final int descriptionMaxLength = Arguments.ALL_OPTIONS.getOptions().stream().map(Option::getDescription)
-                .map(String::length).max(Integer::compareTo).orElse(0);
+        final int shortNamesMaxLength = Arguments.ALL_OPTIONS.getOptions ().stream ().map (Option::getOpt)
+                .map (String::length).max (Integer::compareTo).orElse (0);
+        final int longNamesMaxLength = Arguments.ALL_OPTIONS.getOptions ().stream ().map (Option::getLongOpt)
+                .map (String::length).max (Integer::compareTo).orElse (0);
+        final int descriptionMaxLength = Arguments.ALL_OPTIONS.getOptions ().stream ().map (Option::getDescription)
+                .map (String::length).max (Integer::compareTo).orElse (0);
 
-        StringBuilder tableBuilder = new StringBuilder();
-        tableBuilder.append("| Short Name ").append(IntStream.range(1, Math.max(0, shortNamesMaxLength - 9))
-                .mapToObj(i -> " ").collect(joining()));
-        tableBuilder.append("| Long Name ").append(IntStream.range(1, Math.max(0, longNamesMaxLength - 8))
-                .mapToObj(i -> " ").collect(joining()));
-        tableBuilder.append("| Argument Required ");
-        tableBuilder.append("| Description ").append(IntStream.range(0, Math.max(0, descriptionMaxLength - 11))
-                .mapToObj(i -> " ").collect(joining())).append("|\n");
-        tableBuilder.append("| ").append(IntStream.range(1, Math.max(0, shortNamesMaxLength) + 1)
-                .mapToObj(i -> "-").collect(joining())).append(' ');
-        tableBuilder.append("| ").append(IntStream.range(1, Math.max(0, longNamesMaxLength) + 1)
-                .mapToObj(i -> "-").collect(joining())).append(' ');
-        tableBuilder.append("| ----------------- ");
-        tableBuilder.append("| ").append(IntStream.range(1, Math.max(0, descriptionMaxLength) + 1)
-                .mapToObj(i -> "-").collect(joining())).append(" |\n");
+        StringBuilder tableBuilder = new StringBuilder ();
+        tableBuilder.append ("| Short Name ").append (IntStream.range (1, Math.max (0, shortNamesMaxLength - 9))
+                .mapToObj (i -> " ").collect (joining ()));
+        tableBuilder.append ("| Long Name ").append (IntStream.range (1, Math.max (0, longNamesMaxLength - 8))
+                .mapToObj (i -> " ").collect (joining ()));
+        tableBuilder.append ("| Argument Required ");
+        tableBuilder.append ("| Description ").append (IntStream.range (0, Math.max (0, descriptionMaxLength - 11))
+                .mapToObj (i -> " ").collect (joining ())).append ("|\n");
+        tableBuilder.append ("| ").append (IntStream.range (1, Math.max (0, shortNamesMaxLength) + 1)
+                .mapToObj (i -> "-").collect (joining ())).append (' ');
+        tableBuilder.append ("| ").append (IntStream.range (1, Math.max (0, longNamesMaxLength) + 1)
+                .mapToObj (i -> "-").collect (joining ())).append (' ');
+        tableBuilder.append ("| ----------------- ");
+        tableBuilder.append ("| ").append (IntStream.range (1, Math.max (0, descriptionMaxLength) + 1)
+                .mapToObj (i -> "-").collect (joining ())).append (" |\n");
 
         for (final Option option : Arguments.ALL_OPTIONS.getOptions ()) {
-            tableBuilder.append("| ").append(option.getOpt())
-                    .append(IntStream.range(1, Math.max(0, shortNamesMaxLength - option.getOpt().length() + 2))
-                    .mapToObj(i -> " ").collect(joining()));
-            tableBuilder.append("| ").append(option.getLongOpt())
-                    .append(IntStream.range(1, Math.max(0, longNamesMaxLength - option.getLongOpt().length() + 2))
-                            .mapToObj(i -> " ").collect(joining()));
-            tableBuilder.append("| ").append(option.hasArg())
-                    .append(IntStream.range(1, Math.max(0, 19 - (option.hasArg() ? 4 : 5)))
-                            .mapToObj(i -> " ").collect(joining()));
-            tableBuilder.append("| ").append(option.getDescription().replace('|', ','))
-                    .append(IntStream.range(1, Math.max(0, descriptionMaxLength - option.getDescription().length() + 2))
-                            .mapToObj(i -> " ").collect(joining())).append("|\n");
+            tableBuilder.append ("| ").append (option.getOpt ())
+                    .append (IntStream.range (1, Math.max (0, shortNamesMaxLength - option.getOpt ().length () + 2))
+                    .mapToObj (i -> " ").collect (joining ()));
+            tableBuilder.append ("| ").append (option.getLongOpt ())
+                    .append (IntStream.range (1, Math.max (0, longNamesMaxLength - option.getLongOpt ().length () + 2))
+                            .mapToObj (i -> " ").collect (joining ()));
+            tableBuilder.append ("| ").append (option.hasArg ())
+                    .append (IntStream.range (1, Math.max (0, 19 - (option.hasArg () ? 4 : 5)))
+                            .mapToObj (i -> " ").collect (joining ()));
+            tableBuilder.append ("| ").append (option.getDescription ().replace ('|', ','))
+                    .append (IntStream.range (1, Math.max (0, descriptionMaxLength - option.getDescription ().length () + 2))
+                            .mapToObj (i -> " ").collect (joining ())).append ("|\n");
         }
-        final File readme = stream(Objects.requireNonNull(new File(ArgumentsBuilderGeneratorTest.class
-                .getProtectionDomain().getCodeSource().getLocation().getFile()).getParentFile().getParentFile()
-                .listFiles())).filter(f -> "README.md".equalsIgnoreCase(f.getName()))
-                .findFirst().orElseThrow(() -> new FileNotFoundException("README.md"));
-        final String readmeContent = IOUtils.toString(new FileInputStream(readme));
+        final File readme = stream (Objects.requireNonNull (new File (ArgumentsBuilderGeneratorTest.class
+                .getProtectionDomain ().getCodeSource ().getLocation ().getFile ()).getParentFile ().getParentFile ()
+                .listFiles ())).filter (f -> "README.md".equalsIgnoreCase (f.getName ()))
+                .findFirst ().orElseThrow (() -> new FileNotFoundException ("README.md"));
+        final String readmeContent = IOUtils.toString (new FileInputStream (readme));
 
-        final String newReadmeContent = Pattern.compile(
+        final String newReadmeContent = Pattern.compile (
                 "Supported arguments \\(so far\\) :")
-                .splitAsStream(readmeContent).findFirst()
-                .orElse("") + "Supported arguments (so far) :\n\n" + tableBuilder.toString();
+                .splitAsStream (readmeContent).findFirst ()
+                .orElse ("") + "Supported arguments (so far) :\n\n" + tableBuilder.toString ();
 
-        FileWriter writer = new FileWriter(readme);
-        writer.write(newReadmeContent);
-        writer.close();
+        FileWriter writer = new FileWriter (readme);
+        writer.write (newReadmeContent);
+        writer.close ();
     }
 
     private CtMethod builderOptionMethod (final CtClass ctClass, final CtClass stringType, final String methodName, final String optName, final boolean hasArg) throws CannotCompileException {

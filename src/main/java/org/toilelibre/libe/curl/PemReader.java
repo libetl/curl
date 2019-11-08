@@ -1,9 +1,7 @@
 package org.toilelibre.libe.curl;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.Reader;
-import java.util.Base64;
+import java.io.*;
+import java.util.*;
 
 /**
  * A generic PEM reader, based on the format outlined in RFC 1421

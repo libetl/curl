@@ -69,13 +69,21 @@ public final class Curl {
             stopAndDisplayVersionIfThe (commandLine.hasOption (Arguments.VERSION.getOpt ()));
             final HttpResponse response =
                     HttpClientProvider.prepareHttpClient (commandLine, curlJavaOptions.getInterceptors (),
-                            curlJavaOptions.getConnectionManager()).execute (
+                            curlJavaOptions.getConnectionManager ()).execute (
                             HttpRequestProvider.prepareRequest (commandLine));
             AfterResponse.handle (commandLine, response);
             return response;
         } catch (final IOException | IllegalArgumentException e) {
             throw new CurlException (e);
         }
+    }
+
+    public static String getVersion () {
+        return Version.NUMBER;
+    }
+
+    public static String getVersionWithBuildTime () {
+        return Version.NUMBER + " (Build time : " + Version.BUILD_TIME + ")";
     }
 
     public static class CurlArgumentsBuilder {

@@ -1,10 +1,10 @@
 package org.toilelibre.libe.curl;
 
-import org.apache.http.HttpEntity;
+import org.apache.http.*;
 
 import java.io.*;
-import java.nio.charset.Charset;
-import java.util.Optional;
+import java.nio.charset.*;
+import java.util.*;
 
 final class IOUtils {
 
@@ -110,17 +110,17 @@ final class IOUtils {
 
     static byte [] toByteArray (final InputStream fis) throws IOException {
         byte[] chunk = new byte[4096];
-        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream ();
         int read;
-        while ((read = fis.read(chunk)) != -1) {
-            byteArrayOutputStream.write(chunk, 0, read);
+        while ((read = fis.read (chunk)) != -1) {
+            byteArrayOutputStream.write (chunk, 0, read);
         }
-        return byteArrayOutputStream.toByteArray();
+        return byteArrayOutputStream.toByteArray ();
     }
 
     static String quietToString (final HttpEntity entity) {
         try {
-            if (entity == null || entity.getContent() == null) return null;
+            if (entity == null || entity.getContent () == null) return null;
             return IOUtils.toString (entity.getContent (), Charset.defaultCharset ());
         } catch (IOException e) {
             throw new Curl.CurlException (e);
@@ -143,7 +143,7 @@ final class IOUtils {
         }
     }
 
-    static boolean isFile(final String ref) {
+    static boolean isFile (final String ref) {
         final String fileName = (Optional.ofNullable (ref).orElse ("").trim () + " ");
         if (fileName.charAt (0) != '@') {
             return false;

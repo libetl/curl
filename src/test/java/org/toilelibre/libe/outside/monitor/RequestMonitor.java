@@ -62,7 +62,7 @@ public class RequestMonitor {
         @ResponseStatus (code = HttpStatus.OK)
         @ResponseBody
         public byte[] data (final HttpServletRequest request) throws IOException {
-            return this.logRequest (request, IOUtils.toString(request.getInputStream())).getBytes();
+            return this.logRequest (request, IOUtils.toString (request.getInputStream ())).getBytes ();
         }
 
         @RequestMapping (value = "/public/form", produces = MediaType.TEXT_PLAIN_VALUE, method = RequestMethod.POST)
@@ -77,7 +77,7 @@ public class RequestMonitor {
         @RequestMapping (value = "/public/json", produces = MediaType.TEXT_PLAIN_VALUE)
         @ResponseStatus (code = HttpStatus.OK)
         @ResponseBody
-        public String json (final HttpServletRequest request, @RequestBody (required = true) final String body) throws JsonParseException, JsonMappingException, IOException {
+        public String json (final HttpServletRequest request, @RequestBody (required = true) final String body) throws IOException {
             @SuppressWarnings ("unchecked")
             final Map<String, Object> map = new ObjectMapper ().readValue (body, Map.class);
             RequestMonitor.LOGGER.info (map.toString ());
@@ -88,7 +88,7 @@ public class RequestMonitor {
         @ResponseStatus (code = HttpStatus.OK)
         @ResponseBody
         public String tooLong () throws InterruptedException {
-            Thread.sleep(1000);
+            Thread.sleep (1000);
             RequestMonitor.LOGGER.info ("Finally !");
             return "...Finally.";
         }
@@ -223,12 +223,12 @@ public class RequestMonitor {
             properties.put ("server.ssl.client-auth", "need");
             properties.put ("server.ssl.enabled-protocols","SSLv2,SSLv3,TLSv1.0,TLSv1.1,TLSv1.2");
         }
-        RequestMonitor.context = new SpringApplicationBuilder()
+        RequestMonitor.context = new SpringApplicationBuilder ()
                 .sources (RequestMonitor.class)
                 .bannerMode (Banner.Mode.OFF)
                 .addCommandLineProperties (true)
                 .properties (properties)
-                .run(args);
+                .run (args);
     }
 
     public static int [] start (final String [] args) {

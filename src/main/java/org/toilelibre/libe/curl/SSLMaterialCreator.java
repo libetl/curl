@@ -12,8 +12,8 @@ import java.security.cert.*;
 import java.util.*;
 import java.util.stream.*;
 
-import static java.util.Arrays.asList;
-import static java.util.Optional.ofNullable;
+import static java.util.Arrays.*;
+import static java.util.Optional.*;
 import static java.util.stream.Collectors.*;
 import static org.apache.http.conn.ssl.SSLConnectionSocketFactory.*;
 import static org.toilelibre.libe.curl.Arguments.*;
@@ -92,7 +92,7 @@ final class SSLMaterialCreator {
                                     commandLine.hasOption (option.getOpt ())
                 )
                 .collect (toMap (Option::getOpt, option ->
-                        asList(ofNullable(commandLine.getOptionValues (option.getOpt ()))
+                        asList (ofNullable (commandLine.getOptionValues (option.getOpt ()))
                         .orElse (new String[] {"true"}))));
     }
 

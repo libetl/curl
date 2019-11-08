@@ -1,25 +1,15 @@
 package org.toilelibre.libe.curl;
 
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.security.KeyFactory;
-import java.security.KeyStore;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.UnrecoverableKeyException;
-import java.security.cert.CertificateException;
-import java.security.cert.CertificateFactory;
-import java.security.spec.InvalidKeySpecException;
-import java.security.spec.KeySpec;
-import java.security.spec.PKCS8EncodedKeySpec;
-import java.util.*;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.toilelibre.libe.curl.Curl.*;
+import org.toilelibre.libe.curl.DerReader.*;
+import org.toilelibre.libe.curl.PemReader.*;
 
-import org.toilelibre.libe.curl.Curl.CurlException;
-import org.toilelibre.libe.curl.DerReader.Asn1Object;
-import org.toilelibre.libe.curl.PemReader.PemObject;
+import java.io.*;
+import java.security.*;
+import java.security.cert.*;
+import java.security.spec.*;
+import java.util.*;
+import java.util.logging.*;
 
 enum CertFormat {
 
@@ -27,7 +17,7 @@ enum CertFormat {
         try {
             if (kind == Kind.CERTIFICATE) {
                 final CertificateFactory certificateFactory = CertificateFactory.getInstance ("X.509");
-                return Collections.singletonList(certificateFactory.generateCertificate (new ByteArrayInputStream (content)));
+                return Collections.singletonList (certificateFactory.generateCertificate (new ByteArrayInputStream (content)));
             }
             if (kind == Kind.PRIVATE_KEY) {
                 final DerReader derReader = new DerReader (content);
@@ -98,7 +88,7 @@ enum CertFormat {
         }
     });
 
-    private static Logger LOGGER = Logger.getLogger(AfterResponse.class.getName());
+    private static Logger LOGGER = Logger.getLogger (AfterResponse.class.getName ());
     private KeystoreFromFileGenerator generator;
 
     CertFormat (final KeystoreFromFileGenerator generator1) {
@@ -110,8 +100,8 @@ enum CertFormat {
         return (List<T>) this.generator.generate (kind, content, passwordAsCharArray);
     }
 
-    private static void logProblemWithPemReader(IOException e) {
-        LOGGER.log(Level.WARNING, "Problem with PEM reader", e);
+    private static void logProblemWithPemReader (IOException e) {
+        LOGGER.log (Level.WARNING, "Problem with PEM reader", e);
     }
 
     @FunctionalInterface

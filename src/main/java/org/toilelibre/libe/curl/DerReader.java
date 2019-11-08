@@ -1,11 +1,8 @@
 package org.toilelibre.libe.curl;
 
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.math.BigInteger;
-import java.security.spec.KeySpec;
-import java.security.spec.RSAPrivateCrtKeySpec;
+import java.io.*;
+import java.math.*;
+import java.security.spec.*;
 
 final class DerReader {
     static class Asn1Object {
@@ -54,62 +51,17 @@ final class DerReader {
             return new DerReader (this.value);
         }
 
-        String getString () throws IOException {
-
-            String encoding;
-
-            switch (this.type) {
-
-                case DerReader.NUMERIC_STRING :
-                case DerReader.PRINTABLE_STRING :
-                case DerReader.VIDEOTEX_STRING :
-                case DerReader.IA5_STRING :
-                case DerReader.GRAPHIC_STRING :
-                case DerReader.ISO646_STRING :
-                case DerReader.GENERAL_STRING :
-                    encoding = "ISO-8859-1";
-                    break;
-
-                case DerReader.BMP_STRING :
-                    encoding = "UTF-16BE";
-                    break;
-
-                case DerReader.UTF8_STRING :
-                    encoding = "UTF-8";
-                    break;
-
-                case DerReader.UNIVERSAL_STRING :
-                    throw new IOException ("Invalid DER: can't handle UCS-4 string");
-
-                default:
-                    throw new IOException ("Invalid DER: object is not a string");
-            }
-
-            return new String (this.value, encoding);
-        }
-
         boolean isConstructed () {
             return (this.tag & DerReader.CONSTRUCTED) == DerReader.CONSTRUCTED;
         }
     }
 
-    private static final int   BMP_STRING          = 0x1E;
 
     private static final int   BYTE_MAX            = 0xFF;
     private static final int   CONSTRUCTED         = 0x20;
-    private static final int   GENERAL_STRING      = 0x1B;
-    private static final int   GRAPHIC_STRING      = 0x19;
-    private static final int   IA5_STRING          = 0x16;
     private static final int   INTEGER             = 0x02;
-    private static final int   ISO646_STRING       = 0x1A;
     private static final byte  LOWER_7_BITS        = (byte) 0x7F;
     private static final int   MAX_NUMBER_OF_BYTES = 4;
-    private static final int   NUMERIC_STRING      = 0x12;
-    private static final int   PRINTABLE_STRING    = 0x13;
-    private static final int   UNIVERSAL_STRING    = 0x1C;
-
-    private static final int   UTF8_STRING         = 0x0C;
-    private static final int   VIDEOTEX_STRING     = 0x15;
 
     private final InputStream in;
 

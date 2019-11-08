@@ -134,10 +134,10 @@
 							<property name="package.name" value="org.toilelibre.libe.curl" />
 							<property name="buildtime" value="${maven.build.timestamp}" />
 
-							<echo file="${src.dir}/${package.dir}/Version.java" message="package ${package.name};${line.separator}" />
-							<echo file="${src.dir}/${package.dir}/Version.java" append="true" message="public final class Version {${line.separator}" />
-							<echo file="${src.dir}/${package.dir}/Version.java" append="true" message=" public static String VERSION = &quot;${project.version}&quot;;${line.separator}" />
-							<echo file="${src.dir}/${package.dir}/Version.java" append="true" message=" public static String BUILD_TIME = &quot;${buildtime}&quot;;${line.separator}" />
+							<echo file="${src.dir}/${package.dir}/Version.java" message="package ${package.name};${line.separator}${line.separator}" />
+							<echo file="${src.dir}/${package.dir}/Version.java" append="true" message="final class Version {${line.separator}" />
+							<echo file="${src.dir}/${package.dir}/Version.java" append="true" message="  static String NUMBER = &quot;${project.version}&quot;;${line.separator}" />
+							<echo file="${src.dir}/${package.dir}/Version.java" append="true" message="  static String BUILD_TIME = &quot;${buildtime}&quot;;${line.separator}" />
 							<echo file="${src.dir}/${package.dir}/Version.java" append="true" message="}${line.separator}" />
 						</tasks>
 					</configuration>

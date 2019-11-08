@@ -1,7 +1,6 @@
 package org.toilelibre.libe.curl;
 
-import static org.toilelibre.libe.curl.Version.BUILD_TIME;
-import static org.toilelibre.libe.curl.Version.VERSION;
+import static org.toilelibre.libe.curl.Version.*;
 
 final class UglyVersionDisplay {
 
@@ -11,10 +10,10 @@ final class UglyVersionDisplay {
             return;
         }
 
-        System.out.println(Curl.class.getPackage().getName() + " version " + VERSION + ", build-time : " + BUILD_TIME);
+        System.out.println (Curl.class.getPackage ().getName () + " version " + NUMBER + ", build-time : " + BUILD_TIME);
 
-        throw new Curl.CurlException(
-                new IllegalArgumentException(
+        throw new Curl.CurlException (
+                new IllegalArgumentException (
                         "You asked me to display the version. Probably not a production-ready code"));
     }
 }

@@ -53,13 +53,13 @@ public class CachedArgumentsTest {
                 "-d '{\"test\":{\"name\":\"TEST_NAME\",\"value\":\"TEST_VALUE\"}}'";
 
         CommandLine result1 = ReadArguments.getCommandLineFromRequest (args,
-                emptyList());
+                emptyList ());
 
         assertEquals (1, containsKeyCallsCounter);
         assertEquals (0, getCallsCounter);
 
         CommandLine result2 = ReadArguments.getCommandLineFromRequest (args,
-                emptyList());
+                emptyList ());
 
         assertEquals (2, containsKeyCallsCounter);
         assertEquals (1, getCallsCounter);

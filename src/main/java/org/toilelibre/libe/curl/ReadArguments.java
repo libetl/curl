@@ -45,10 +45,10 @@ final class ReadArguments {
                                                 final List<String> placeholderValues) {
         final String requestCommandInput = requestCommandWithoutBasename.replaceAll ("\\s+-([a-zA-Z0-9])\\s+", " -$1 ");
         final List<String> matches;
-        if(CACHED_ARGS_MATCHES.containsKey (requestCommandInput)) {
+        if (CACHED_ARGS_MATCHES.containsKey (requestCommandInput)) {
             matches = CACHED_ARGS_MATCHES.get (requestCommandInput);
         }else{
-            matches = asMatches(Arguments.ARGS_SPLIT_REGEX, requestCommandInput);
+            matches = asMatches (Arguments.ARGS_SPLIT_REGEX, requestCommandInput);
             CACHED_ARGS_MATCHES.put (requestCommandInput, matches);
         }
 

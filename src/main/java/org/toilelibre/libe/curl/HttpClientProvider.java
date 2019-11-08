@@ -21,8 +21,8 @@ final class HttpClientProvider {
                                          HttpClientConnectionManager connectionManager) throws CurlException {
         HttpClientBuilder executor = HttpClientBuilder.create ();
 
-        if (!commandLine.hasOption (Arguments.COMPRESSED.getOpt())){
-            executor.disableContentCompression();
+        if (!commandLine.hasOption (Arguments.COMPRESSED.getOpt ())){
+            executor.disableContentCompression ();
         }
 
         if (connectionManager != null) {
@@ -33,7 +33,7 @@ final class HttpClientProvider {
         try {
             hostname = InetAddress.getLocalHost ().getHostName ();
         } catch (final UnknownHostException e1) {
-            throw new RuntimeException (e1);
+            throw new Curl.CurlException (e1);
         }
 
         executor = handleAuthMethod (commandLine, executor, hostname);

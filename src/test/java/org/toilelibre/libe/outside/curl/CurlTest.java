@@ -42,8 +42,8 @@ import static org.toilelibre.libe.curl.Curl.CurlArgumentsBuilder.CurlJavaOptions
 
 public class CurlTest {
 
-    private static final Integer proxyPort = Math.abs (new Random ().nextInt()) % 20000 + 1024;
-    private static Logger LOGGER = Logger.getLogger(CurlTest.class.getName());
+    private static final Integer proxyPort = Math.abs (new Random ().nextInt ()) % 20000 + 1024;
+    private static Logger LOGGER = Logger.getLogger (CurlTest.class.getName ());
     private static Proxy proxy;
 
     @BeforeClass
@@ -73,7 +73,7 @@ public class CurlTest {
     }
 
     private HttpResponse curl (final String requestCommand) {
-        return curl(requestCommand, with().build());
+        return curl (requestCommand, with ().build ());
     }
 
     private HttpResponse curl (final String requestCommand, Curl.CurlArgumentsBuilder.CurlJavaOptions curlJavaOptions) {
@@ -103,7 +103,7 @@ public class CurlTest {
         return response.getStatusLine ().getStatusCode ();
     }
 
-    @Test(expected = CurlException.class)
+    @Test (expected = CurlException.class)
     public void displayVersion () {
         this.assertOk (this.curl ("-V"));
     }
@@ -134,21 +134,21 @@ public class CurlTest {
     }
 
     @Test
-    public void theSkyIsBlueInIvritWithTheWrongEncoding() throws IOException {
-        HttpResponse response = this.curl("-k -E src/test/resources/clients/libe/libe.pem https://localhost:%d/public/  -H 'Content-Type: text/plain; charset=ISO-8859-1' -d \"השמים כחולים\"");
-        Assertions.assertThat(IOUtils.toString(response.getEntity().getContent(), "utf-8")).contains("'????? ??????'");
+    public void theSkyIsBlueInIvritWithTheWrongEncoding () throws IOException {
+        HttpResponse response = this.curl ("-k -E src/test/resources/clients/libe/libe.pem https://localhost:%d/public/  -H 'Content-Type: text/plain; charset=ISO-8859-1' -d \"השמים כחולים\"");
+        Assertions.assertThat (IOUtils.toString (response.getEntity ().getContent (), "utf-8")).contains ("'????? ??????'");
     }
 
     @Test
-    public void theSkyIsBlueInIvritWithoutEncoding() throws IOException {
-        HttpResponse response = this.curl("-k -E src/test/resources/clients/libe/libe.pem https://localhost:%d/public/  -d \"השמים כחולים\"");
-        Assertions.assertThat(IOUtils.toString(response.getEntity().getContent(), "utf-8")).contains("'השמים כחולים'");
+    public void theSkyIsBlueInIvritWithoutEncoding () throws IOException {
+        HttpResponse response = this.curl ("-k -E src/test/resources/clients/libe/libe.pem https://localhost:%d/public/  -d \"השמים כחולים\"");
+        Assertions.assertThat (IOUtils.toString (response.getEntity ().getContent (), "utf-8")).contains ("'השמים כחולים'");
     }
 
     @Test
-    public void theSkyIsBlueInIvritWithUTF8Encoding() throws IOException {
-        HttpResponse response = this.curl("-k -E src/test/resources/clients/libe/libe.pem https://localhost:%d/public/  -H 'Content-Type: text/plain; charset=UTF-8'  -d \"השמים כחולים\"");
-        Assertions.assertThat(IOUtils.toString(response.getEntity().getContent(), "utf-8")).contains("'השמים כחולים'");
+    public void theSkyIsBlueInIvritWithUTF8Encoding () throws IOException {
+        HttpResponse response = this.curl ("-k -E src/test/resources/clients/libe/libe.pem https://localhost:%d/public/  -H 'Content-Type: text/plain; charset=UTF-8'  -d \"השמים כחולים\"");
+        Assertions.assertThat (IOUtils.toString (response.getEntity ().getContent (), "utf-8")).contains ("'השמים כחולים'");
     }
 
     @Test
@@ -164,19 +164,19 @@ public class CurlTest {
     @Test
     public void curlWithPlaceholders () {
         this.assertOk (this.curl ("-k --cert-type $curl_placeholder_0 --cert $curl_placeholder_1 --key-type $curl_placeholder_2 --key $curl_placeholder_3 https://localhost:%d/public/",
-                with().placeHolders(asList("P12", "src/test/resources/clients/libe/libe.p12:mylibepass", "PEM", "src/test/resources/clients/libe/libe.pem")).build()));
+                with ().placeHolders (asList ("P12", "src/test/resources/clients/libe/libe.p12:mylibepass", "PEM", "src/test/resources/clients/libe/libe.pem")).build ()));
     }
     @Test
     public void curlWithConnectionManager () throws NoSuchAlgorithmException, KeyStoreException, KeyManagementException, UnrecoverableKeyException, IOException, CertificateException {
         KeyStore keystore = KeyStore.getInstance ("JKS");
         keystore.load (Thread.currentThread ().getContextClassLoader ().getResourceAsStream ("clients/libe/libe.jks"), "mylibepass".toCharArray ());
         this.assertOk (this.curl ("https://localhost:%d/public/",
-                with().connectionManager(new PoolingHttpClientConnectionManager (RegistryBuilder.<ConnectionSocketFactory>create()
-                        .register("https", new SSLConnectionSocketFactory(SSLContextBuilder.create ()
+                with ().connectionManager (new PoolingHttpClientConnectionManager (RegistryBuilder.<ConnectionSocketFactory>create ()
+                        .register ("https", new SSLConnectionSocketFactory (SSLContextBuilder.create ()
                                 .loadTrustMaterial (null, new TrustSelfSignedStrategy ())
                                 .loadKeyMaterial (keystore, "mylibepass".toCharArray ())
                                 .build (), NoopHostnameVerifier.INSTANCE))
-                        .build())).build()));
+                        .build ())).build ()));
     }
 
     @Test
@@ -221,11 +221,11 @@ public class CurlTest {
         try {
             // correct cert password and wrong key password
             this.curl ("-k --cacert src/test/resources/ca/fakeCa.crt --cert-type PEM --cert src/test/resources/clients/libe/libe.pem:mylibepass --key-type P12 --key src/test/resources/clients/libe/libe.p12:mylibepass2 https://localhost:%d/public/");
-            Assert.fail("This curl is not supposed to work and should fail with a IOException");
+            Assert.fail ("This curl is not supposed to work and should fail with a IOException");
         }catch (CurlException curlException){
-            Assert.assertEquals(curlException.getCause().getClass().getName(),
-                    IOException.class.getName());
-            Assert.assertEquals(curlException.getCause().getMessage (),
+            Assert.assertEquals (curlException.getCause ().getClass ().getName (),
+                    IOException.class.getName ());
+            Assert.assertEquals (curlException.getCause ().getMessage (),
                     "keystore password was incorrect");
         }
     }
@@ -274,22 +274,22 @@ public class CurlTest {
     @Test
     public void curlWithTooLowRequestTimeout () {
         try {
-            this.curl(this.$("-k -E src/test/resources/clients/libe/libe.pem --connect-timeout 0.001 --max-time 10 https://localhost:%d/public/tooLong"));
-            Assert.fail("This curl is not supposed to work and should fail with a ConnectTimeoutException");
+            this.curl (this.$("-k -E src/test/resources/clients/libe/libe.pem --connect-timeout 0.001 --max-time 10 https://localhost:%d/public/tooLong"));
+            Assert.fail ("This curl is not supposed to work and should fail with a ConnectTimeoutException");
         }catch (CurlException curlException){
-            Assert.assertEquals(curlException.getCause().getClass().getName(),
-                    ConnectTimeoutException.class.getName());
+            Assert.assertEquals (curlException.getCause ().getClass ().getName (),
+                    ConnectTimeoutException.class.getName ());
         }
     }
 
     @Test
     public void curlWithMaxTime () {
         try {
-            this.curl(this.$("-k -E src/test/resources/clients/libe/libe.pem --connect-timeout 10 --max-time 0.001 https://localhost:%d/public/tooLong"));
-            Assert.fail("This curl is not supposed to work and should fail with a SocketTimeoutException");
+            this.curl (this.$("-k -E src/test/resources/clients/libe/libe.pem --connect-timeout 10 --max-time 0.001 https://localhost:%d/public/tooLong"));
+            Assert.fail ("This curl is not supposed to work and should fail with a SocketTimeoutException");
         }catch (CurlException curlException){
-            Assert.assertEquals(curlException.getCause ().getClass().getName(),
-                    SocketTimeoutException.class.getName());
+            Assert.assertEquals (curlException.getCause ().getClass ().getName (),
+                    SocketTimeoutException.class.getName ());
         }
     }
 
@@ -331,10 +331,10 @@ public class CurlTest {
     @Test
     public void withBinaryData () throws IOException {
         HttpResponse response = this.curl ("-k -E src/test/resources/clients/libe/libe.pem --data-binary \"@src/test/resources/clients/libe/libe.der\" -X POST -H 'Accept: */*' -H 'Host: localhost' 'https://localhost:%d/public/data'");
-        String expected = IOUtils.toString(Thread.currentThread().getContextClassLoader().getResourceAsStream("clients/libe/libe.der"));
-        String fullCurl = IOUtils.toString(response.getEntity().getContent());
-        String actual = fullCurl.substring(fullCurl.indexOf("-d '") + 4, fullCurl.indexOf("'  'https"));
-        Assertions.assertThat (actual.length()).isEqualTo (expected.length());
+        String expected = IOUtils.toString (Thread.currentThread ().getContextClassLoader ().getResourceAsStream ("clients/libe/libe.der"));
+        String fullCurl = IOUtils.toString (response.getEntity ().getContent ());
+        String actual = fullCurl.substring (fullCurl.indexOf ("-d '") + 4, fullCurl.indexOf ("'  'https"));
+        Assertions.assertThat (actual.length ()).isEqualTo (expected.length ());
     }
 
     @Test
@@ -349,20 +349,20 @@ public class CurlTest {
 
     @Test
     public void outputFile () {
-        File file = new File("target/classes/downloadedCurl");
+        File file = new File ("target/classes/downloadedCurl");
 
-        boolean fileDeleted = file.delete();
-        LOGGER.log(Level.FINE, "output file deleted : " + fileDeleted);
+        boolean fileDeleted = file.delete ();
+        LOGGER.log (Level.FINE, "output file deleted : " + fileDeleted);
         this.assertOk (this.curl ("-k -E src/test/resources/clients/libe/libe.pem -X GET -A 'toto' -H 'Accept: */*' -H 'Host: localhost' 'https://localhost:%d/public' -o target/classes/downloadedCurl"));
         Assert.assertTrue (new File ("target/classes/downloadedCurl").exists ());
     }
 
     @Test
     public void outputFileWithSpaces () {
-        File file = new File("target/classes/downloaded Curl With Spaces");
+        File file = new File ("target/classes/downloaded Curl With Spaces");
 
-        boolean fileDeleted = file.delete();
-        LOGGER.log(Level.FINE, "output file deleted : " + fileDeleted);
+        boolean fileDeleted = file.delete ();
+        LOGGER.log (Level.FINE, "output file deleted : " + fileDeleted);
         this.assertOk (this.curl ("-k -E src/test/resources/clients/libe/libe.pem -X GET -A 'toto' -H 'Accept: */*' -H 'Host: localhost' 'https://localhost:%d/public' -o 'target/classes/downloaded Curl With Spaces'"));
         Assert.assertTrue (new File ("target/classes/downloaded Curl With Spaces").exists ());
     }
@@ -442,7 +442,7 @@ public class CurlTest {
             this.assertOk (future1.get ());
             this.assertOk (future2.get ());
         } catch (InterruptedException | ExecutionException e) {
-            Assert.fail();
+            Assert.fail ();
         }
     }
 
@@ -451,43 +451,43 @@ public class CurlTest {
         this.$ ("-k -E src/test/resources/clients/libe/libe.pem https://localhost:%d/public/noContent");
     }
 
-    @SuppressWarnings("unused")
+    @SuppressWarnings ("unused")
     public static class MyInterceptor {
-        public HttpResponse intercept(HttpRequest request, Supplier<HttpResponse> responseSupplier){
-            LOGGER.info("I log something before the call");
-            HttpResponse response = responseSupplier.get();
-            LOGGER.info("I log something after the call... Bingo, the status of the response is " +
-                    response.getStatusLine().getStatusCode());
+        public HttpResponse intercept (HttpRequest request, Supplier<HttpResponse> responseSupplier){
+            LOGGER.info ("I log something before the call");
+            HttpResponse response = responseSupplier.get ();
+            LOGGER.info ("I log something after the call... Bingo, the status of the response is " +
+                    response.getStatusLine ().getStatusCode ());
             return response;
         }
     }
 
-    @SuppressWarnings("unused")
+    @SuppressWarnings ("unused")
     private BiFunction<HttpRequest, Supplier<HttpResponse>, HttpResponse> mySecondInterceptor =
             (request, responseSupplier) -> {
-        LOGGER.info("I log something before the call (from a lambda)");
-        HttpResponse response = responseSupplier.get();
-        LOGGER.info("I log something after the call (from a lambda)... Bingo, the status of the response is " +
-                response.getStatusLine().getStatusCode());
+        LOGGER.info ("I log something before the call (from a lambda)");
+        HttpResponse response = responseSupplier.get ();
+        LOGGER.info ("I log something after the call (from a lambda)... Bingo, the status of the response is " +
+                response.getStatusLine ().getStatusCode ());
         return response;
     };
 
     @Test
-    public void withAnInterceptor(){
+    public void withAnInterceptor (){
         this.curl ("-k -E src/test/resources/clients/libe/libe.pem https://localhost:%d/public/  --interceptor org.toilelibre.libe.outside.curl.CurlTest$MyInterceptor::intercept  --interceptor org.toilelibre.libe.outside.curl.CurlTest::mySecondInterceptor");
     }
 
     @Test
-    public void withAnInlinedInterceptor(){
-        Curl.curl()
-                .javaOptions(with().interceptor(((request, responseSupplier) -> {
-                    LOGGER.info("I log something before the call");
-                    HttpResponse response = responseSupplier.get();
-                    LOGGER.info("I log something after the call... Bingo, the status of the response is " +
-                            response.getStatusLine().getStatusCode());
+    public void withAnInlinedInterceptor (){
+        Curl.curl ()
+                .javaOptions (with ().interceptor (((request, responseSupplier) -> {
+                    LOGGER.info ("I log something before the call");
+                    HttpResponse response = responseSupplier.get ();
+                    LOGGER.info ("I log something after the call... Bingo, the status of the response is " +
+                            response.getStatusLine ().getStatusCode ());
                     return response;
-                })).build())
-        .run("http://www.google.com");
+                })).build ())
+        .run ("http://www.google.com");
     }
 
     @Test
@@ -501,7 +501,7 @@ public class CurlTest {
     }
 
     @Test
-    public void nonInterceptorField(){
+    public void nonInterceptorField (){
         this.curl ("-k -E src/test/resources/clients/libe/libe.pem https://localhost:%d/public/  --interceptor org.toilelibre.libe.outside.curl.CurlTest.LOGGER");
     }
 }

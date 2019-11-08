@@ -15,13 +15,13 @@ public class HttpRequestProviderTest {
     public void curlWithoutVerbAndWithoutDataShouldBeTransformedAsGetRequest () {
         //given
         CommandLine commandLine = ReadArguments.getCommandLineFromRequest (
-                "curl -H'Accept: application/json' http://localhost/user/byId/1", Collections.emptyList());
+                "curl -H'Accept: application/json' http://localhost/user/byId/1", Collections.emptyList ());
 
         //when
-        HttpUriRequest request = HttpRequestProvider.prepareRequest(commandLine);
+        HttpUriRequest request = HttpRequestProvider.prepareRequest (commandLine);
 
         //then
-        assertEquals("GET", request.getMethod ());
+        assertEquals ("GET", request.getMethod ());
     }
 
     @Test
@@ -29,13 +29,13 @@ public class HttpRequestProviderTest {
         //given
         CommandLine commandLine = ReadArguments.getCommandLineFromRequest (
                 "curl -H $curl_placeholder_0 http://localhost/user/byId/1",
-                Collections.singletonList("Accept: application/json"));
+                Collections.singletonList ("Accept: application/json"));
 
         //when
-        HttpUriRequest request = HttpRequestProvider.prepareRequest(commandLine);
+        HttpUriRequest request = HttpRequestProvider.prepareRequest (commandLine);
 
         //then
-        assertEquals("GET", request.getMethod ());
+        assertEquals ("GET", request.getMethod ());
     }
 
 
@@ -44,21 +44,21 @@ public class HttpRequestProviderTest {
         //given
         CommandLine commandLine = ReadArguments.getCommandLineFromRequest (
                 "curl -H'Accept: application/json' -d'{\"id\":1,\"name\":\"John Doe\"}' http://localhost/user/",
-                Collections.emptyList());
+                Collections.emptyList ());
 
         //when
-        HttpUriRequest request = HttpRequestProvider.prepareRequest(commandLine);
+        HttpUriRequest request = HttpRequestProvider.prepareRequest (commandLine);
 
         //then
-        assertEquals("POST", request.getMethod ());
+        assertEquals ("POST", request.getMethod ());
     }
 
     @Test
-    public void proxyWithAuthentication() {
+    public void proxyWithAuthentication () {
         //given
         CommandLine commandLine = ReadArguments.getCommandLineFromRequest (
                 "http://httpbin.org/get -x http://87.98.174.157:3128/ -U user:password",
-                Collections.emptyList());
+                Collections.emptyList ());
 
         //when
         HttpUriRequest request = HttpRequestProvider.prepareRequest (commandLine);
@@ -73,7 +73,7 @@ public class HttpRequestProviderTest {
         //given
         CommandLine commandLine = ReadArguments.getCommandLineFromRequest (
                 "-x http://localhost:80/ -U jack:insecure http://www.google.com/",
-                Collections.emptyList());
+                Collections.emptyList ());
 
         //when
         HttpUriRequest request = HttpRequestProvider.prepareRequest (commandLine);
@@ -81,7 +81,7 @@ public class HttpRequestProviderTest {
         //then
         assertEquals (request.getFirstHeader ("Proxy-Authorization").getValue (),
                 "Basic amFjazppbnNlY3VyZQ==");
-        assertEquals(((HttpRequestBase)request).getConfig().getProxy().toString(), "http://localhost:80");
+        assertEquals (((HttpRequestBase)request).getConfig ().getProxy ().toString (), "http://localhost:80");
     }
 
     @Test
@@ -89,7 +89,7 @@ public class HttpRequestProviderTest {
         //given
         CommandLine commandLine = ReadArguments.getCommandLineFromRequest (
                 "-x http://jack:insecure@localhost:80/ http://www.google.com/",
-                Collections.emptyList());
+                Collections.emptyList ());
 
         //when
         HttpUriRequest request = HttpRequestProvider.prepareRequest (commandLine);
@@ -97,6 +97,6 @@ public class HttpRequestProviderTest {
         //then
         assertEquals (request.getFirstHeader ("Proxy-Authorization").getValue (),
                 "Basic amFjazppbnNlY3VyZQ==");
-        assertEquals(((HttpRequestBase)request).getConfig().getProxy().toString(), "http://localhost:80");
+        assertEquals (((HttpRequestBase)request).getConfig ().getProxy ().toString (), "http://localhost:80");
     }
 }
