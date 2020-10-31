@@ -33,7 +33,7 @@ final class InterceptorsBinder {
     @SuppressWarnings ("unchecked")
     static void handleInterceptors (CommandLine commandLine, HttpClientBuilder executor, List<BiFunction<HttpRequest, Supplier<HttpResponse>, HttpResponse>> additionalInterceptors) {
         final List<BiFunction<HttpRequest, Supplier<HttpResponse>, HttpResponse>> interceptors =
-                concat (stream (ofNullable (commandLine.getOptionValues (Arguments.INTERCEPTOR.getOpt ())).orElse (new String[0]))
+                concat (stream (Optional.ofNullable (commandLine.getOptionValues (Arguments.INTERCEPTOR.getOpt ())).orElse (new String[0]))
                         .map (methodName -> {
                             final Class<?> targetClass;
                             try {
