@@ -16,8 +16,7 @@ import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
-import org.mockserver.proxy.Proxy;
-import org.mockserver.proxy.ProxyBuilder;
+import org.mockserver.integration.ClientAndServer;
 import org.toilelibre.libe.curl.Curl;
 import org.toilelibre.libe.curl.Curl.CurlException;
 import org.toilelibre.libe.outside.monitor.RequestMonitor;
@@ -44,14 +43,14 @@ public class CurlTest {
 
     private static final Integer proxyPort = Math.abs (new Random ().nextInt ()) % 20000 + 1024;
     private static Logger LOGGER = Logger.getLogger (CurlTest.class.getName ());
-    private static Proxy proxy;
+    private static ClientAndServer proxy;
 
     @BeforeClass
     public static void startRequestMonitor () {
         if (System.getProperty ("skipServer") == null) {
             RequestMonitor.start ();
             StupidHttpServer.start ();
-            proxy = new ProxyBuilder ().withLocalPort (proxyPort).build ();
+            proxy = ClientAndServer.startClientAndServer (proxyPort);
         }
     }
 

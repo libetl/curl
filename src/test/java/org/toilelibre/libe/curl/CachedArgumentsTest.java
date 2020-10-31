@@ -13,20 +13,6 @@ import static org.junit.Assert.*;
 
 public class CachedArgumentsTest {
 
-    private static void setInternalState (
-            final Object receiver,
-            final String fieldName,
-            final Object value) {
-        final Field f = FieldUtils.getField (receiver instanceof Class<?> ? (Class<?>) receiver :
-                receiver.getClass (), fieldName, true);
-        FieldUtils.removeFinalModifier (f);
-        try {
-            f.set (receiver, value);
-        } catch (IllegalAccessException e) {
-            throw new org.junit.AssumptionViolatedException ("Could not inject some value", e);
-        }
-    }
-
     private static int containsKeyCallsCounter = 0;
     private static int getCallsCounter = 0;
 
@@ -47,19 +33,17 @@ public class CachedArgumentsTest {
 
     @Test
     public void curlCommandMatchesShouldBeSavedInCache () {
-        setInternalState (ReadArguments.class, "CACHED_ARGS_MATCHES", SHARED_CACHE);
-
         String args = "-X POST -H 'Content-Type:application/json' " +
                 "-d '{\"test\":{\"name\":\"TEST_NAME\",\"value\":\"TEST_VALUE\"}}'";
 
         CommandLine result1 = ReadArguments.getCommandLineFromRequest (args,
-                emptyList ());
+                emptyList (), SHARED_CACHE);
 
         assertEquals (1, containsKeyCallsCounter);
         assertEquals (0, getCallsCounter);
 
         CommandLine result2 = ReadArguments.getCommandLineFromRequest (args,
-                emptyList ());
+                emptyList (), SHARED_CACHE);
 
         assertEquals (2, containsKeyCallsCounter);
         assertEquals (1, getCallsCounter);

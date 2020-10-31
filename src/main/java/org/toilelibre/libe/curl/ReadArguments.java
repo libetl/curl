@@ -15,12 +15,17 @@ final class ReadArguments {
     private static final Map<String, List<String>> CACHED_ARGS_MATCHES = new HashMap<> ();
 
     static CommandLine getCommandLineFromRequest (final String requestCommand, final List<String> placeholderValues) {
+        return getCommandLineFromRequest (requestCommand, placeholderValues, CACHED_ARGS_MATCHES);
+    }
+
+    static CommandLine getCommandLineFromRequest (final String requestCommand, final List<String> placeholderValues,
+        final Map<String, List<String>> argMatches) {
 
         // configure a parser
         final DefaultParser parser = new DefaultParser ();
 
         final String requestCommandWithoutBasename = requestCommand.replaceAll ("^[ ]*curl[ ]*", " ") + " ";
-        final String[] args = ReadArguments.getArgsFromCommand (requestCommandWithoutBasename, placeholderValues);
+        final String[] args = ReadArguments.getArgsFromCommand (requestCommandWithoutBasename, placeholderValues, argMatches);
         final CommandLine commandLine;
         try {
             commandLine = parser.parse (Arguments.ALL_OPTIONS, args);
@@ -42,14 +47,15 @@ final class ReadArguments {
 
 
     private static String[] getArgsFromCommand (final String requestCommandWithoutBasename,
-                                                final List<String> placeholderValues) {
+                                                final List<String> placeholderValues,
+                                                final Map<String, List<String>> argMatches) {
         final String requestCommandInput = requestCommandWithoutBasename.replaceAll ("\\s+-([a-zA-Z0-9])\\s+", " -$1 ");
         final List<String> matches;
-        if (CACHED_ARGS_MATCHES.containsKey (requestCommandInput)) {
-            matches = CACHED_ARGS_MATCHES.get (requestCommandInput);
+        if (argMatches.containsKey (requestCommandInput)) {
+            matches = argMatches.get (requestCommandInput);
         }else{
             matches = asMatches (Arguments.ARGS_SPLIT_REGEX, requestCommandInput);
-            CACHED_ARGS_MATCHES.put (requestCommandInput, matches);
+            argMatches.put (requestCommandInput, matches);
         }
 
         return ofNullable (matches).map (List :: stream).orElse (Stream.empty ()).map (match -> {
