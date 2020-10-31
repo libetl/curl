@@ -128,7 +128,7 @@
 					</goals>
 					<phase>generate-sources</phase>
 					<configuration>
-						<tasks>
+						<target>
 							<property name="src.dir" value="${project.build.sourceDirectory}" />
 							<property name="package.dir" value="org/toilelibre/libe/curl" />
 							<property name="package.name" value="org.toilelibre.libe.curl" />
@@ -139,7 +139,7 @@
 							<echo file="${src.dir}/${package.dir}/Version.java" append="true" message="  static String NUMBER = &quot;${project.version}&quot;;${line.separator}" />
 							<echo file="${src.dir}/${package.dir}/Version.java" append="true" message="  static String BUILD_TIME = &quot;${buildtime}&quot;;${line.separator}" />
 							<echo file="${src.dir}/${package.dir}/Version.java" append="true" message="}${line.separator}" />
-						</tasks>
+						</target>
 					</configuration>
 				</execution>
 			</executions>
