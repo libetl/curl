@@ -9,7 +9,7 @@ Setup with maven
 
 &nbsp;&nbsp;&nbsp;&nbsp;`<artifactId>curl</artifactId>`
 
-&nbsp;&nbsp;&nbsp;&nbsp;`<version>`![LATEST](https://img.shields.io/maven-central/v/org.toile-libre.libe/curl.svg?logoWidth=-102)`</version>`
+&nbsp;&nbsp;&nbsp;&nbsp;`<version>`![LATEST](https://img.shields.io/maven-central/v/org.toile-libre.libe/curl?label=%20&style=for-the-badge)`</version>`
 
 `</dependency>`
 
