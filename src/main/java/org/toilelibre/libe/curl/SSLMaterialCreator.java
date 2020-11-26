@@ -139,7 +139,7 @@ final class SSLMaterialCreator {
                 certificates.toArray (new java.security.cert.Certificate[0]);
         IntStream.range (0, certificates.size ()).forEach (i -> setCertificateEntry (keyStore, certificates, i));
         IntStream.range (0, caCertificatesFiltered.size ()).forEach (i -> setCaCertificateEntry (keyStore,
-                certificates, i));
+                caCertificatesFiltered, i));
         IntStream.range (0, privateKeys.size ()).forEach (i -> setPrivateKeyEntry (keyStore, privateKeys,
                 keyPasswordAsCharArray, certificatesAsArray, i));
         return keyStore;
