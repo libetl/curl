@@ -2,7 +2,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>org.toile-libre.libe</groupId>
 	<artifactId>curl</artifactId>
-	<version>0.0.39-SNAPSHOT</version>
+	<version>0.0.39</version>
 	<name>curl</name>
 	<description>Curl</description>
 	<url>https://github.com/libetl/curl</url>
@@ -24,7 +24,7 @@
 		<connection>scm:git:git@github.com:libetl/curl.git</connection>
 		<developerConnection>scm:git:git@github.com:libetl/curl.git</developerConnection>
 		<url>git@github.com:libetl/curl.git</url>
-		<tag>${project.version}</tag>
+		<tag>curl-0.0.39</tag>
 	</scm>
 	<distributionManagement>
 		<snapshotRepository>
@@ -139,8 +139,8 @@
 
 							<echo file="${src.dir}/${package.dir}/Version.java" message="package ${package.name};${line.separator}${line.separator}" />
 							<echo file="${src.dir}/${package.dir}/Version.java" append="true" message="final class Version {${line.separator}" />
-							<echo file="${src.dir}/${package.dir}/Version.java" append="true" message="  static String NUMBER = &quot;${project.version}&quot;;${line.separator}" />
-							<echo file="${src.dir}/${package.dir}/Version.java" append="true" message="  static String BUILD_TIME = &quot;${buildtime}&quot;;${line.separator}" />
+							<echo file="${src.dir}/${package.dir}/Version.java" append="true" message=" static String NUMBER = &quot;${project.version}&quot;;${line.separator}" />
+							<echo file="${src.dir}/${package.dir}/Version.java" append="true" message=" static String BUILD_TIME = &quot;${buildtime}&quot;;${line.separator}" />
 							<echo file="${src.dir}/${package.dir}/Version.java" append="true" message="}${line.separator}" />
 						</target>
 					</configuration>
