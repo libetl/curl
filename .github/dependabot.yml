@@ -1,0 +1,30 @@
+version: 2
+updates:
+- package-ecosystem: maven
+  directory: "/"
+  schedule:
+    interval: daily
+    time: "04:00"
+  open-pull-requests-limit: 10
+  ignore:
+  - dependency-name: junit:junit
+    versions:
+    - 4.13.2
+  - dependency-name: org.springframework.boot:spring-boot-starter
+    versions:
+    - 2.4.3
+    - 2.4.4
+  - dependency-name: org.springframework.boot:spring-boot-starter-web
+    versions:
+    - 2.4.3
+    - 2.4.4
+  - dependency-name: org.springframework.boot:spring-boot-starter-jetty
+    versions:
+    - 2.4.4
+  - dependency-name: org.springframework.boot:spring-boot-starter-security
+    versions:
+    - 2.4.4
+  - dependency-name: org.springframework:spring-context
+    versions:
+    - 5.3.4
+    - 5.3.5
