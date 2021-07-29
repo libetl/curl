@@ -22,12 +22,13 @@ import org.toilelibre.libe.curl.Curl.CurlException;
 import org.toilelibre.libe.outside.monitor.RequestMonitor;
 import org.toilelibre.libe.outside.monitor.StupidHttpServer;
 
-import javax.net.ssl.*;
 import java.io.File;
 import java.io.IOException;
 import java.net.SocketTimeoutException;
+import java.nio.charset.StandardCharsets;
 import java.security.*;
 import java.security.cert.*;
+import java.util.Objects;
 import java.util.Random;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
@@ -42,7 +43,7 @@ import static org.toilelibre.libe.curl.Curl.CurlArgumentsBuilder.CurlJavaOptions
 public class CurlTest {
 
     private static final Integer proxyPort = Math.abs (new Random ().nextInt ()) % 20000 + 1024;
-    private static Logger LOGGER = Logger.getLogger (CurlTest.class.getName ());
+    private static final Logger LOGGER = Logger.getLogger (CurlTest.class.getName ());
     private static ClientAndServer proxy;
 
     @BeforeClass
@@ -135,19 +136,19 @@ public class CurlTest {
     @Test
     public void theSkyIsBlueInIvritWithTheWrongEncoding () throws IOException {
         HttpResponse response = this.curl ("-k -E src/test/resources/clients/libe/libe.pem https://localhost:%d/public/  -H 'Content-Type: text/plain; charset=ISO-8859-1' -d \"השמים כחולים\"");
-        Assertions.assertThat (IOUtils.toString (response.getEntity ().getContent (), "utf-8")).contains ("'????? ??????'");
+        Assertions.assertThat (IOUtils.toString (response.getEntity ().getContent (), StandardCharsets.UTF_8)).contains ("'????? ??????'");
     }
 
     @Test
     public void theSkyIsBlueInIvritWithoutEncoding () throws IOException {
         HttpResponse response = this.curl ("-k -E src/test/resources/clients/libe/libe.pem https://localhost:%d/public/  -d \"השמים כחולים\"");
-        Assertions.assertThat (IOUtils.toString (response.getEntity ().getContent (), "utf-8")).contains ("'השמים כחולים'");
+        Assertions.assertThat (IOUtils.toString (response.getEntity ().getContent (), StandardCharsets.UTF_8)).contains ("'השמים כחולים'");
     }
 
     @Test
     public void theSkyIsBlueInIvritWithUTF8Encoding () throws IOException {
         HttpResponse response = this.curl ("-k -E src/test/resources/clients/libe/libe.pem https://localhost:%d/public/  -H 'Content-Type: text/plain; charset=UTF-8'  -d \"השמים כחולים\"");
-        Assertions.assertThat (IOUtils.toString (response.getEntity ().getContent (), "utf-8")).contains ("'השמים כחולים'");
+        Assertions.assertThat (IOUtils.toString (response.getEntity ().getContent (), StandardCharsets.UTF_8)).contains ("'השמים כחולים'");
     }
 
     @Test
@@ -330,8 +331,8 @@ public class CurlTest {
     @Test
     public void withBinaryData () throws IOException {
         HttpResponse response = this.curl ("-k -E src/test/resources/clients/libe/libe.pem --data-binary \"@src/test/resources/clients/libe/libe.der\" -X POST -H 'Accept: */*' -H 'Host: localhost' 'https://localhost:%d/public/data'");
-        String expected = IOUtils.toString (Thread.currentThread ().getContextClassLoader ().getResourceAsStream ("clients/libe/libe.der"));
-        String fullCurl = IOUtils.toString (response.getEntity ().getContent ());
+        String expected = IOUtils.toString (Objects.requireNonNull (Thread.currentThread ().getContextClassLoader ().getResourceAsStream ("clients/libe/libe.der")), StandardCharsets.UTF_8);
+        String fullCurl = IOUtils.toString (response.getEntity ().getContent (), StandardCharsets.UTF_8);
         String actual = fullCurl.substring (fullCurl.indexOf ("-d '") + 4, fullCurl.indexOf ("'  'https"));
         Assertions.assertThat (actual.length ()).isEqualTo (expected.length ());
     }
@@ -462,7 +463,7 @@ public class CurlTest {
     }
 
     @SuppressWarnings ("unused")
-    private BiFunction<HttpRequest, Supplier<HttpResponse>, HttpResponse> mySecondInterceptor =
+    private final BiFunction<HttpRequest, Supplier<HttpResponse>, HttpResponse> mySecondInterceptor =
             (request, responseSupplier) -> {
         LOGGER.info ("I log something before the call (from a lambda)");
         HttpResponse response = responseSupplier.get ();
