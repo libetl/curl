@@ -331,7 +331,7 @@ public class CurlTest {
     @Test
     public void withBinaryData () throws IOException {
         HttpResponse response = this.curl ("-k -E src/test/resources/clients/libe/libe.pem --data-binary \"@src/test/resources/clients/libe/libe.der\" -X POST -H 'Accept: */*' -H 'Host: localhost' 'https://localhost:%d/public/data'");
-        String expected = IOUtils.toString (Objects.requireNonNull(Thread.currentThread().getContextClassLoader().getResourceAsStream("clients/libe/libe.der")), StandardCharsets.UTF_8);
+        String expected = IOUtils.toString (Objects.requireNonNull (Thread.currentThread ().getContextClassLoader ().getResourceAsStream ("clients/libe/libe.der")), StandardCharsets.UTF_8);
         String fullCurl = IOUtils.toString (response.getEntity ().getContent (), StandardCharsets.UTF_8);
         String actual = fullCurl.substring (fullCurl.indexOf ("-d '") + 4, fullCurl.indexOf ("'  'https"));
         Assertions.assertThat (actual.length ()).isEqualTo (expected.length ());
