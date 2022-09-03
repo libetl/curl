@@ -398,6 +398,7 @@ public class CurlTest {
     }
 
     @Test
+    @Ignore // tls v1.1 is now disabled in all recent versions of the jdk, so this test will always fail
     public void curlTlsV11 () {
         this.assertOk (this.curl ("-k -E src/test/resources/clients/libe/libe.pem https://localhost:%d/public/ --tlsv1.1"));
     }

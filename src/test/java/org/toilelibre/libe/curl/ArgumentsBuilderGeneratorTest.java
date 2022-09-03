@@ -33,7 +33,6 @@ public class ArgumentsBuilderGeneratorTest {
 
     @Test
     public void addOptionsToArgumentsBuilder () throws NotFoundException, CannotCompileException, IOException {
-
         final ClassPool pool = ClassPool.getDefault ();
         final CtClass argsBuilderClass = pool.get (CurlArgumentsBuilder.class.getName ());
         final CtClass stringType = pool.get (String.class.getName ());
@@ -47,9 +46,9 @@ public class ArgumentsBuilderGeneratorTest {
         for (final Option option : Arguments.ALL_OPTIONS.getOptions ()) {
             final String shortMethodName = this.methodNameOf (option.getOpt ());
             final String longMethodName = this.methodNameOf (option.getLongOpt ());
-            argsBuilderClass.addMethod (this.builderOptionMethod (argsBuilderClass, stringType, shortMethodName, option.getOpt (), option.hasArg ()));
+            argsBuilderClass.addMethod (this.builderOptionMethod (argsBuilderClass, stringType, longMethodName, option.getLongOpt (), option.hasArg ()));
             if (!shortMethodName.equals (longMethodName)) {
-                argsBuilderClass.addMethod (this.builderOptionMethod (argsBuilderClass, stringType, longMethodName, option.getLongOpt (), option.hasArg ()));
+                argsBuilderClass.addMethod (this.builderOptionMethod (argsBuilderClass, stringType, shortMethodName, option.getOpt (), option.hasArg ()));
             }
         }
 
