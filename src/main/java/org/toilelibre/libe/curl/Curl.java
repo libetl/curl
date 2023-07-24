@@ -3,6 +3,7 @@ package org.toilelibre.libe.curl;
 import org.apache.commons.cli.*;
 import org.apache.http.*;
 import org.apache.http.conn.*;
+import org.apache.http.impl.client.HttpClientBuilder;
 
 import java.io.*;
 import java.util.*;
@@ -69,7 +70,7 @@ public final class Curl {
             stopAndDisplayVersionIfThe (commandLine.hasOption (Arguments.VERSION.getOpt ()));
             final HttpResponse response =
                     HttpClientProvider.prepareHttpClient (commandLine, curlJavaOptions.getInterceptors (),
-                            curlJavaOptions.getConnectionManager ()).execute (
+                            curlJavaOptions.getHttpClientBuilder()).execute (
                             HttpRequestProvider.prepareRequest (commandLine));
             AfterResponse.handle (commandLine, response);
             return response;
@@ -94,12 +95,12 @@ public final class Curl {
         public static class CurlJavaOptions {
             private final List<BiFunction<HttpRequest, Supplier<HttpResponse>, HttpResponse>> interceptors;
             private final List<String> placeHolders;
-            private final HttpClientConnectionManager connectionManager;
+            private final HttpClientBuilder httpClientBuilder;
 
             private CurlJavaOptions (Builder builder) {
                 interceptors = builder.interceptors;
                 placeHolders = builder.placeHolders;
-                connectionManager = builder.connectionManager;
+                httpClientBuilder = builder.httpClientBuilder;
             }
 
             public static Builder with () {
@@ -114,15 +115,15 @@ public final class Curl {
                 return placeHolders;
             }
 
-            public HttpClientConnectionManager getConnectionManager () {
-                return connectionManager;
+            public HttpClientBuilder getHttpClientBuilder () {
+                return this.httpClientBuilder;
             }
 
             public static final class Builder {
                 private List<BiFunction<HttpRequest, Supplier<HttpResponse>, HttpResponse>> interceptors
                         = new ArrayList<> ();
                 private List<String> placeHolders;
-                private HttpClientConnectionManager connectionManager;
+                private HttpClientBuilder httpClientBuilder;
 
                 private Builder () {
                 }
@@ -137,8 +138,8 @@ public final class Curl {
                     return this;
                 }
 
-                public Builder connectionManager (HttpClientConnectionManager val) {
-                    connectionManager = val;
+                public Builder httpClientBuilder (HttpClientBuilder httpClientBuilder) {
+                    this.httpClientBuilder = httpClientBuilder;
                     return this;
                 }
 

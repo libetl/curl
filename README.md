@@ -71,9 +71,9 @@ curl()
        HttpResponse response = responseSupplier.get();
        LOGGER.info("I log something after the call, status code is {}",
        response.getStatusLine().getStatusCode());
-       return response;}))
-                      .connectionManager(new PoolingHttpClientConnectionManager ())
-                      .placeHolders(asList("fr-FR", "text/html")).build())
+       return response;})).httpClientBuilder(HttpClients.custom()
+                      .setConnectionManager(new PoolingHttpClientConnectionManager ())
+                      .placeHolders(asList("fr-FR", "text/html"))).build())
    .hUpperCase("'Accept-Language: $curl_placeholder_0'")
    .hUpperCase("'Accept: $curl_placeholder_1'")
    .run("http://www.google.com");

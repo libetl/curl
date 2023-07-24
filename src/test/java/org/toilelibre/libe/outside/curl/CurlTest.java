@@ -8,6 +8,7 @@ import org.apache.http.config.*;
 import org.apache.http.conn.ConnectTimeoutException;
 import org.apache.http.conn.socket.*;
 import org.apache.http.conn.ssl.*;
+import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.conn.*;
 import org.apache.http.ssl.SSLContextBuilder;
 import org.assertj.core.api.Assertions;
@@ -171,12 +172,12 @@ public class CurlTest {
         KeyStore keystore = KeyStore.getInstance ("JKS");
         keystore.load (Thread.currentThread ().getContextClassLoader ().getResourceAsStream ("clients/libe/libe.jks"), "mylibepass".toCharArray ());
         this.assertOk (this.curl ("https://localhost:%d/public/",
-                with ().connectionManager (new PoolingHttpClientConnectionManager (RegistryBuilder.<ConnectionSocketFactory>create ()
+                with ().httpClientBuilder(HttpClients.custom().setConnectionManager (new PoolingHttpClientConnectionManager (RegistryBuilder.<ConnectionSocketFactory>create ()
                         .register ("https", new SSLConnectionSocketFactory (SSLContextBuilder.create ()
                                 .loadTrustMaterial (null, new TrustSelfSignedStrategy ())
                                 .loadKeyMaterial (keystore, "mylibepass".toCharArray ())
                                 .build (), NoopHostnameVerifier.INSTANCE))
-                        .build ())).build ()));
+                        .build ()))).build ()));
     }
 
     @Test

@@ -18,32 +18,29 @@ final class HttpClientProvider {
 
     static HttpClient prepareHttpClient (final CommandLine commandLine,
                                          List<BiFunction<HttpRequest, Supplier<HttpResponse>, HttpResponse>> additionalInterceptors,
-                                         HttpClientConnectionManager connectionManager) throws CurlException {
-        HttpClientBuilder executor = HttpClientBuilder.create ();
+                                         HttpClientBuilder httpClientBuilder) throws CurlException {
+        if(httpClientBuilder == null)
+            httpClientBuilder = HttpClientBuilder.create ();
 
         if (!commandLine.hasOption (Arguments.COMPRESSED.getOpt ())){
-            executor.disableContentCompression ();
-        }
-
-        if (connectionManager != null) {
-            executor.setConnectionManager (connectionManager);
+            httpClientBuilder.disableContentCompression ();
         }
 
         final String hostname;
         try {
             hostname = InetAddress.getLocalHost ().getHostName ();
         } catch (final UnknownHostException e1) {
-            throw new Curl.CurlException (e1);
+            throw new CurlException (e1);
         }
 
-        executor = handleAuthMethod (commandLine, executor, hostname);
+        httpClientBuilder = handleAuthMethod (commandLine, httpClientBuilder, hostname);
 
         if (! commandLine.hasOption (Arguments.FOLLOW_REDIRECTS.getOpt ())) {
-            executor.disableRedirectHandling ();
+            httpClientBuilder.disableRedirectHandling ();
         }
 
-        handleSSLParams (commandLine, executor);
-        InterceptorsBinder.handleInterceptors (commandLine, executor, additionalInterceptors);
-        return executor.build ();
+        handleSSLParams (commandLine, httpClientBuilder);
+        InterceptorsBinder.handleInterceptors (commandLine, httpClientBuilder, additionalInterceptors);
+        return httpClientBuilder.build ();
     }
 }

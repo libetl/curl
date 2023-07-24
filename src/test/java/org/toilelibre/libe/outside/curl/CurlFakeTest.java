@@ -6,6 +6,7 @@ import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.client.methods.HttpRequestWrapper;
 import org.apache.http.config.RegistryBuilder;
 import org.apache.http.conn.socket.ConnectionSocketFactory;
+import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.util.VersionInfo;
@@ -98,12 +99,12 @@ public class CurlFakeTest {
 
     private HttpResponse curl (final String requestCommand, Consumer<HttpContext> assertions) {
         return org.toilelibre.libe.curl.Curl.curl (requestCommand,
-                Curl.CurlArgumentsBuilder.CurlJavaOptions.with ().connectionManager (
+                Curl.CurlArgumentsBuilder.CurlJavaOptions.with ().httpClientBuilder(HttpClients.custom().setConnectionManager(
                         new PoolingHttpClientConnectionManager (RegistryBuilder.<ConnectionSocketFactory>create ()
                                 .register ("https", new FakeConnectionSocketFactory (assertions))
                                 .register ("http", new FakeConnectionSocketFactory (assertions))
                                 .build (),
-                                host -> new InetAddress[] {InetAddress.getLoopbackAddress ()})).build ());
+                                host -> new InetAddress[] {InetAddress.getLoopbackAddress ()}))).build ());
     }
 
     private static class FakeConnectionSocketFactory implements ConnectionSocketFactory {
