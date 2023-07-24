@@ -21,10 +21,13 @@ import static java.util.stream.Collectors.*;
 import static org.toilelibre.libe.curl.IOUtils.*;
 import static org.toilelibre.libe.curl.PayloadReader.*;
 
-final class HttpRequestProvider {
+public final class HttpRequestProvider {
 
-    static HttpUriRequest prepareRequest (final CommandLine commandLine) throws CurlException {
+    public static HttpUriRequest prepareRequest (final CommandLine commandLine) throws CurlException {
+        return requestBuilder(commandLine).build ();
+    }
 
+    public static RequestBuilder requestBuilder (final CommandLine commandLine) throws CurlException {
         final String method = getMethod (commandLine);
         final RequestBuilder request = wrapInRequestBuilder (method, commandLine.getArgs ()[0]);
 
@@ -40,7 +43,7 @@ final class HttpRequestProvider {
 
         request.setConfig (HttpRequestProvider.getConfig (commandLine));
 
-        return request.build ();
+        return request;
 
     }
 
