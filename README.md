@@ -1,5 +1,5 @@
 # curl [![License: Unlicense](https://img.shields.io/badge/license-Unlicense-blue.svg)](http://unlicense.org/)
-curl command in java (using Apache libs : HttpClient and commons-cli)
+curl command in java (using Apache libs : HttpClient 5 and commons-cli)
 
 Setup with maven
 
@@ -15,7 +15,7 @@ Setup with maven
 
 Usage
 ```java
-    org.apache.http.HttpResponse org.toilelibre.libe.curl.Curl.curl (String curlParams);
+    org.apache.hc.core5.http.ClassicHttpResponse org.toilelibre.libe.curl.Curl.curl (String curlParams);
     String org.toilelibre.libe.curl.Curl.$ (String curlCommand); //Returns responseBody
 ```
 

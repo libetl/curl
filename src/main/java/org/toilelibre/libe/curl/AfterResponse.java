@@ -1,7 +1,9 @@
 package org.toilelibre.libe.curl;
 
 import org.apache.commons.cli.*;
-import org.apache.http.*;
+import org.apache.hc.core5.http.ClassicHttpResponse;
+import org.apache.hc.core5.http.HttpEntity;
+import org.apache.hc.core5.http.HttpResponse;
 import org.toilelibre.libe.curl.Curl.*;
 
 import java.io.*;
@@ -17,7 +19,7 @@ final class AfterResponse {
 
         File file = createTheOutputFile (commandLine.getOptionValue (Arguments.OUTPUT.getOpt ()));
         FileOutputStream outputStream = getOutputStreamFromFile (file);
-        writeTheResponseEntityInsideStream (outputStream, response.getEntity ());
+        writeTheResponseEntityInsideStream (outputStream, ((ClassicHttpResponse) response).getEntity ());
     }
 
     private static void writeTheResponseEntityInsideStream (FileOutputStream outputStream, HttpEntity httpEntity) {

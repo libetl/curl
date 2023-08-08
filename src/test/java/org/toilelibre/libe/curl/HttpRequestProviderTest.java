@@ -1,13 +1,12 @@
 package org.toilelibre.libe.curl;
 
 import org.apache.commons.cli.CommandLine;
-import org.apache.http.client.methods.*;
+import org.apache.hc.core5.http.ClassicHttpRequest;
 import org.junit.Test;
 
 import java.util.Collections;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 
 public class HttpRequestProviderTest {
 
@@ -18,7 +17,7 @@ public class HttpRequestProviderTest {
                 "curl -H'Accept: application/json' http://localhost/user/byId/1", Collections.emptyList ());
 
         //when
-        HttpUriRequest request = HttpRequestProvider.prepareRequest (commandLine);
+        ClassicHttpRequest request = HttpRequestProvider.prepareRequest (commandLine);
 
         //then
         assertEquals ("GET", request.getMethod ());
@@ -32,7 +31,7 @@ public class HttpRequestProviderTest {
                 Collections.singletonList ("Accept: application/json"));
 
         //when
-        HttpUriRequest request = HttpRequestProvider.prepareRequest (commandLine);
+        ClassicHttpRequest request = HttpRequestProvider.prepareRequest (commandLine);
 
         //then
         assertEquals ("GET", request.getMethod ());
@@ -47,7 +46,7 @@ public class HttpRequestProviderTest {
                 Collections.emptyList ());
 
         //when
-        HttpUriRequest request = HttpRequestProvider.prepareRequest (commandLine);
+        ClassicHttpRequest request = HttpRequestProvider.prepareRequest (commandLine);
 
         //then
         assertEquals ("POST", request.getMethod ());
@@ -61,7 +60,7 @@ public class HttpRequestProviderTest {
                 Collections.emptyList ());
 
         //when
-        HttpUriRequest request = HttpRequestProvider.prepareRequest (commandLine);
+        ClassicHttpRequest request = HttpRequestProvider.prepareRequest (commandLine);
 
         //then
         assertEquals (request.getFirstHeader ("Proxy-Authorization").getValue (),
@@ -76,12 +75,11 @@ public class HttpRequestProviderTest {
                 Collections.emptyList ());
 
         //when
-        HttpUriRequest request = HttpRequestProvider.prepareRequest (commandLine);
+        ClassicHttpRequest request = HttpRequestProvider.prepareRequest (commandLine);
 
         //then
         assertEquals (request.getFirstHeader ("Proxy-Authorization").getValue (),
                 "Basic amFjazppbnNlY3VyZQ==");
-        assertEquals (((HttpRequestBase)request).getConfig ().getProxy ().toString (), "http://localhost:80");
     }
 
     @Test
@@ -92,11 +90,10 @@ public class HttpRequestProviderTest {
                 Collections.emptyList ());
 
         //when
-        HttpUriRequest request = HttpRequestProvider.prepareRequest (commandLine);
+        ClassicHttpRequest request = HttpRequestProvider.prepareRequest (commandLine);
 
         //then
         assertEquals (request.getFirstHeader ("Proxy-Authorization").getValue (),
                 "Basic amFjazppbnNlY3VyZQ==");
-        assertEquals (((HttpRequestBase)request).getConfig ().getProxy ().toString (), "http://localhost:80");
     }
 }

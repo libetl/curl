@@ -1,6 +1,6 @@
 package org.toilelibre.libe.curl;
 
-import org.apache.http.*;
+import org.apache.hc.core5.http.HttpEntity;
 
 import java.io.*;
 import java.nio.charset.*;

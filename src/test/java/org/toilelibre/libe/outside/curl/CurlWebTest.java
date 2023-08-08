@@ -1,7 +1,7 @@
 package org.toilelibre.libe.outside.curl;
 
 import org.apache.commons.io.IOUtils;
-import org.apache.http.HttpResponse;
+import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.junit.Assert;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -21,7 +21,7 @@ public class CurlWebTest {
     @Ignore // keeps failing
     @Test
     public void proxyWithAuthentication () throws IOException {
-        HttpResponse response = curl ("http://httpbin.org/get -x http://204.133.187.66:3128 -U user:password");
+        ClassicHttpResponse response = curl ("http://httpbin.org/get -x http://204.133.187.66:3128 -U user:password");
         String body = IOUtils.toString (response.getEntity ().getContent ());
         Assert.assertTrue (body.contains ("Host\": \"httpbin.org\""));
         Assert.assertTrue (Pattern.compile ("\"origin\": \"[a-zA-Z0-9.]+, [0-9.]+\"").matcher (body).find ());
