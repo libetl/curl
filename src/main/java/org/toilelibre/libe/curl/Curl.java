@@ -1,6 +1,7 @@
 package org.toilelibre.libe.curl;
 
 import org.apache.commons.cli.*;
+import org.apache.hc.client5.http.impl.classic.HttpClientBuilder;
 import org.apache.hc.client5.http.io.HttpClientConnectionManager;
 import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.HttpRequest;
@@ -73,6 +74,7 @@ public final class Curl {
             final ClassicHttpResponse response = (ClassicHttpResponse)
                     HttpClientProvider.prepareHttpClient (commandLine, curlJavaOptions.getInterceptors (),
                             curlJavaOptions.getConnectionManager (),
+                            curlJavaOptions.getHttpClientCustomizer(),
                             curlJavaOptions.getContextTester()).execute (
                             HttpRequestProvider.prepareRequest (commandLine));
             AfterResponse.handle (commandLine, response);
@@ -100,11 +102,13 @@ public final class Curl {
             private final List<String> placeHolders;
             private final HttpClientConnectionManager connectionManager;
             private final Consumer<HttpContext> contextTester;
+            private final Consumer<org.apache.hc.client5.http.impl.classic.HttpClientBuilder> httpClientCustomizer;
             private CurlJavaOptions (Builder builder) {
                 interceptors = builder.interceptors;
                 placeHolders = builder.placeHolders;
                 connectionManager = builder.connectionManager;
                 contextTester = builder.contextTester;
+                httpClientCustomizer = builder.httpClientCustomizer;
             }
 
             public static Builder with () {
@@ -127,6 +131,10 @@ public final class Curl {
                 return contextTester;
             }
 
+            public Consumer<HttpClientBuilder> getHttpClientCustomizer() {
+                return httpClientCustomizer;
+            }
+
             public static final class Builder {
                 private List<BiFunction<HttpRequest, Supplier<ClassicHttpResponse>, ClassicHttpResponse>> interceptors
                         = new ArrayList<> ();
@@ -134,6 +142,7 @@ public final class Curl {
                 private HttpClientConnectionManager connectionManager;
 
                 private Consumer<HttpContext> contextTester;
+                private Consumer<org.apache.hc.client5.http.impl.classic.HttpClientBuilder> httpClientCustomizer;
 
                 private Builder () {
                 }
@@ -155,6 +164,11 @@ public final class Curl {
 
                 public Builder contextTester (Consumer<HttpContext> val) {
                     contextTester = val;
+                    return this;
+                }
+
+                public Builder httpClientCustomizer (Consumer<org.apache.hc.client5.http.impl.classic.HttpClientBuilder> val) {
+                    httpClientCustomizer = val;
                     return this;
                 }
 

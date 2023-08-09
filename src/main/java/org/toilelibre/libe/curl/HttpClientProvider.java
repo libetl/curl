@@ -7,7 +7,6 @@ import org.apache.hc.client5.http.io.HttpClientConnectionManager;
 import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.protocol.HttpContext;
-import org.apache.hc.core5.http.protocol.HttpProcessor;
 import org.toilelibre.libe.curl.Curl.CurlException;
 
 import java.net.InetAddress;
@@ -26,8 +25,13 @@ final class HttpClientProvider {
     static HttpClient prepareHttpClient (final CommandLine commandLine,
                                          List<BiFunction<HttpRequest, Supplier<ClassicHttpResponse>, ClassicHttpResponse>> additionalInterceptors,
                                          HttpClientConnectionManager connectionManager,
+                                         Consumer<org.apache.hc.client5.http.impl.classic.HttpClientBuilder> httpClientCustomizer,
                                          Consumer<HttpContext> contextTester) throws CurlException {
         HttpClientBuilder executor = HttpClientBuilder.create ();
+
+        if (httpClientCustomizer != null) {
+            httpClientCustomizer.accept(executor);
+        }
 
         if (!commandLine.hasOption (Arguments.COMPRESSED.getOpt ())){
             executor.disableContentCompression ();

@@ -55,7 +55,7 @@ How to get Google Homepage with this lib :
     }
 ```
 
-You can also specify four additional curl options using jvm code :
+You can also specify five additional curl options using jvm code :
 * javaOptions.interceptor can be used to surround the call with a custom
   handling
 * javaOptions.placeHolders allows to define substitution variables
@@ -63,6 +63,7 @@ You can also specify four additional curl options using jvm code :
 * javaOptions.connectionManager allows to specify your own connection
   manager for pooling purposes or optimization purposes
   (warning, this will break the trust insecure behavior)
+* javaOptions.httpClientCustomizer lets you manipulate the HttpClientBuilder
 * javaOptions.contextTester allows to inspect the request resolved information (it is a Consumer of HttpContext)
 
 ```java
