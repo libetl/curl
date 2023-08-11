@@ -1,5 +1,5 @@
 # curl [![License: Unlicense](https://img.shields.io/badge/license-Unlicense-blue.svg)](http://unlicense.org/)
-curl command in java (using Apache libs : HttpClient and commons-cli)
+curl command in java (using Apache libs : HttpClient 5 and commons-cli)
 
 Setup with maven
 
@@ -15,7 +15,7 @@ Setup with maven
 
 Usage
 ```java
-    org.apache.http.HttpResponse org.toilelibre.libe.curl.Curl.curl (String curlParams);
+    org.apache.hc.core5.http.ClassicHttpResponse org.toilelibre.libe.curl.Curl.curl (String curlParams);
     String org.toilelibre.libe.curl.Curl.$ (String curlCommand); //Returns responseBody
 ```
 
@@ -55,7 +55,7 @@ How to get Google Homepage with this lib :
     }
 ```
 
-You can also specify three additional curl options using jvm code :
+You can also specify five additional curl options using jvm code :
 * javaOptions.interceptor can be used to surround the call with a custom
   handling
 * javaOptions.placeHolders allows to define substitution variables
@@ -63,6 +63,8 @@ You can also specify three additional curl options using jvm code :
 * javaOptions.connectionManager allows to specify your own connection
   manager for pooling purposes or optimization purposes
   (warning, this will break the trust insecure behavior)
+* javaOptions.httpClientCustomizer lets you manipulate the HttpClientBuilder
+* javaOptions.contextTester allows to inspect the request resolved information (it is a Consumer of HttpContext)
 
 ```java
 curl()

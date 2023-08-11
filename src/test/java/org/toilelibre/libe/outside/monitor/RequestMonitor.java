@@ -7,30 +7,35 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
 
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.Part;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.Part;
 
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.Banner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.batch.JobExecutionExitCodeGenerator;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
+import org.springframework.security.config.annotation.web.configurers.LogoutConfigurer;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.provisioning.InMemoryUserDetailsManager;
+import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -39,8 +44,6 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 
-import com.fasterxml.jackson.core.JsonParseException;
-import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 @SpringBootApplication
@@ -167,20 +170,30 @@ public class RequestMonitor {
 
     @Configuration
     @EnableWebSecurity
-    static class WebSecurityConfig extends WebSecurityConfigurerAdapter {
-        @Override
-        protected void configure (final HttpSecurity http) throws Exception {
-            http.authorizeRequests ().antMatchers ("/private").permitAll ().anyRequest ().authenticated ().and ().httpBasic ().realmName ("basic").and ().logout ().permitAll ();
+    static class WebSecurityConfig {
+
+        @Bean
+        public SecurityFilterChain filterChain(HttpSecurity http, UserDetailsService users) throws Exception {
+            http.authorizeHttpRequests (request -> request.requestMatchers ("/private").permitAll ().anyRequest ().authenticated ())
+                    .userDetailsService(users)
+                    .httpBasic (request -> request.realmName ("basic"))
+                    .logout (LogoutConfigurer::permitAll);
+            return http.build();
         }
 
-        @Override
-        public void configure (final WebSecurity http) {
-            http.ignoring ().antMatchers ("/public/**");
+        @Bean
+        public WebSecurityCustomizer configure () {
+            return (web) -> web.ignoring ().requestMatchers ("/public/**");
         }
 
-        @Autowired
-        public void configureGlobal (final AuthenticationManagerBuilder auth) throws Exception {
-            auth.inMemoryAuthentication ().withUser ("user").password ("{noop}password").roles ("USER");
+        @Bean
+        public UserDetailsService users() {
+            UserDetails user = User.builder()
+                    .username("user")
+                    .password("{noop}password")
+                    .roles("USER")
+                    .build();
+            return new InMemoryUserDetailsManager(user);
         }
     }
 

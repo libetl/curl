@@ -1,26 +1,28 @@
 package org.toilelibre.libe.outside.curl;
 
-import org.apache.http.HttpHost;
-import org.apache.http.HttpResponse;
-import org.apache.http.client.methods.HttpRequestBase;
-import org.apache.http.client.methods.HttpRequestWrapper;
-import org.apache.http.config.RegistryBuilder;
-import org.apache.http.conn.socket.ConnectionSocketFactory;
-import org.apache.http.impl.client.HttpClients;
-import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
-import org.apache.http.protocol.HttpContext;
-import org.apache.http.util.VersionInfo;
+import org.apache.hc.client5.http.DnsResolver;
+import org.apache.hc.client5.http.auth.AuthExchange;
+import org.apache.hc.client5.http.impl.DefaultSchemePortResolver;
+import org.apache.hc.client5.http.impl.io.ManagedHttpClientConnectionFactory;
+import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
+import org.apache.hc.client5.http.protocol.HttpClientContext;
+import org.apache.hc.client5.http.socket.ConnectionSocketFactory;
+import org.apache.hc.core5.http.ClassicHttpResponse;
+import org.apache.hc.core5.http.HttpHost;
+import org.apache.hc.core5.http.HttpRequest;
+import org.apache.hc.core5.http.config.RegistryBuilder;
+import org.apache.hc.core5.http.protocol.HttpContext;
+import org.apache.hc.core5.pool.PoolConcurrencyPolicy;
+import org.apache.hc.core5.pool.PoolReusePolicy;
+import org.apache.hc.core5.util.TimeValue;
+import org.apache.hc.core5.util.Timeout;
+import org.apache.hc.core5.util.VersionInfo;
 import org.junit.Test;
 import org.toilelibre.libe.curl.Curl;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.net.InetAddress;
-import java.net.InetSocketAddress;
-import java.net.Socket;
-import java.net.URI;
+import java.io.*;
+import java.net.*;
+import java.util.Map;
 import java.util.function.Consumer;
 
 import static org.junit.Assert.assertEquals;
@@ -39,9 +41,10 @@ public class CurlFakeTest {
     public void curlVerifyHost () {
         this.curl ("https://put.anything.in.this.url:1337",
                 context ->
-                    assertEquals (URI.create ("https://put.anything.in.this.url:1337"),
-                            ((HttpRequestBase)((HttpRequestWrapper)
-                                    context.getAttribute ("http.request")).getOriginal ()).getURI())
+                    assertEquals ("https://put.anything.in.this.url:1337",
+                            (((Map<HttpHost, AuthExchange>)
+                                    context.getAttribute ("http.auth.exchanges"))
+                                    .keySet().iterator().next()).toString())
                 );
     }
 
@@ -50,7 +53,7 @@ public class CurlFakeTest {
         this.curl ("-H 'Titi: toto' https://put.anything.in.this.url:1337",
                 context ->
                         assertEquals ("toto",
-                                ((HttpRequestWrapper)
+                                ((HttpRequest)
                                         context.getAttribute ("http.request"))
                                         .getLastHeader ("Titi").getValue ()));
     }
@@ -60,7 +63,7 @@ public class CurlFakeTest {
         this.curl ("-H 'User-Agent: toto' https://put.anything.in.this.url:1337",
                 context ->
                         assertEquals ("toto",
-                                ((HttpRequestWrapper)
+                                ((HttpRequest)
                                         context.getAttribute ("http.request"))
                                         .getLastHeader ("User-Agent").getValue ()));
     }
@@ -70,7 +73,7 @@ public class CurlFakeTest {
         this.curl ("-H 'User-Agent: toto' -A titi https://put.anything.in.this.url:1337",
                 context ->
                         assertEquals ("toto",
-                                ((HttpRequestWrapper)
+                                ((HttpRequest)
                                         context.getAttribute ("http.request"))
                                         .getLastHeader ("User-Agent").getValue ()));
     }
@@ -80,7 +83,7 @@ public class CurlFakeTest {
         this.curl ("-A titi https://put.anything.in.this.url:1337",
                 context ->
                         assertEquals ("titi",
-                                ((HttpRequestWrapper)
+                                ((HttpRequest)
                                         context.getAttribute ("http.request"))
                                         .getLastHeader ("User-Agent").getValue ()));
     }
@@ -90,21 +93,36 @@ public class CurlFakeTest {
         this.curl ("https://put.anything.in.this.url:1337",
                 context ->
                         assertEquals (Curl.class.getPackage ().getName () + "/" + Curl.getVersion () +
-                                        VersionInfo.getUserAgent (", Apache-HttpClient",
+                                        VersionInfo.getSoftwareInfo (", Apache-HttpClient",
                                                 "org.apache.http.client", CurlFakeTest.class),
-                                ((HttpRequestWrapper)
-                                        context.getAttribute ("http.request"))
+                                ((HttpRequest) context.getAttribute ("http.request"))
                                         .getLastHeader ("User-Agent").getValue ()));
     }
 
-    private HttpResponse curl (final String requestCommand, Consumer<HttpContext> assertions) {
+    private ClassicHttpResponse curl (final String requestCommand, Consumer<HttpContext> assertions) {
         return org.toilelibre.libe.curl.Curl.curl (requestCommand,
                 Curl.CurlArgumentsBuilder.CurlJavaOptions.with ().httpClientBuilder(HttpClients.custom().setConnectionManager(
-                        new PoolingHttpClientConnectionManager (RegistryBuilder.<ConnectionSocketFactory>create ()
-                                .register ("https", new FakeConnectionSocketFactory (assertions))
-                                .register ("http", new FakeConnectionSocketFactory (assertions))
-                                .build (),
-                                host -> new InetAddress[] {InetAddress.getLoopbackAddress ()}))).build ());
+                        new PoolingHttpClientConnectionManager(RegistryBuilder.<ConnectionSocketFactory>create()
+                                .register("https", new FakeConnectionSocketFactory())
+                                .register("http", new FakeConnectionSocketFactory())
+                                .build(),
+                                PoolConcurrencyPolicy.LAX,
+                                PoolReusePolicy.FIFO,
+                                TimeValue.ofSeconds(60),
+                                new DefaultSchemePortResolver(),
+                                new DnsResolver() {
+                                    @Override
+                                    public InetAddress[] resolve(String host) throws UnknownHostException {
+                                        return new InetAddress[] {InetAddress.getLoopbackAddress ()};
+                                    }
+
+                                    @Override
+                                    public String resolveCanonicalHostname(String host) throws UnknownHostException {
+                                        return "localhost";
+                                    }
+                                },
+                                new ManagedHttpClientConnectionFactory())))
+                        .contextTester(httpContext -> assertions.accept(httpContext)).build());
     }
 
     private static class FakeConnectionSocketFactory implements ConnectionSocketFactory {
@@ -129,15 +147,11 @@ public class CurlFakeTest {
                         "</body>\n" +
                         "</html>\n").getBytes ();
 
-        private final Consumer<HttpContext> assertions;
+        public FakeConnectionSocketFactory () {}
 
-        public FakeConnectionSocketFactory (Consumer<HttpContext> assertions) {
-            this.assertions = assertions;
-        }
 
         @Override
-        public Socket createSocket (HttpContext context) {
-
+        public Socket createSocket(org.apache.hc.core5.http.protocol.HttpContext context) throws IOException {
             return new Socket (){
                 @Override
                 public InputStream getInputStream () {
@@ -151,13 +165,13 @@ public class CurlFakeTest {
         }
 
         @Override
-        public Socket connectSocket (int connectTimeout, Socket sock,
-                                    HttpHost host,
-                                    InetSocketAddress remoteAddress,
-                                    InetSocketAddress localAddress,
-                                    HttpContext context) {
-            assertions.accept (context);
-            return sock;
+        public Socket connectSocket(TimeValue connectTimeout, Socket socket, org.apache.hc.core5.http.HttpHost host, InetSocketAddress remoteAddress, InetSocketAddress localAddress, org.apache.hc.core5.http.protocol.HttpContext context) throws IOException {
+            return socket;
+        }
+
+        @Override
+        public Socket connectSocket(Socket socket, org.apache.hc.core5.http.HttpHost host, InetSocketAddress remoteAddress, InetSocketAddress localAddress, Timeout connectTimeout, Object attachment, org.apache.hc.core5.http.protocol.HttpContext context) throws IOException {
+            return ConnectionSocketFactory.super.connectSocket(socket, host, remoteAddress, localAddress, connectTimeout, attachment, context);
         }
     }
 }

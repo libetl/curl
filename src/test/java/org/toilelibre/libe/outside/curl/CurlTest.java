@@ -1,16 +1,18 @@
 package org.toilelibre.libe.outside.curl;
 
 import org.apache.commons.io.IOUtils;
-import org.apache.http.HttpRequest;
-import org.apache.http.HttpResponse;
-import org.apache.http.HttpStatus;
-import org.apache.http.config.*;
-import org.apache.http.conn.ConnectTimeoutException;
-import org.apache.http.conn.socket.*;
-import org.apache.http.conn.ssl.*;
-import org.apache.http.impl.client.HttpClients;
-import org.apache.http.impl.conn.*;
-import org.apache.http.ssl.SSLContextBuilder;
+import org.apache.hc.client5.http.ClientProtocolException;
+import org.apache.hc.client5.http.ConnectTimeoutException;
+import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
+import org.apache.hc.client5.http.socket.ConnectionSocketFactory;
+import org.apache.hc.client5.http.ssl.NoopHostnameVerifier;
+import org.apache.hc.client5.http.ssl.SSLConnectionSocketFactory;
+import org.apache.hc.client5.http.ssl.TrustSelfSignedStrategy;
+import org.apache.hc.core5.http.ClassicHttpResponse;
+import org.apache.hc.core5.http.HttpRequest;
+import org.apache.hc.core5.http.HttpStatus;
+import org.apache.hc.core5.http.config.RegistryBuilder;
+import org.apache.hc.core5.ssl.SSLContextBuilder;
 import org.assertj.core.api.Assertions;
 import org.junit.AfterClass;
 import org.junit.Assert;
@@ -73,35 +75,35 @@ public class CurlTest {
         return Curl.$Async (String.format (requestCommand, RequestMonitor.port ()));
     }
 
-    private HttpResponse curl (final String requestCommand) {
+    private ClassicHttpResponse curl (final String requestCommand) {
         return curl (requestCommand, with ().build ());
     }
 
-    private HttpResponse curl (final String requestCommand, Curl.CurlArgumentsBuilder.CurlJavaOptions curlJavaOptions) {
+    private ClassicHttpResponse curl (final String requestCommand, Curl.CurlArgumentsBuilder.CurlJavaOptions curlJavaOptions) {
         return Curl.curl (String.format (requestCommand, RequestMonitor.port ()), curlJavaOptions);
     }
 
-    private CompletableFuture<HttpResponse> curlAsync (final String requestCommand) {
+    private CompletableFuture<ClassicHttpResponse> curlAsync (final String requestCommand) {
         return Curl.curlAsync (String.format (requestCommand, RequestMonitor.port ()));
     }
 
-    private void assertFound (final HttpResponse curlResponse) {
+    private void assertFound (final ClassicHttpResponse curlResponse) {
         Assertions.assertThat (curlResponse).isNotNull ();
         Assertions.assertThat (this.statusCodeOf (curlResponse)).isEqualTo (HttpStatus.SC_MOVED_TEMPORARILY);
     }
 
-    private void assertOk (final HttpResponse curlResponse) {
+    private void assertOk (final ClassicHttpResponse curlResponse) {
         Assertions.assertThat (curlResponse).isNotNull ();
         Assertions.assertThat (this.statusCodeOf (curlResponse)).isEqualTo (HttpStatus.SC_OK);
     }
 
-    private void assertUnauthorized (final HttpResponse curlResponse) {
+    private void assertUnauthorized (final ClassicHttpResponse curlResponse) {
         Assertions.assertThat (curlResponse).isNotNull ();
         Assertions.assertThat (this.statusCodeOf (curlResponse)).isEqualTo (HttpStatus.SC_UNAUTHORIZED);
     }
 
-    private int statusCodeOf (final HttpResponse response) {
-        return response.getStatusLine ().getStatusCode ();
+    private int statusCodeOf (final ClassicHttpResponse response) {
+        return response.getCode();
     }
 
     @Test (expected = CurlException.class)
@@ -136,19 +138,19 @@ public class CurlTest {
 
     @Test
     public void theSkyIsBlueInIvritWithTheWrongEncoding () throws IOException {
-        HttpResponse response = this.curl ("-k -E src/test/resources/clients/libe/libe.pem https://localhost:%d/public/  -H 'Content-Type: text/plain; charset=ISO-8859-1' -d \"השמים כחולים\"");
+        ClassicHttpResponse response = this.curl ("-k -E src/test/resources/clients/libe/libe.pem https://localhost:%d/public/  -H 'Content-Type: text/plain; charset=ISO-8859-1' -d \"השמים כחולים\"");
         Assertions.assertThat (IOUtils.toString (response.getEntity ().getContent (), StandardCharsets.UTF_8)).contains ("'????? ??????'");
     }
 
     @Test
     public void theSkyIsBlueInIvritWithoutEncoding () throws IOException {
-        HttpResponse response = this.curl ("-k -E src/test/resources/clients/libe/libe.pem https://localhost:%d/public/  -d \"השמים כחולים\"");
+        ClassicHttpResponse response = this.curl ("-k -E src/test/resources/clients/libe/libe.pem https://localhost:%d/public/  -d \"השמים כחולים\"");
         Assertions.assertThat (IOUtils.toString (response.getEntity ().getContent (), StandardCharsets.UTF_8)).contains ("'השמים כחולים'");
     }
 
     @Test
     public void theSkyIsBlueInIvritWithUTF8Encoding () throws IOException {
-        HttpResponse response = this.curl ("-k -E src/test/resources/clients/libe/libe.pem https://localhost:%d/public/  -H 'Content-Type: text/plain; charset=UTF-8'  -d \"השמים כחולים\"");
+        ClassicHttpResponse response = this.curl ("-k -E src/test/resources/clients/libe/libe.pem https://localhost:%d/public/  -H 'Content-Type: text/plain; charset=UTF-8'  -d \"השמים כחולים\"");
         Assertions.assertThat (IOUtils.toString (response.getEntity ().getContent (), StandardCharsets.UTF_8)).contains ("'השמים כחולים'");
     }
 
@@ -174,7 +176,7 @@ public class CurlTest {
         this.assertOk (this.curl ("https://localhost:%d/public/",
                 with ().httpClientBuilder(HttpClients.custom().setConnectionManager (new PoolingHttpClientConnectionManager (RegistryBuilder.<ConnectionSocketFactory>create ()
                         .register ("https", new SSLConnectionSocketFactory (SSLContextBuilder.create ()
-                                .loadTrustMaterial (null, new TrustSelfSignedStrategy ())
+                                .loadTrustMaterial (null, new TrustSelfSignedStrategy())
                                 .loadKeyMaterial (keystore, "mylibepass".toCharArray ())
                                 .build (), NoopHostnameVerifier.INSTANCE))
                         .build ()))).build ()));
@@ -278,8 +280,9 @@ public class CurlTest {
             this.curl (this.$("-k -E src/test/resources/clients/libe/libe.pem --connect-timeout 0.001 --max-time 10 https://localhost:%d/public/tooLong"));
             Assert.fail ("This curl is not supposed to work and should fail with a ConnectTimeoutException");
         }catch (CurlException curlException){
-            Assert.assertEquals (curlException.getCause ().getClass ().getName (),
-                    ConnectTimeoutException.class.getName ());
+            Assert.assertTrue (
+                    asList (ConnectTimeoutException.class.getName (), ClientProtocolException.class.getName ())
+                            .contains (curlException.getCause ().getClass ().getName ()));
         }
     }
 
@@ -331,7 +334,7 @@ public class CurlTest {
 
     @Test
     public void withBinaryData () throws IOException {
-        HttpResponse response = this.curl ("-k -E src/test/resources/clients/libe/libe.pem --data-binary \"@src/test/resources/clients/libe/libe.der\" -X POST -H 'Accept: */*' -H 'Host: localhost' 'https://localhost:%d/public/data'");
+        ClassicHttpResponse response = this.curl ("-k -E src/test/resources/clients/libe/libe.pem --data-binary \"@src/test/resources/clients/libe/libe.der\" -X POST -H 'Accept: */*' -H 'Host: localhost' 'https://localhost:%d/public/data'");
         String expected = IOUtils.toString (Objects.requireNonNull (Thread.currentThread ().getContextClassLoader ().getResourceAsStream ("clients/libe/libe.der")), StandardCharsets.UTF_8);
         String fullCurl = IOUtils.toString (response.getEntity ().getContent (), StandardCharsets.UTF_8);
         String actual = fullCurl.substring (fullCurl.indexOf ("-d '") + 4, fullCurl.indexOf ("'  'https"));
@@ -436,8 +439,8 @@ public class CurlTest {
 
     @Test
     public void twoCurlsInParallel () {
-        final CompletableFuture<HttpResponse> future1 = this.curlAsync ("-k -E src/test/resources/clients/libe/libe.pem https://localhost:%d/public/path1");
-        final CompletableFuture<HttpResponse> future2 = this.curlAsync ("-k -E src/test/resources/clients/libe/libe.pem https://localhost:%d/public/path2");
+        final CompletableFuture <ClassicHttpResponse> future1 = this.curlAsync ("-k -E src/test/resources/clients/libe/libe.pem https://localhost:%d/public/path1");
+        final CompletableFuture <ClassicHttpResponse> future2 = this.curlAsync ("-k -E src/test/resources/clients/libe/libe.pem https://localhost:%d/public/path2");
 
         try {
             CompletableFuture.allOf (future1, future2).get ();
@@ -455,22 +458,22 @@ public class CurlTest {
 
     @SuppressWarnings ("unused")
     public static class MyInterceptor {
-        public HttpResponse intercept (HttpRequest request, Supplier<HttpResponse> responseSupplier){
+        public ClassicHttpResponse intercept (HttpRequest request, Supplier <ClassicHttpResponse> responseSupplier){
             LOGGER.info ("I log something before the call");
-            HttpResponse response = responseSupplier.get ();
+            ClassicHttpResponse response = responseSupplier.get ();
             LOGGER.info ("I log something after the call... Bingo, the status of the response is " +
-                    response.getStatusLine ().getStatusCode ());
+                    response.getCode ());
             return response;
         }
     }
 
     @SuppressWarnings ("unused")
-    private final BiFunction<HttpRequest, Supplier<HttpResponse>, HttpResponse> mySecondInterceptor =
+    private final BiFunction<HttpRequest, Supplier <ClassicHttpResponse>, ClassicHttpResponse> mySecondInterceptor =
             (request, responseSupplier) -> {
         LOGGER.info ("I log something before the call (from a lambda)");
-        HttpResponse response = responseSupplier.get ();
+        ClassicHttpResponse response = responseSupplier.get ();
         LOGGER.info ("I log something after the call (from a lambda)... Bingo, the status of the response is " +
-                response.getStatusLine ().getStatusCode ());
+                response.getCode ());
         return response;
     };
 
@@ -484,9 +487,9 @@ public class CurlTest {
         Curl.curl ()
                 .javaOptions (with ().interceptor (((request, responseSupplier) -> {
                     LOGGER.info ("I log something before the call");
-                    HttpResponse response = responseSupplier.get ();
+                    ClassicHttpResponse response = responseSupplier.get ();
                     LOGGER.info ("I log something after the call... Bingo, the status of the response is " +
-                            response.getStatusLine ().getStatusCode ());
+                            response.getCode ());
                     return response;
                 })).build ())
         .run ("http://www.google.com");

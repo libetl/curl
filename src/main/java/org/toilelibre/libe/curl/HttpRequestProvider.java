@@ -1,35 +1,46 @@
 package org.toilelibre.libe.curl;
 
-import org.apache.commons.cli.*;
-import org.apache.http.*;
-import org.apache.http.client.config.*;
-import org.apache.http.client.config.RequestConfig.*;
-import org.apache.http.client.methods.*;
-import org.apache.http.entity.mime.*;
-import org.apache.http.entity.mime.content.*;
-import org.apache.http.message.*;
-import org.apache.http.protocol.*;
-import org.apache.http.util.*;
-import org.toilelibre.libe.curl.Curl.*;
+import org.apache.commons.cli.CommandLine;
+import org.apache.hc.client5.http.config.ConnectionConfig;
+import org.apache.hc.client5.http.entity.mime.FileBody;
+import org.apache.hc.client5.http.entity.mime.MultipartEntityBuilder;
+import org.apache.hc.client5.http.impl.DefaultSchemePortResolver;
+import org.apache.hc.client5.http.impl.routing.DefaultProxyRoutePlanner;
+import org.apache.hc.client5.http.impl.routing.DefaultRoutePlanner;
+import org.apache.hc.client5.http.routing.HttpRoutePlanner;
+import org.apache.hc.core5.http.ClassicHttpRequest;
+import org.apache.hc.core5.http.HttpEntity;
+import org.apache.hc.core5.http.HttpHost;
+import org.apache.hc.core5.http.message.BasicClassicHttpRequest;
+import org.apache.hc.core5.http.message.BasicHeader;
+import org.apache.hc.core5.util.Timeout;
+import org.apache.hc.core5.util.VersionInfo;
+import org.toilelibre.libe.curl.Curl.CurlException;
 
-import java.net.*;
-import java.util.*;
-import java.util.stream.*;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.time.Duration;
+import java.util.Base64;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
-import static java.util.Arrays.*;
-import static java.util.stream.Collectors.*;
-import static org.toilelibre.libe.curl.IOUtils.*;
-import static org.toilelibre.libe.curl.PayloadReader.*;
+import static java.util.Arrays.asList;
+import static java.util.Arrays.stream;
+import static java.util.stream.Collectors.toList;
+import static org.toilelibre.libe.curl.IOUtils.isFile;
+import static org.toilelibre.libe.curl.PayloadReader.getData;
 
 public final class HttpRequestProvider {
 
-    public static HttpUriRequest prepareRequest (final CommandLine commandLine) throws CurlException {
+    static ClassicHttpRequest prepareRequest (final CommandLine commandLine) throws CurlException {
         return requestBuilder(commandLine).build ();
     }
 
     public static RequestBuilder requestBuilder (final CommandLine commandLine) throws CurlException {
         final String method = getMethod (commandLine);
-        final RequestBuilder request = wrapInRequestBuilder (method, commandLine.getArgs ()[0]);
+        final BasicClassicHttpRequest request = wrapInRequestBuilder (method, commandLine.getArgs ()[0]);
 
         if (asList ("DELETE", "PATCH", "POST", "PUT").contains (method.toUpperCase ())) {
             request.setEntity (getData (commandLine));
@@ -51,9 +62,9 @@ public final class HttpRequestProvider {
         return cl.getOptionValue (Arguments.HTTP_METHOD.getOpt ()) == null ? determineVerbWithoutArgument (cl) : cl.getOptionValue (Arguments.HTTP_METHOD.getOpt ());
     }
 
-    private static RequestBuilder wrapInRequestBuilder (String method, String uriAsString) {
+    private static BasicClassicHttpRequest wrapInRequestBuilder (String method, String uriAsString) {
         try {
-            return RequestBuilder.create (method).setUri (new URI (uriAsString));
+            return new BasicClassicHttpRequest (method, new URI (uriAsString));
         } catch (URISyntaxException e) {
             throw new CurlException (e);
         }
@@ -95,7 +106,7 @@ public final class HttpRequestProvider {
 
     }
 
-    private static void setHeaders (final CommandLine commandLine, final RequestBuilder request) {
+    private static void setHeaders (final CommandLine commandLine, final BasicClassicHttpRequest request) {
         final String [] headers = Optional.ofNullable (commandLine.getOptionValues (Arguments.HEADER.getOpt ())).orElse (new String [0]);
 
         List<BasicHeader> basicHeaders =
@@ -112,10 +123,11 @@ public final class HttpRequestProvider {
 
         if (basicHeaders.stream ().noneMatch (h -> Objects.equals (h.getName ().toLowerCase (), "user-agent")) &&
                 !commandLine.hasOption (Arguments.USER_AGENT.getOpt ())) {
+
             request.addHeader ("User-Agent",
                     Curl.class.getPackage ().getName () + "/" + Version.NUMBER +
-                            VersionInfo.getUserAgent (", Apache-HttpClient",
-                                    "org.apache.http.client", HttpRequestProvider.class));
+                            VersionInfo.getSoftwareInfo(
+                                    "Apache-HttpClient", "org.apache.hc.client5", HttpRequestProvider.class));
         }
 
         if (commandLine.hasOption (Arguments.DATA_URLENCODE.getOpt ())) {
@@ -123,7 +135,7 @@ public final class HttpRequestProvider {
         }
 
         if (commandLine.hasOption (Arguments.NO_KEEPALIVE.getOpt ())){
-            request.addHeader (HTTP.CONN_DIRECTIVE, HTTP.CONN_CLOSE);
+            request.addHeader ("Connection", "close");
         }
 
         if (commandLine.hasOption (Arguments.PROXY_USER.getOpt ())) {
@@ -137,26 +149,33 @@ public final class HttpRequestProvider {
         }
     }
 
-    private static RequestConfig getConfig (final CommandLine commandLine) {
-        final Builder requestConfig = RequestConfig.custom ();
+    static HttpRoutePlanner getRoutePlanner (final CommandLine commandLine) {
 
-        if (commandLine.hasOption (Arguments.PROXY.getOpt ())) {
-            String hostWithoutTrailingSlash = commandLine.getOptionValue (Arguments.PROXY.getOpt ())
-                    .replaceFirst ("\\s*/\\s*$", "")
-                    .replaceFirst ("^[^@]+@", "");
-            requestConfig.setProxy (HttpHost.create (hostWithoutTrailingSlash));
+        if (commandLine.hasOption(Arguments.PROXY.getOpt())) {
+            String hostWithoutTrailingSlash = commandLine.getOptionValue(Arguments.PROXY.getOpt())
+                    .replaceFirst("\\s*/\\s*$", "")
+                    .replaceFirst("^[^@]+@", "");
+            try {
+                return new DefaultProxyRoutePlanner(HttpHost.create(hostWithoutTrailingSlash));
+            } catch (URISyntaxException e) {
+                throw new CurlException(e);
+            }
         }
+        return new DefaultRoutePlanner(new DefaultSchemePortResolver());
+    }
 
+    static ConnectionConfig getConnectionConfig (final CommandLine commandLine) {
+        ConnectionConfig.Builder connectionConfig = ConnectionConfig.custom();
         if (commandLine.hasOption (Arguments.CONNECT_TIMEOUT.getOpt ())) {
-            requestConfig.setConnectTimeout ((int)((Float.parseFloat (
-                commandLine.getOptionValue (Arguments.CONNECT_TIMEOUT.getOpt ()))) * 1000));
+            connectionConfig.setConnectTimeout (Timeout.of (Duration.ofMillis ((int) (Float.parseFloat (
+                commandLine.getOptionValue (Arguments.CONNECT_TIMEOUT.getOpt ())) * 1000))));
         }
 
         if (commandLine.hasOption (Arguments.MAX_TIME.getOpt ())) {
-            requestConfig.setSocketTimeout ((int)((Float.parseFloat (
-                    commandLine.getOptionValue (Arguments.MAX_TIME.getOpt ()))) * 1000));
+            connectionConfig.setSocketTimeout (Timeout.of (Duration.ofMillis ((int) (Float.parseFloat (
+                    commandLine.getOptionValue (Arguments.MAX_TIME.getOpt ())) * 1000))));
         }
 
-        return requestConfig.build ();
+        return connectionConfig.build ();
     }
 }

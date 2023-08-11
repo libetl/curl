@@ -1,9 +1,12 @@
 package org.toilelibre.libe.curl;
 
 import org.apache.commons.cli.*;
-import org.apache.http.*;
-import org.apache.http.conn.*;
-import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.hc.client5.http.impl.classic.HttpClientBuilder;
+import org.apache.hc.client5.http.io.HttpClientConnectionManager;
+import org.apache.hc.core5.http.ClassicHttpResponse;
+import org.apache.hc.core5.http.HttpRequest;
+import org.apache.hc.core5.http.HttpResponse;
+import org.apache.hc.core5.http.protocol.HttpContext;
 
 import java.io.*;
 import java.util.*;
@@ -43,11 +46,11 @@ public final class Curl {
         return new CurlArgumentsBuilder ();
     }
 
-    public static CompletableFuture<HttpResponse> curlAsync (final String requestCommand) throws CurlException {
+    public static CompletableFuture<ClassicHttpResponse> curlAsync (final String requestCommand) throws CurlException {
         return curlAsync (requestCommand, with ().build ());
     }
 
-    public static CompletableFuture<HttpResponse> curlAsync (final String requestCommand,
+    public static CompletableFuture<ClassicHttpResponse> curlAsync (final String requestCommand,
                                                              CurlArgumentsBuilder.CurlJavaOptions curlJavaOptions) throws CurlException {
         return CompletableFuture.supplyAsync (() -> {
             try {
@@ -58,19 +61,22 @@ public final class Curl {
         }).toCompletableFuture ();
     }
 
-    public static HttpResponse curl (final String requestCommand) throws CurlException {
+    public static ClassicHttpResponse curl (final String requestCommand) throws CurlException {
         return curl (requestCommand, with ().build ());
     }
 
-    public static HttpResponse curl (final String requestCommand,
+    public static ClassicHttpResponse curl (final String requestCommand,
                                      CurlArgumentsBuilder.CurlJavaOptions curlJavaOptions) throws CurlException {
         try {
             final CommandLine commandLine = ReadArguments.getCommandLineFromRequest (requestCommand,
                     curlJavaOptions.getPlaceHolders ());
             stopAndDisplayVersionIfThe (commandLine.hasOption (Arguments.VERSION.getOpt ()));
-            final HttpResponse response =
+            final ClassicHttpResponse response = (ClassicHttpResponse)
                     HttpClientProvider.prepareHttpClient (commandLine, curlJavaOptions.getInterceptors (),
                             curlJavaOptions.getHttpClientBuilder()).execute (
+                            curlJavaOptions.getConnectionManager (),
+                            curlJavaOptions.getHttpClientCustomizer(),
+                            curlJavaOptions.getContextTester()).execute (
                             HttpRequestProvider.prepareRequest (commandLine));
             AfterResponse.handle (commandLine, response);
             return response;
@@ -93,21 +99,30 @@ public final class Curl {
         private CurlJavaOptions curlJavaOptions = with ().build ();
 
         public static class CurlJavaOptions {
-            private final List<BiFunction<HttpRequest, Supplier<HttpResponse>, HttpResponse>> interceptors;
+            private final List<BiFunction<HttpRequest, Supplier<ClassicHttpResponse>, ClassicHttpResponse>> interceptors;
             private final List<String> placeHolders;
             private final HttpClientBuilder httpClientBuilder;
 
             private CurlJavaOptions (Builder builder) {
                 interceptors = builder.interceptors;
                 placeHolders = builder.placeHolders;
+            private final HttpClientConnectionManager connectionManager;
+            private final Consumer<HttpContext> contextTester;
+            private final Consumer<org.apache.hc.client5.http.impl.classic.HttpClientBuilder> httpClientCustomizer;
+            private CurlJavaOptions (Builder builder) {
+                interceptors = builder.interceptors;
+                placeHolders = builder.placeHolders;
                 httpClientBuilder = builder.httpClientBuilder;
+                connectionManager = builder.connectionManager;
+                contextTester = builder.contextTester;
+                httpClientCustomizer = builder.httpClientCustomizer;
             }
 
             public static Builder with () {
                 return new Builder ();
             }
 
-            public List<BiFunction<HttpRequest, Supplier<HttpResponse>, HttpResponse>> getInterceptors () {
+            public List<BiFunction<HttpRequest, Supplier<ClassicHttpResponse>, ClassicHttpResponse>> getInterceptors () {
                 return interceptors;
             }
 
@@ -119,16 +134,27 @@ public final class Curl {
                 return this.httpClientBuilder;
             }
 
+            public Consumer<HttpContext> getContextTester() {
+                return contextTester;
+            }
+
+            public Consumer<HttpClientBuilder> getHttpClientCustomizer() {
+                return httpClientCustomizer;
+            }
+
             public static final class Builder {
-                private List<BiFunction<HttpRequest, Supplier<HttpResponse>, HttpResponse>> interceptors
+                private List<BiFunction<HttpRequest, Supplier<ClassicHttpResponse>, ClassicHttpResponse>> interceptors
                         = new ArrayList<> ();
                 private List<String> placeHolders;
                 private HttpClientBuilder httpClientBuilder;
 
+                private Consumer<HttpContext> contextTester;
+                private Consumer<org.apache.hc.client5.http.impl.classic.HttpClientBuilder> httpClientCustomizer;
+
                 private Builder () {
                 }
 
-                public Builder interceptor (BiFunction<HttpRequest, Supplier<HttpResponse>, HttpResponse> val) {
+                public Builder interceptor (BiFunction<HttpRequest, Supplier<ClassicHttpResponse>, ClassicHttpResponse> val) {
                     interceptors.add (val);
                     return this;
                 }
@@ -140,6 +166,16 @@ public final class Curl {
 
                 public Builder httpClientBuilder (HttpClientBuilder httpClientBuilder) {
                     this.httpClientBuilder = httpClientBuilder;
+                    return this;
+                }
+
+                public Builder contextTester (Consumer<HttpContext> val) {
+                    contextTester = val;
+                    return this;
+                }
+
+                public Builder httpClientCustomizer (Consumer<org.apache.hc.client5.http.impl.classic.HttpClientBuilder> val) {
+                    httpClientCustomizer = val;
                     return this;
                 }
 
@@ -172,7 +208,7 @@ public final class Curl {
             return Curl.curl (this.curlCommand.toString (), curlJavaOptions);
         }
 
-        public CompletableFuture<HttpResponse> runAsync (final String url) throws CurlException {
+        public CompletableFuture<ClassicHttpResponse> runAsync (final String url) throws CurlException {
             this.curlCommand.append (url).append (" ");
             return Curl.curlAsync (this.curlCommand.toString (), curlJavaOptions);
         }

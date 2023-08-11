@@ -1,7 +1,10 @@
 package org.toilelibre.libe.curl;
 
 import org.apache.commons.cli.*;
-import org.apache.http.entity.*;
+import org.apache.hc.core5.http.ContentType;
+import org.apache.hc.core5.http.io.entity.AbstractHttpEntity;
+import org.apache.hc.core5.http.io.entity.InputStreamEntity;
+import org.apache.hc.core5.http.io.entity.StringEntity;
 
 import java.io.*;
 import java.nio.charset.*;
@@ -25,13 +28,9 @@ final class PayloadReader {
             return binaryDataFrom (commandLine);
         }
         if (commandLine.hasOption (Arguments.DATA_URLENCODE.getOpt ())) {
-            try {
-                return new StringEntity (stream (commandLine.getOptionValues (Arguments.DATA_URLENCODE.getOpt ()))
-                        .map (PayloadReader::urlEncodedDataFrom)
-                        .collect (Collectors.joining ("&")));
-            } catch (final UnsupportedEncodingException e) {
-                throw new Curl.CurlException (e);
-            }
+           return new StringEntity(stream (commandLine.getOptionValues (Arguments.DATA_URLENCODE.getOpt ()))
+                   .map (PayloadReader::urlEncodedDataFrom)
+                   .collect (Collectors.joining ("&")));
         }
         return null;
     }
@@ -48,9 +47,9 @@ final class PayloadReader {
     private static InputStreamEntity binaryDataFrom (CommandLine commandLine) {
         final String value = commandLine.getOptionValue (Arguments.DATA_BINARY.getOpt ());
         if (value.indexOf ('@') == 0) {
-            return new InputStreamEntity (new ByteArrayInputStream (dataBehind (value)));
+            return new InputStreamEntity (new ByteArrayInputStream (dataBehind (value)), ContentType.APPLICATION_OCTET_STREAM);
         }
-        return new InputStreamEntity (new ByteArrayInputStream (value.getBytes ()));
+        return new InputStreamEntity (new ByteArrayInputStream (value.getBytes ()), ContentType.APPLICATION_OCTET_STREAM);
     }
 
     private static Optional<Charset> charsetReadFromThe (CommandLine commandLine) {

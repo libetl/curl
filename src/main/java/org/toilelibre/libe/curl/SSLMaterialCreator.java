@@ -1,9 +1,15 @@
 package org.toilelibre.libe.curl;
 
 import org.apache.commons.cli.*;
-import org.apache.http.conn.ssl.*;
-import org.apache.http.impl.client.*;
-import org.apache.http.ssl.SSLContextBuilder;
+import org.apache.hc.client5.http.impl.classic.HttpClientBuilder;
+import org.apache.hc.client5.http.impl.io.BasicHttpClientConnectionManager;
+import org.apache.hc.client5.http.io.HttpClientConnectionManager;
+import org.apache.hc.client5.http.socket.ConnectionSocketFactory;
+import org.apache.hc.client5.http.socket.PlainConnectionSocketFactory;
+import org.apache.hc.client5.http.ssl.NoopHostnameVerifier;
+import org.apache.hc.client5.http.ssl.SSLConnectionSocketFactory;
+import org.apache.hc.core5.http.config.RegistryBuilder;
+import org.apache.hc.core5.ssl.SSLContextBuilder;
 
 import java.io.*;
 import java.security.*;
@@ -15,7 +21,7 @@ import java.util.stream.*;
 import static java.util.Arrays.*;
 import static java.util.Optional.*;
 import static java.util.stream.Collectors.*;
-import static org.apache.http.conn.ssl.SSLConnectionSocketFactory.*;
+import static org.apache.hc.client5.http.ssl.HttpsSupport.getDefaultHostnameVerifier;
 import static org.toilelibre.libe.curl.Arguments.*;
 import static org.toilelibre.libe.curl.IOUtils.*;
 
@@ -24,14 +30,15 @@ final class SSLMaterialCreator {
     private final static Map<Map<String, List<String>>, SSLConnectionSocketFactory> cachedSSLFactoriesForPerformance =
             new HashMap<> ();
 
-    static void handleSSLParams (final CommandLine commandLine, final HttpClientBuilder executor) throws Curl.CurlException {
+
+
+    static SSLConnectionSocketFactory buildConnectionFactory (final CommandLine commandLine) throws Curl.CurlException {
 
         Map<String, List<String>> input = inputExtractedFrom (commandLine);
         final SSLConnectionSocketFactory foundInCache = cachedSSLFactoriesForPerformance.get (input);
 
         if (foundInCache != null) {
-            executor.setSSLSocketFactory (foundInCache);
-            return;
+            return foundInCache;
         }
 
         final SSLContextBuilder builder = new SSLContextBuilder ();
@@ -78,7 +85,7 @@ final class SSLMaterialCreator {
                     commandLine.hasOption (TRUST_INSECURE.getOpt ()) ? NoopHostnameVerifier.INSTANCE :
                             getDefaultHostnameVerifier ());
             cachedSSLFactoriesForPerformance.put (input, sslSocketFactory);
-            executor.setSSLSocketFactory (sslSocketFactory);
+            return sslSocketFactory;
         } catch (NoSuchAlgorithmException | KeyManagementException e) {
             throw new Curl.CurlException (e);
         }
