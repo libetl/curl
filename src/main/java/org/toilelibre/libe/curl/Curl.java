@@ -162,6 +162,11 @@ public final class Curl {
                     return this;
                 }
 
+                public Builder mockedNetworkAccess () {
+                    connectionManager = new MockNetworkAccess();
+                    return this;
+                }
+
                 public Builder contextTester (Consumer<HttpContext> val) {
                     contextTester = val;
                     return this;
