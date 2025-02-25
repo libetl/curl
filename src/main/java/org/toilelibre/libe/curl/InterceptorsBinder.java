@@ -5,6 +5,7 @@ import org.apache.hc.client5.http.impl.classic.HttpClientBuilder;
 import org.apache.hc.core5.http.*;
 import org.apache.hc.core5.http.impl.io.HttpRequestExecutor;
 import org.apache.hc.core5.http.io.HttpClientConnection;
+import org.apache.hc.core5.http.io.HttpResponseInformationCallback;
 import org.apache.hc.core5.http.protocol.HttpContext;
 
 import java.io.*;
@@ -86,10 +87,13 @@ final class InterceptorsBinder {
                         .collect (toList ());
         executor.setRequestExecutor (new HttpRequestExecutor () {
             @Override
-            public ClassicHttpResponse execute (ClassicHttpRequest request, HttpClientConnection connection, HttpContext context) {
+            public ClassicHttpResponse execute (ClassicHttpRequest request,
+                                                HttpClientConnection connection,
+                                                HttpResponseInformationCallback callback,
+                                                HttpContext context) {
                 Supplier<ClassicHttpResponse> executor = () -> {
                     try {
-                        return super.execute (request, connection, context);
+                        return super.execute (request, connection, callback, context);
                     } catch (IOException | HttpException e) {
                         throw new Curl.CurlException (e);
                     }
