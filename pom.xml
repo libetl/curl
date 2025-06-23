@@ -209,7 +209,7 @@
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter</artifactId>
-			<version>3.4.3</version>
+			<version>3.5.3</version>
 			<scope>test</scope>
 			<exclusions>
 				<exclusion>
