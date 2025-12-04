@@ -2,7 +2,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>org.toile-libre.libe</groupId>
 	<artifactId>curl</artifactId>
-	<version>0.0.46</version>
+	<version>0.0.45-SNAPSHOT</version>
 	<name>curl</name>
 	<description>Curl</description>
 	<url>https://github.com/libetl/curl</url>
