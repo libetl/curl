@@ -2,7 +2,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>org.toile-libre.libe</groupId>
 	<artifactId>curl</artifactId>
-	<version>0.0.44</version>
+	<version>0.0.46</version>
 	<name>curl</name>
 	<description>Curl</description>
 	<url>https://github.com/libetl/curl</url>
@@ -50,7 +50,7 @@
 		<plugins>
 			<plugin>
 				<artifactId>maven-compiler-plugin</artifactId>
-				<version>3.14.0</version>
+				<version>3.13.0</version>
 				<configuration>
 					<source>1.8</source>
 					<target>1.8</target>
@@ -72,7 +72,7 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-javadoc-plugin</artifactId>
-				<version>3.11.2</version>
+				<version>3.10.0</version>
 				<configuration>
 					<source>8</source>
 				</configuration>
@@ -88,7 +88,7 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-gpg-plugin</artifactId>
-				<version>3.2.7</version>
+				<version>3.2.5</version>
 				<executions>
 					<execution>
 						<id>sign-artifacts</id>
@@ -99,15 +99,17 @@
 					</execution>
 				</executions>
 			</plugin>
-            <plugin>
-                <groupId>org.sonatype.central</groupId>
-                <artifactId>central-publishing-maven-plugin</artifactId>
-                <version>0.7.0</version>
-                <extensions>true</extensions>
-                <configuration>
-                    <publishingServerId>central-sonatype</publishingServerId>
-                </configuration>
-            </plugin>
+			<plugin>
+				<groupId>org.sonatype.plugins</groupId>
+				<artifactId>nexus-staging-maven-plugin</artifactId>
+				<version>1.7.0</version>
+				<extensions>true</extensions>
+				<configuration>
+					<serverId>ossrh</serverId>
+					<nexusUrl>https://oss.sonatype.org/</nexusUrl>
+					<autoReleaseAfterClose>true</autoReleaseAfterClose>
+				</configuration>
+			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-release-plugin</artifactId>
@@ -156,7 +158,7 @@
 		<dependency>
 			<groupId>org.apache.httpcomponents.client5</groupId>
 			<artifactId>httpclient5</artifactId>
-			<version>5.4.2</version>
+			<version>5.5.1</version>
 		</dependency>
 		<dependency>
 			<groupId>org.javassist</groupId>
@@ -164,12 +166,24 @@
 			<version>3.30.2-GA</version>
 			<scope>test</scope>
 		</dependency>
-		<dependency>
-			<groupId>junit</groupId>
-			<artifactId>junit</artifactId>
-			<version>4.13.2</version>
-			<scope>test</scope>
-		</dependency>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-api</artifactId>
+            <version>6.0.1</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-engine</artifactId>
+            <version>6.0.1</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.junit.platform</groupId>
+            <artifactId>junit-platform-engine</artifactId>
+            <version>6.0.1</version>
+            <scope>test</scope>
+        </dependency>
 		<dependency>
 			<groupId>org.assertj</groupId>
 			<artifactId>assertj-core</artifactId>
@@ -179,7 +193,7 @@
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-security</artifactId>
-			<version>3.4.3</version>
+			<version>4.0.0</version>
 			<scope>test</scope>
 			<exclusions>
 				<exclusion>
@@ -191,7 +205,7 @@
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-web</artifactId>
-			<version>3.4.3</version>
+			<version>4.0.0</version>
 			<scope>test</scope>
 			<exclusions>
 				<exclusion>
@@ -203,13 +217,13 @@
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-jetty</artifactId>
-			<version>3.4.3</version>
+			<version>4.0.0</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter</artifactId>
-			<version>3.4.3</version>
+			<version>4.0.0</version>
 			<scope>test</scope>
 			<exclusions>
 				<exclusion>
@@ -221,7 +235,7 @@
 		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-context</artifactId>
-			<version>6.2.3</version>
+			<version>7.0.1</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
@@ -251,19 +265,19 @@
 		<dependency>
 			<groupId>com.google.guava</groupId>
 			<artifactId>guava</artifactId>
-			<version>33.4.0-jre</version>
+			<version>33.5.0-jre</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
-			<groupId>com.fasterxml.jackson.core</groupId>
+			<groupId>tools.jackson.core</groupId>
 			<artifactId>jackson-core</artifactId>
-			<version>2.18.3</version>
+			<version>3.0.2</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
-			<groupId>com.fasterxml.jackson.core</groupId>
+			<groupId>tools.jackson.core</groupId>
 			<artifactId>jackson-databind</artifactId>
-			<version>2.18.3</version>
+			<version>3.0.2</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>

@@ -2,11 +2,11 @@ package org.toilelibre.libe.curl;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.hc.core5.http.ClassicHttpRequest;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.util.Collections;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class HttpRequestProviderTest {
 

@@ -18,64 +18,81 @@ import static org.toilelibre.libe.curl.UglyVersionDisplay.*;
 
 public final class Curl {
 
-    private Curl () {
+    private static final CurlArgumentsBuilder.CurlJavaOptions NO_JAVA_OPTIONS = with().build();
+    private static final Curl DEFAULT = new Curl(NO_JAVA_OPTIONS);
+    private final CurlArgumentsBuilder.CurlJavaOptions curlJavaOptions;
+
+    public Curl(CurlArgumentsBuilder.CurlJavaOptions curlJavaOptions) {
+        this.curlJavaOptions = curlJavaOptions;
     }
 
-    public static String $ (final String requestCommand) throws CurlException {
-        return $ (requestCommand, with ().build ());
+    public static String $(final String requestCommand) throws CurlException {
+        return $(requestCommand, NO_JAVA_OPTIONS);
     }
 
-    public static String $ (final String requestCommand, CurlArgumentsBuilder.CurlJavaOptions curlJavaOptions) throws CurlException {
+    public static CompletableFuture<String> $Async(final String requestCommand) throws CurlException {
+        return $Async(requestCommand, NO_JAVA_OPTIONS);
+    }
+
+    public static CompletableFuture<String> $Async(final String requestCommand,
+                                                   CurlArgumentsBuilder.CurlJavaOptions curlJavaOptions) throws CurlException {
+        return Curl.curlAsync(requestCommand, curlJavaOptions).thenApply((httpResponse) -> IOUtils.quietToString(httpResponse.getEntity()));
+    }
+
+    public static CurlArgumentsBuilder curl() {
+        return new CurlArgumentsBuilder();
+    }
+
+    public static CompletableFuture<ClassicHttpResponse> curlAsync(final String requestCommand) throws CurlException {
+        return curlAsync(requestCommand, NO_JAVA_OPTIONS);
+    }
+
+    public static String $(final String requestCommand, CurlArgumentsBuilder.CurlJavaOptions curlJavaOptions) throws CurlException {
         try {
-            return IOUtils.quietToString (Curl.curl (requestCommand, curlJavaOptions).getEntity ());
+            return IOUtils.quietToString(DEFAULT.curl_(requestCommand, curlJavaOptions).getEntity());
         } catch (final UnsupportedOperationException e) {
-            throw new CurlException (e);
+            throw new CurlException(e);
         }
     }
 
-    public static CompletableFuture<String> $Async (final String requestCommand) throws CurlException {
-        return $Async (requestCommand, with ().build ());
-    }
-
-    public static CompletableFuture<String> $Async (final String requestCommand,
-                                                    CurlArgumentsBuilder.CurlJavaOptions curlJavaOptions) throws CurlException {
-        return Curl.curlAsync (requestCommand, curlJavaOptions).thenApply ((httpResponse) -> IOUtils.quietToString (httpResponse.getEntity ()));
-    }
-
-    public static CurlArgumentsBuilder curl () {
-        return new CurlArgumentsBuilder ();
-    }
-
-    public static CompletableFuture<ClassicHttpResponse> curlAsync (final String requestCommand) throws CurlException {
-        return curlAsync (requestCommand, with ().build ());
-    }
-
-    public static CompletableFuture<ClassicHttpResponse> curlAsync (final String requestCommand,
-                                                             CurlArgumentsBuilder.CurlJavaOptions curlJavaOptions) throws CurlException {
-        return CompletableFuture.supplyAsync (() -> {
+    public static CompletableFuture<ClassicHttpResponse> curlAsync(final String requestCommand,
+                                                                   CurlArgumentsBuilder.CurlJavaOptions curlJavaOptions) throws CurlException {
+        return CompletableFuture.supplyAsync(() -> {
             try {
-                return Curl.curl (requestCommand, curlJavaOptions);
+                return DEFAULT.curl_(requestCommand, curlJavaOptions);
             } catch (IllegalArgumentException e) {
-                throw new CurlException (e);
+                throw new CurlException(e);
             }
-        }).toCompletableFuture ();
+        }).toCompletableFuture();
     }
 
-    public static ClassicHttpResponse curl (final String requestCommand) throws CurlException {
-        return curl (requestCommand, with ().build ());
+    public static ClassicHttpResponse curl(final String requestCommand) throws CurlException {
+        return DEFAULT.curl_(requestCommand, null);
+    }
+
+    public ClassicHttpResponse curl_(final String requestCommand) throws CurlException {
+        return this.curl_(requestCommand, null);
     }
 
     public static ClassicHttpResponse curl (final String requestCommand,
+                                      CurlArgumentsBuilder.CurlJavaOptions curlJavaOptions) throws CurlException {
+        return DEFAULT.curl_(requestCommand, curlJavaOptions);
+    }
+
+    public ClassicHttpResponse curl_ (final String requestCommand,
                                      CurlArgumentsBuilder.CurlJavaOptions curlJavaOptions) throws CurlException {
         try {
+            final CurlArgumentsBuilder.CurlJavaOptions usedJavaOptions = curlJavaOptions != null
+                    ? curlJavaOptions
+                    : this.curlJavaOptions;
             final CommandLine commandLine = ReadArguments.getCommandLineFromRequest (requestCommand,
-                    curlJavaOptions.getPlaceHolders ());
+                    usedJavaOptions.getPlaceHolders (), usedJavaOptions.simpleArgsParsing ());
             stopAndDisplayVersionIfThe (commandLine.hasOption (Arguments.VERSION.getOpt ()));
             final ClassicHttpResponse response = (ClassicHttpResponse)
-                    HttpClientProvider.prepareHttpClient (commandLine, curlJavaOptions.getInterceptors (),
-                            curlJavaOptions.getConnectionManager (),
-                            curlJavaOptions.getHttpClientCustomizer(),
-                            curlJavaOptions.getContextTester()).execute (
+                    HttpClientProvider.prepareHttpClient (commandLine, usedJavaOptions.getInterceptors (),
+                            usedJavaOptions.getConnectionManager (),
+                            usedJavaOptions.getHttpClientCustomizer (),
+                            usedJavaOptions.getContextTester ()).execute (
                             HttpRequestProvider.prepareRequest (commandLine));
             AfterResponse.handle (commandLine, response);
             return response;
@@ -103,12 +120,14 @@ public final class Curl {
             private final HttpClientConnectionManager connectionManager;
             private final Consumer<HttpContext> contextTester;
             private final Consumer<org.apache.hc.client5.http.impl.classic.HttpClientBuilder> httpClientCustomizer;
+            private final boolean simpleArgsParsing;
             private CurlJavaOptions (Builder builder) {
                 interceptors = builder.interceptors;
                 placeHolders = builder.placeHolders;
                 connectionManager = builder.connectionManager;
                 contextTester = builder.contextTester;
                 httpClientCustomizer = builder.httpClientCustomizer;
+                simpleArgsParsing = builder.simpleArgsParsing;
             }
 
             public static Builder with () {
@@ -127,12 +146,16 @@ public final class Curl {
                 return connectionManager;
             }
 
-            public Consumer<HttpContext> getContextTester() {
+            public Consumer<HttpContext> getContextTester () {
                 return contextTester;
             }
 
-            public Consumer<HttpClientBuilder> getHttpClientCustomizer() {
+            public Consumer<HttpClientBuilder> getHttpClientCustomizer () {
                 return httpClientCustomizer;
+            }
+
+            public boolean simpleArgsParsing () {
+                return simpleArgsParsing;
             }
 
             public static final class Builder {
@@ -143,6 +166,7 @@ public final class Curl {
 
                 private Consumer<HttpContext> contextTester;
                 private Consumer<org.apache.hc.client5.http.impl.classic.HttpClientBuilder> httpClientCustomizer;
+                private boolean simpleArgsParsing = false;
 
                 private Builder () {
                 }
@@ -177,6 +201,11 @@ public final class Curl {
                     return this;
                 }
 
+                public Builder simpleArgsParsing () {
+                    simpleArgsParsing = true;
+                    return this;
+                }
+
                 public CurlJavaOptions build () {
                     return new CurlJavaOptions (this);
                 }
@@ -203,7 +232,7 @@ public final class Curl {
 
         public HttpResponse run (final String url) throws CurlException {
             this.curlCommand.append (url).append (" ");
-            return Curl.curl (this.curlCommand.toString (), curlJavaOptions);
+            return DEFAULT.curl (this.curlCommand.toString (), curlJavaOptions);
         }
 
         public CompletableFuture<ClassicHttpResponse> runAsync (final String url) throws CurlException {

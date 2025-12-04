@@ -39,6 +39,7 @@ Examples :
     curl("-k -X GET -H 'User-Agent: curl/7.49.1' -H 'Accept: */*' -H 'Host: localhost' -u foo:bar 'https://localhost:8443/private/login'");
     curl("-L -k -X GET -H 'User-Agent: curl/7.49.1' -H 'Accept: */*' -H 'Host: localhost' -u user:password 'https://localhost:8443/private/login'");
     curl("-k -X POST 'https://localhost:8443/public/json' -d '{\"var1\":\"val1\",\"var2\":\"val2\"}'");
+    new Curl(with().simpleArgsParsing().build()).curl_("-k -G \"http://localhost:8200/v1/secret/booking-service/auth\"")
 ```
 
 It also works with a builder
@@ -65,6 +66,8 @@ You can also specify five additional curl options using jvm code :
   (warning, this will break the trust insecure behavior)
 * javaOptions.httpClientCustomizer lets you manipulate the HttpClientBuilder
 * javaOptions.contextTester allows to inspect the request resolved information (it is a Consumer of HttpContext)
+* javaOptions.simpleArgsParsing uses an alternative regex based args parsing
+  to avoid StackOverflowErrors with very long payloads
 
 ```java
 curl()
@@ -96,6 +99,7 @@ Supported arguments (so far) :
 | dataurlencode | data-urlencode  | true              | Data to URLEncode                                                                                                                                           |
 | L             | location        | false             | follow redirects                                                                                                                                            |
 | F             | form            | true              | http multipart post data                                                                                                                                    |
+| G             | get             | false             | forces to use GET request method                                                                                                                            |
 | H             | header          | true              | Header                                                                                                                                                      |
 | X             | request         | true              | Http Method                                                                                                                                                 |
 | key           | key             | true              | KEY                                                                                                                                                         |
@@ -106,7 +110,7 @@ Supported arguments (so far) :
 | o             | output          | true              | write to file                                                                                                                                               |
 | x             | proxy           | true              | use the specified HTTP proxy                                                                                                                                |
 | U             | proxy-user      | true              | authentication for proxy                                                                                                                                    |
-| 1             | tlsv1           | false             | use >= TLSv1 (SSL)                                                                                                                                          |
+| 1             | tlsv1           | false             | use >        = TLSv1 (SSL)                                                                                                                                  |
 | tlsv10        | tlsv1.0         | false             | use TLSv1.0 (SSL)                                                                                                                                           |
 | tlsv11        | tlsv1.1         | false             | use TLSv1.1 (SSL)                                                                                                                                           |
 | tlsv12        | tlsv1.2         | false             | use TLSv1.2 (SSL)                                                                                                                                           |

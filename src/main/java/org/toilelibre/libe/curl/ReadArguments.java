@@ -19,13 +19,25 @@ final class ReadArguments {
     }
 
     static CommandLine getCommandLineFromRequest (final String requestCommand, final List<String> placeholderValues,
+                                                  final boolean wantsOnlySimpleArgsParsing) {
+        return getCommandLineFromRequest(requestCommand, placeholderValues, CACHED_ARGS_MATCHES, wantsOnlySimpleArgsParsing);
+    }
+
+    static CommandLine getCommandLineFromRequest (final String requestCommand, final List<String> placeholderValues,
         final Map<String, List<String>> argMatches) {
+        return getCommandLineFromRequest(requestCommand, placeholderValues, argMatches, false);
+    }
+
+    static CommandLine getCommandLineFromRequest (final String requestCommand, final List<String> placeholderValues,
+                                                  final Map<String, List<String>> argMatches,
+                                                  final boolean wantsOnlySimpleArgsParsing) {
 
         // configure a parser
         final DefaultParser parser = new DefaultParser ();
 
         final String requestCommandWithoutBasename = requestCommand.replaceAll ("^[ ]*curl[ ]*", " ") + " ";
-        final String[] args = ReadArguments.getArgsFromCommand (requestCommandWithoutBasename, placeholderValues, argMatches);
+        final String[] args = ReadArguments.getArgsFromCommand (requestCommandWithoutBasename, placeholderValues, argMatches,
+                wantsOnlySimpleArgsParsing);
         final CommandLine commandLine;
         try {
             commandLine = parser.parse (Arguments.ALL_OPTIONS, args);
@@ -48,13 +60,16 @@ final class ReadArguments {
 
     private static String[] getArgsFromCommand (final String requestCommandWithoutBasename,
                                                 final List<String> placeholderValues,
-                                                final Map<String, List<String>> argMatches) {
+                                                final Map<String, List<String>> argMatches,
+                                                final boolean wantsOnlySimpleArgsParsing) {
         final String requestCommandInput = requestCommandWithoutBasename.replaceAll ("\\s+-([a-zA-Z0-9])\\s+", " -$1 ");
         final List<String> matches;
         if (argMatches.containsKey (requestCommandInput)) {
             matches = argMatches.get (requestCommandInput);
         }else{
-            matches = asMatches (Arguments.ARGS_SPLIT_REGEX, requestCommandInput);
+            matches = asMatches (wantsOnlySimpleArgsParsing
+                    ? Arguments.CHEAPER_ARGS_SPLIT_REGEX
+                    : Arguments.ARGS_SPLIT_REGEX, requestCommandInput);
             argMatches.put (requestCommandInput, matches);
         }
 

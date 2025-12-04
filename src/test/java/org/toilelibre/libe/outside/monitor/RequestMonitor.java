@@ -18,7 +18,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.boot.Banner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.autoconfigure.batch.JobExecutionExitCodeGenerator;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.Bean;
@@ -249,6 +248,6 @@ public class RequestMonitor {
     }
 
     public static void stop () {
-        SpringApplication.exit (RequestMonitor.context, new JobExecutionExitCodeGenerator ());
+        SpringApplication.exit (RequestMonitor.context, () -> 0);
     }
 }

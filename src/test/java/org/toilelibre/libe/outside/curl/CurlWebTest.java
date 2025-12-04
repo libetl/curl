@@ -2,14 +2,13 @@ package org.toilelibre.libe.outside.curl;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.hc.core5.http.ClassicHttpResponse;
-import org.junit.Assert;
-import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 import java.util.regex.Pattern;
 
-//import static org.toilelibre.libe.curl.Curl.$;
 import static org.toilelibre.libe.curl.Curl.curl;
 
 public class CurlWebTest {
@@ -18,16 +17,17 @@ public class CurlWebTest {
         curl ("-k https://wrong.host.badssl.com/");
     }
 
-    @Ignore // keeps failing
+    @Disabled // keeps failing
     @Test
     public void proxyWithAuthentication () throws IOException {
         ClassicHttpResponse response = curl ("http://httpbin.org/get -x http://204.133.187.66:3128 -U user:password");
         String body = IOUtils.toString (response.getEntity ().getContent ());
-        Assert.assertTrue (body.contains ("Host\": \"httpbin.org\""));
-        Assert.assertTrue (Pattern.compile ("\"origin\": \"[a-zA-Z0-9.]+, [0-9.]+\"").matcher (body).find ());
-        Assert.assertFalse (body.contains ("Proxy-Authorization"));
+        Assertions.assertTrue (body.contains ("Host\": \"httpbin.org\""));
+        Assertions.assertTrue (Pattern.compile ("\"origin\": \"[a-zA-Z0-9.]+, [0-9.]+\"").matcher (body).find ());
+        Assertions.assertFalse (body.contains ("Proxy-Authorization"));
     }
 
+    @Disabled // this domain no longer exists (as of 2025)
     @Test
     public void sslTest (){
         curl ("curl -k https://lenovo.prod.ondemandconnectivity.com");

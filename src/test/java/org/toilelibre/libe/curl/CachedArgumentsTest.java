@@ -2,14 +2,14 @@ package org.toilelibre.libe.curl;
 
 import org.apache.commons.cli.*;
 import org.apache.commons.lang3.reflect.*;
-import org.junit.*;
+import org.junit.jupiter.api.Test;
 
 import java.lang.reflect.*;
 import java.util.*;
 
 import static java.util.Arrays.*;
 import static java.util.Collections.emptyList;
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class CachedArgumentsTest {
 

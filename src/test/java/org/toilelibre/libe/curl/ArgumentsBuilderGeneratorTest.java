@@ -7,7 +7,7 @@ import javassist.CtMethod;
 import javassist.NotFoundException;
 import org.apache.commons.cli.Option;
 import org.apache.commons.io.IOUtils;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.toilelibre.libe.curl.Curl.CurlArgumentsBuilder;
 
 import java.io.File;

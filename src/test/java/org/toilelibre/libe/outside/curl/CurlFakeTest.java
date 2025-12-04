@@ -6,13 +6,13 @@ import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.protocol.HttpContext;
 import org.apache.hc.core5.util.VersionInfo;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.toilelibre.libe.curl.Curl;
 
 import java.util.Map;
 import java.util.function.Consumer;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
  * This is a cheap test suite because this does not need any web server to run.

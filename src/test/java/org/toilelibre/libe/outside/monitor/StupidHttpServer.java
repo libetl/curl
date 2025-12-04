@@ -7,7 +7,6 @@ import java.util.Random;
 import org.springframework.boot.Banner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.autoconfigure.batch.JobExecutionExitCodeGenerator;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
@@ -51,6 +50,6 @@ public class StupidHttpServer {
     }
 
     public static void stop () {
-        SpringApplication.exit (StupidHttpServer.context, new JobExecutionExitCodeGenerator ());
+        SpringApplication.exit (StupidHttpServer.context, () -> 0);
     }
 }

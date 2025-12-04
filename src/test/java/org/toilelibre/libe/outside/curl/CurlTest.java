@@ -14,11 +14,10 @@ import org.apache.hc.core5.http.HttpStatus;
 import org.apache.hc.core5.http.config.RegistryBuilder;
 import org.apache.hc.core5.ssl.SSLContextBuilder;
 import org.assertj.core.api.Assertions;
-import org.junit.AfterClass;
-import org.junit.Assert;
-import org.junit.BeforeClass;
-import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 import org.mockserver.integration.ClientAndServer;
 import org.toilelibre.libe.curl.Curl;
 import org.toilelibre.libe.curl.Curl.CurlException;
@@ -41,6 +40,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import static java.util.Arrays.asList;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.toilelibre.libe.curl.Curl.CurlArgumentsBuilder.CurlJavaOptions.with;
 
 public class CurlTest {
@@ -49,7 +49,7 @@ public class CurlTest {
     private static final Logger LOGGER = Logger.getLogger (CurlTest.class.getName ());
     private static ClientAndServer proxy;
 
-    @BeforeClass
+    @BeforeAll
     public static void startRequestMonitor () {
         if (System.getProperty ("skipServer") == null) {
             RequestMonitor.start ();
@@ -58,7 +58,7 @@ public class CurlTest {
         }
     }
 
-    @AfterClass
+    @AfterAll
     public static void stopRequestMonitor () {
         if (System.getProperty ("skipServer") == null) {
             RequestMonitor.stop ();
@@ -106,9 +106,9 @@ public class CurlTest {
         return response.getCode();
     }
 
-    @Test (expected = CurlException.class)
+    @Test
     public void displayVersion () {
-        this.assertOk (this.curl ("-V"));
+        assertThrows(CurlException.class, () -> this.assertOk (this.curl ("-V")));
     }
 
     @Test
@@ -224,11 +224,12 @@ public class CurlTest {
         try {
             // correct cert password and wrong key password
             this.curl ("-k --cacert src/test/resources/ca/fakeCa.crt --cert-type PEM --cert src/test/resources/clients/libe/libe.pem:mylibepass --key-type P12 --key src/test/resources/clients/libe/libe.p12:mylibepass2 https://localhost:%d/public/");
-            Assert.fail ("This curl is not supposed to work and should fail with a IOException");
+            Assertions.fail ("This curl is not supposed to work and should fail with a IOException");
         }catch (CurlException curlException){
-            Assert.assertEquals (curlException.getCause ().getClass ().getName (),
-                    IOException.class.getName ());
-            Assert.assertEquals (curlException.getCause ().getMessage (),
+            Assertions.assertThat (curlException.getCause ().getClass ().getName ())
+                    .isEqualTo (IOException.class.getName ());
+            Assertions.assertThat (curlException.getCause ().getMessage ())
+                    .isEqualTo (
                     "keystore password was incorrect");
         }
     }
@@ -273,16 +274,16 @@ public class CurlTest {
         this.assertOk (this.curl (this.$ ("-k -E src/test/resources/clients/libe/libe.pem https://localhost:%d/public/")));
     }
 
-    @Ignore
+    @Disabled
     @Test
     public void curlWithTooLowRequestTimeout () {
         try {
             this.curl (this.$("-k -E src/test/resources/clients/libe/libe.pem --connect-timeout 0.001 --max-time 10 https://localhost:%d/public/tooLong"));
-            Assert.fail ("This curl is not supposed to work and should fail with a ConnectTimeoutException");
+            Assertions.fail ("This curl is not supposed to work and should fail with a ConnectTimeoutException");
         }catch (CurlException curlException){
-            Assert.assertTrue (
+            Assertions.assertThat (
                     asList (ConnectTimeoutException.class.getName (), ClientProtocolException.class.getName ())
-                            .contains (curlException.getCause ().getClass ().getName ()));
+                            .contains (curlException.getCause ().getClass ().getName ())).isTrue ();
         }
     }
 
@@ -290,10 +291,10 @@ public class CurlTest {
     public void curlWithMaxTime () {
         try {
             this.curl (this.$("-k -E src/test/resources/clients/libe/libe.pem --connect-timeout 10 --max-time 0.001 https://localhost:%d/public/tooLong"));
-            Assert.fail ("This curl is not supposed to work and should fail with a SocketTimeoutException");
+            Assertions.fail ("This curl is not supposed to work and should fail with a SocketTimeoutException");
         }catch (CurlException curlException){
-            Assert.assertEquals (curlException.getCause ().getClass ().getName (),
-                    SocketTimeoutException.class.getName ());
+            Assertions.assertThat (curlException.getCause ().getClass ().getName ())
+                    .isEqualTo (SocketTimeoutException.class.getName ());
         }
     }
 
@@ -315,6 +316,12 @@ public class CurlTest {
     @Test
     public void withJsonBody () {
         this.assertOk (this.curl ("-k -E src/test/resources/clients/libe/libe.pem -X POST 'https://localhost:%d/public/json' -d '{\"var1\":\"val1\",\"var2\":\"val2\"}'"));
+    }
+
+    @Test
+    public void withSimpleArgsParsing () {
+        this.assertOk (curl ("-k -E src/test/resources/clients/libe/libe.pem -X POST 'https://localhost:%d/public/json' -d '{\"var1\":\"val1\",\"var2\":\"val2\"}'",
+                with ().simpleArgsParsing ().build ()));
     }
 
     @Test
@@ -358,7 +365,7 @@ public class CurlTest {
         boolean fileDeleted = file.delete ();
         LOGGER.log (Level.FINE, "output file deleted : " + fileDeleted);
         this.assertOk (this.curl ("-k -E src/test/resources/clients/libe/libe.pem -X GET -A 'toto' -H 'Accept: */*' -H 'Host: localhost' 'https://localhost:%d/public' -o target/classes/downloadedCurl"));
-        Assert.assertTrue (new File ("target/classes/downloadedCurl").exists ());
+        Assertions.assertThat (new File ("target/classes/downloadedCurl").exists ()).isTrue ();
     }
 
     @Test
@@ -368,63 +375,68 @@ public class CurlTest {
         boolean fileDeleted = file.delete ();
         LOGGER.log (Level.FINE, "output file deleted : " + fileDeleted);
         this.assertOk (this.curl ("-k -E src/test/resources/clients/libe/libe.pem -X GET -A 'toto' -H 'Accept: */*' -H 'Host: localhost' 'https://localhost:%d/public' -o 'target/classes/downloaded Curl With Spaces'"));
-        Assert.assertTrue (new File ("target/classes/downloaded Curl With Spaces").exists ());
-    }
-
-    @Test (expected = CurlException.class)
-    public void justTheVersion () {
-        this.assertOk (this.curl ("-V"));
-    }
-
-    @Test (expected = CurlException.class)
-    public void curlCertNotFound () {
-        this.assertOk (this.curl ("-k -E src/test/resources/clients/libe/toto.pem https://localhost:%d/public/"));
-    }
-
-    @Test (expected = CurlException.class)
-    public void readHelp () {
-        this.curl ("--help");
-    }
-
-    @Test (expected = CurlException.class)
-    public void withBadForm () {
-        this.assertOk (this.curl ("-k -E src/test/resources/clients/libe/libe.pem -F 'totoghghgh' -X POST -H 'Accept: */*' -H 'Host: localhost' 'https://localhost:%d/public/form'"));
-    }
-
-    @Test (expected = CurlException.class)
-    public void curlRootWithoutClientCertificate () {
-        this.$ ("curl -k https://localhost:%d/public/");
-    }
-
-    @Test (expected = CurlException.class)
-    public void curlRootWithoutTrustingInsecure () {
-        this.$ ("curl https://localhost:%d/public/");
+        Assertions.assertThat (new File ("target/classes/downloaded Curl With Spaces").exists ()).isTrue ();
     }
 
     @Test
-    @Ignore // tls v1.1 is now disabled in all recent versions of the jdk, so this test will always fail
+    public void justTheVersion () {
+        assertThrows (CurlException.class, () -> this.assertOk (this.curl ("-V")));
+    }
+
+    @Test
+    public void curlCertNotFound () {
+        assertThrows (CurlException.class, () -> this.assertOk (this.curl ("-k -E src/test/resources/clients/libe/toto.pem https://localhost:%d/public/")));
+    }
+
+    @Test
+    public void readHelp () {
+        assertThrows (CurlException.class, () -> this.curl ("--help"));
+    }
+
+    @Test
+    public void withBadForm () {
+        assertThrows (CurlException.class, () ->
+                this.assertOk (this.curl ("-k -E src/test/resources/clients/libe/libe.pem -F 'totoghghgh' -X POST -H 'Accept: */*' -H 'Host: localhost' 'https://localhost:%d/public/form'")));
+    }
+
+    @Test
+    public void curlRootWithoutClientCertificate () {
+        assertThrows (CurlException.class, () -> this.$ ("curl -k https://localhost:%d/public/"));
+    }
+
+    @Test
+    public void curlRootWithoutTrustingInsecure () {
+        assertThrows (CurlException.class, () -> this.$ ("curl https://localhost:%d/public/"));
+    }
+
+    @Test
+    @Disabled // tls v1.1 is now disabled in all recent versions of the jdk, so this test will always fail
     public void curlTlsV11 () {
         this.assertOk (this.curl ("-k -E src/test/resources/clients/libe/libe.pem https://localhost:%d/public/ --tlsv1.1"));
     }
 
-    @Test (expected = CurlException.class)
+    @Test
     public void curlTlsV10 () {
-        this.assertOk (this.curl ("-k -E src/test/resources/clients/libe/libe.pem https://localhost:%d/public/ --tlsv1.0"));
+        assertThrows (CurlException.class, () ->
+                this.assertOk (this.curl ("-k -E src/test/resources/clients/libe/libe.pem https://localhost:%d/public/ --tlsv1.0")));
     }
 
-    @Test (expected = CurlException.class)
+    @Test
     public void curlTlsV1 () {
-        this.assertOk (this.curl ("-k -E src/test/resources/clients/libe/libe.pem https://localhost:%d/public/ -1"));
+        assertThrows (CurlException.class, () ->
+                this.assertOk (this.curl ("-k -E src/test/resources/clients/libe/libe.pem https://localhost:%d/public/ -1")));
     }
 
-    @Test (expected = CurlException.class)
+    @Test
     public void curlSslV2 () {
-        this.assertOk (this.curl ("-k -E src/test/resources/clients/libe/libe.pem https://localhost:%d/public/ -2"));
+        assertThrows (CurlException.class, () ->
+                this.assertOk (this.curl ("-k -E src/test/resources/clients/libe/libe.pem https://localhost:%d/public/ -2")));
     }
 
-    @Test (expected = CurlException.class)
+    @Test
     public void curlSslV3 () {
-        this.assertOk (this.curl ("-k -E src/test/resources/clients/libe/libe.pem https://localhost:%d/public/ -3"));
+        assertThrows (CurlException.class, () ->
+                this.assertOk (this.curl ("-k -E src/test/resources/clients/libe/libe.pem https://localhost:%d/public/ -3")));
     }
 
     @Test
@@ -447,7 +459,7 @@ public class CurlTest {
             this.assertOk (future1.get ());
             this.assertOk (future2.get ());
         } catch (InterruptedException | ExecutionException e) {
-            Assert.fail ();
+            Assertions.fail ();
         }
     }
 

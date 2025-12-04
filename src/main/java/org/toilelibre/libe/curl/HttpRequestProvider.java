@@ -66,6 +66,8 @@ final class HttpRequestProvider {
     }
 
     private static String determineVerbWithoutArgument (CommandLine commandLine) {
+        if (commandLine.getOptionValue (Arguments.GET.getOpt()) != null)
+            return "GET";
         if (commandLine.hasOption (Arguments.DATA.getOpt ()) ||
                 commandLine.hasOption (Arguments.DATA_URLENCODE.getOpt ()) ||
                 commandLine.hasOption (Arguments.FORM.getOpt ())) {
